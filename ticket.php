@@ -8,6 +8,14 @@ $type = isset($_GET['type']) ? $_GET['type'] : 'all';
 $type = ($type === 'day1') ? 'DAY1' : (($type === 'day2') ? 'DAY2' : 'ALL');
 function e($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 require __DIR__ . '/_assets.php';
+include_once "../common.php";
+// 트랙 잔여 (오프라인 정원 — 온라인은 무제한)
+$trackRemain = array();
+$_tk = sql_query("SELECT name,date1 FROM 2026_event_ticket");
+if ($_tk) { while ($x = $_tk->fetch_assoc()) {
+    $reg = sql_fetch("SELECT count(*) c FROM cb_unreal_2026_event2_apply WHERE apply_temp_yn='N' AND apply_pay_status<>0 AND apply_track LIKE '%".sql_real_escape_string($x['name'])."%'");
+    $trackRemain[$x['name']] = (int)$x['date1'] - ($reg ? (int)$reg['c'] : 0);
+}}
 // 본인인증 결과(세션) — ../common.php 연동 시 채워짐. 미연동 환경 폴백.
 $sess_ci = isset($_SESSION['CI']) ? $_SESSION['CI'] : '';
 $sess_di = isset($_SESSION['DI']) ? $_SESSION['DI'] : '';
@@ -174,9 +182,9 @@ $sess_tel = isset($_SESSION['TEL_NO']) ? $_SESSION['TEL_NO'] : '';
             <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <?php
               $d1 = array('DAY1_TR1'=>'게임: 프로그래밍','DAY1_TR2'=>'게임: 아트','DAY1_TR3'=>'미디어 & 엔터테인먼트','DAY1_TR4'=>'산업 & 시뮬레이션');
-              foreach ($d1 as $v=>$l): ?>
-              <label class="trk p-3 border text-center cursor-pointer text-sm font-medium transition-all border-[#27272a] text-[#71717a] hover:border-white/20">
-                <input type="radio" name="day1track" value="<?= $v ?>" class="sr-only"><?= e($l) ?>
+              foreach ($d1 as $v=>$l): $full = isset($trackRemain[$v]) && $trackRemain[$v] <= 0; ?>
+              <label class="trk <?= $full?'trk-full opacity-40 cursor-not-allowed':'cursor-pointer hover:border-white/20' ?> p-3 border text-center text-sm font-medium transition-all border-[#27272a] text-[#71717a]">
+                <input type="radio" name="day1track" value="<?= $v ?>" class="sr-only" <?= $full?'disabled':'' ?>><?= e($l) ?><?php if($full): ?> <span class="text-[#ff8674] text-xs">(마감)</span><?php endif; ?>
               </label>
               <?php endforeach; ?>
             </div>
@@ -186,9 +194,9 @@ $sess_tel = isset($_SESSION['TEL_NO']) ? $_SESSION['TEL_NO'] : '';
             <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <?php
               $d2 = array('DAY2_TR1'=>'게임: 프로그래밍','DAY2_TR2'=>'게임: 아트','DAY2_TR3'=>'미디어 & 엔터테인먼트','DAY2_TR4'=>'산업 & 시뮬레이션');
-              foreach ($d2 as $v=>$l): ?>
-              <label class="trk p-3 border text-center cursor-pointer text-sm font-medium transition-all border-[#27272a] text-[#71717a] hover:border-white/20">
-                <input type="radio" name="day2track" value="<?= $v ?>" class="sr-only"><?= e($l) ?>
+              foreach ($d2 as $v=>$l): $full = isset($trackRemain[$v]) && $trackRemain[$v] <= 0; ?>
+              <label class="trk <?= $full?'trk-full opacity-40 cursor-not-allowed':'cursor-pointer hover:border-white/20' ?> p-3 border text-center text-sm font-medium transition-all border-[#27272a] text-[#71717a]">
+                <input type="radio" name="day2track" value="<?= $v ?>" class="sr-only" <?= $full?'disabled':'' ?>><?= e($l) ?><?php if($full): ?> <span class="text-[#ff8674] text-xs">(마감)</span><?php endif; ?>
               </label>
               <?php endforeach; ?>
             </div>
@@ -277,6 +285,7 @@ document.querySelectorAll('.ticket-card').forEach(function(c){
 });
 document.querySelectorAll('.trk').forEach(function(l){
   l.addEventListener('click',function(){
+    if(l.classList.contains('trk-full')) return; // 마감 트랙 선택 불가
     var name=l.querySelector('input').name;
     document.querySelectorAll('.trk input[name="'+name+'"]').forEach(function(i){
       var lab=i.closest('.trk');

@@ -60,6 +60,19 @@ if ($dup && $dup['cnt'] > 0) { exit('<script>alert("이미 등록된 본인인�
 $dup = sql_fetch("select count(*) as cnt from cb_unreal_2026_event2_apply where apply_user_email = '$em_esc' and apply_user_phone = '$ph_esc' and apply_temp_yn = 'N'");
 if ($dup && $dup['cnt'] > 0) { exit('<script>alert("이미 등록된 이메일/연락처입니다.");location.href="myticket.php";</script>'); }
 
+// ── 트랙 정원 체크 (오프라인만; 온라인은 무제한) — 결제 전 강제 ──
+$_sel_tracks = array_filter(array_map('trim', explode(',', $apply_track)));
+foreach ($_sel_tracks as $tk) {
+    $tke = sql_real_escape_string($tk);
+    $cap = sql_fetch("select date1 from 2026_event_ticket where name='$tke'");
+    $capN = $cap ? (int)$cap['date1'] : 0;
+    $reg = sql_fetch("select count(*) c from cb_unreal_2026_event2_apply where apply_temp_yn='N' and apply_pay_status<>0 and apply_track like '%$tke%'");
+    $regN = $reg ? (int)$reg['c'] : 0;
+    if ($capN > 0 && $regN >= $capN) {
+        exit('<script>alert("선택하신 트랙의 정원이 마감되었습니다. 다른 트랙을 선택해주세요.");history.back();</script>');
+    }
+}
+
 // ── INSERT (임시: apply_temp_yn=Y) ──
 $apply_password = md5(str_replace("'","\\'",$apply_user_email));
 $sql = "INSERT INTO cb_unreal_2026_event2_apply

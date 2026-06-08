@@ -31,7 +31,7 @@ export const Overview = () => {
         <div className="grid lg:grid-cols-[1fr_1.2fr] gap-12 items-start">
           <div>
             <img
-              src="https://unrealsummit16.cafe24.com/2026/ufs26/overview_text.svg"
+              src="./overview_text.svg"
               alt="Unreal Ideas Start Here"
               className="mb-6" style={{ width: "420px", maxWidth: "100%" }}
             />

@@ -402,7 +402,7 @@ export default function Schedule() {
                         </div>
                         <div className="absolute right-4 bottom-0 w-[25%] hidden md:flex items-end justify-center">
                           <img
-                            src={k.id === "keynote-1" ? "https://unrealsummit16.cafe24.com/2026/images/Tim_Sweeney%201.png" : k.id === "keynote-2" ? "https://unrealsummit16.cafe24.com/2026/images/i19891652231.png" : ""}
+                            src={k.id === "keynote-1" ? "./Tim_Sweeney_1.png" : k.id === "keynote-2" ? "./keynote2.png" : ""}
                             alt={k.speaker.name}
                             className="h-32 object-cover object-top"
                             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}

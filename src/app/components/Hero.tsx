@@ -62,7 +62,7 @@ export const Hero = () => {
         className="absolute inset-0 w-full h-full object-cover object-bottom"
         style={{ objectPosition: "calc(50% + 200px) bottom" }}
       >
-        <source src="https://epiclounge.co.kr/v3/preview_2026/WEBSITE_USE_ONLY_Fest_ambient_loop_1920x1080_v05.mp4" type="video/mp4" />
+        <source src="./WEBSITE_USE_ONLY_Fest_ambient_loop_1920x1080_v05.mp4" type="video/mp4" />
       </video>
       {/* 그라데이션 오버레이 */}
       <div className="absolute inset-0 bg-gradient-to-b from-black via-black/60 to-transparent"></div>
@@ -76,7 +76,7 @@ export const Hero = () => {
           className="mb-10"
         >
           <img
-            src="https://unrealsummit16.cafe24.com/2026/ufs26/hero_new_main_logo.svg"
+            src="./hero_new_main_logo.svg"
             alt="Unreal Fest Seoul 2026"
             style={{ width: "700px", maxWidth: "100%" }}
           />

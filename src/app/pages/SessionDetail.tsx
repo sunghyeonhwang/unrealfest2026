@@ -147,9 +147,9 @@ export default function SessionDetail() {
                 </div>
                 <div className="w-16 h-16 rounded-full bg-[#1a1a1f] border border-[#27272a] flex items-center justify-center flex-shrink-0 overflow-hidden">
                   {session.id === "keynote-1" ? (
-                    <img src="https://unrealsummit16.cafe24.com/2026/images/Tim_Sweeney%201.png" alt={session.speaker.name} className="w-full h-full object-cover" />
+                    <img src="./Tim_Sweeney_1.png" alt={session.speaker.name} className="w-full h-full object-cover" />
                   ) : session.id === "keynote-2" ? (
-                    <img src="https://unrealsummit16.cafe24.com/2026/images/i19891652231.png" alt={session.speaker.name} className="w-full h-full object-cover" />
+                    <img src="./keynote2.png" alt={session.speaker.name} className="w-full h-full object-cover" />
                   ) : (
                     <User className="w-8 h-8 text-[#71717a]" />
                   )}

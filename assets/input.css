@@ -1,0 +1,74 @@
+/* Unreal Fest Seoul 2026 — Tailwind v4 input
+ * Design Ref: design.md §1~§8 / Design doc §Design Anchor
+ * 빌드: npm run build:css  (node_modules/.bin/tailwindcss -i assets/input.css -o assets/style.css --minify)
+ * 클래스는 PHP/JS에 리터럴로만 작성(JIT 추출). 동적 색상은 CSS 변수/data-* 사용.
+ */
+@import "tailwindcss";
+
+/* content 스캔 경로 (node_modules/dist 제외, 우리 소스만) */
+@source "../*.php";
+@source "../data/*.php";
+@source "../assets/js/*.js";
+
+/* 다크 고정: html.dark 기준 class 전략 (dist와 동일하게 공개 페이지는 다크 고정) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* 브랜드 */
+  --color-brand: #00C1D5;
+  --color-brand-shadow: #004F59;
+  --color-brand-highlight: #9ADBE8;
+
+  /* 트랙 (main / sub) */
+  --color-track-prog: #307FE2;
+  --color-track-prog-sub: #002855;
+  --color-track-art: #FF8F1C;
+  --color-track-art-sub: #FECB8B;
+  --color-track-media: #FA4616;
+  --color-track-media-sub: #FF8674;
+  --color-track-industry: #DD0AB2;
+  --color-track-industry-sub: #DD9CDF;
+
+  /* 다크 배경 단계 */
+  --color-ink-900: #09090b;
+  --color-ink-850: #0B0C10;
+  --color-ink-800: #111115;
+  --color-ink-input: #1A1B23;
+
+  /* 폰트 */
+  --font-display: "Inter Tight", system-ui, sans-serif;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+}
+
+/* 5각형 clip-path 디자인 언어 (design.md §2) */
+@utility clip-tr { /* 우상단 24px */
+  clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 0 100%);
+}
+@utility clip-tr-16 { /* 그리드 세션 카드 16px */
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+}
+@utility clip-tr-28 { /* 대형 카드/모달 28px */
+  clip-path: polygon(0 0, calc(100% - 28px) 0, 100% 28px, 100% 100%, 0 100%);
+}
+@utility clip-br { /* 우하단 20px */
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+}
+@utility clip-br-16 {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+}
+@utility clip-btn { /* CTA 버튼 12px */
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+}
+@utility clip-btn-sm { /* GNB 버튼 10px */
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+}
+
+/* 전역 */
+@layer base {
+  * { word-break: keep-all; }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font-sans); }
+  /* 드래그 캐러셀 스크롤바 숨김 */
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+}

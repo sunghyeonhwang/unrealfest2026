@@ -17,16 +17,23 @@
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.477 3 2 6.463 2 10.691c0 2.818 1.867 5.29 4.682 6.678-.177.63-.64 2.284-.733 2.64-.117.443.162.436.34.317.14-.093 2.23-1.516 3.132-2.132.52.078 1.053.12 1.579.12 5.523 0 10-3.463 10-7.623C22 6.463 17.523 3 12 3z"/></svg>
           </a>
         </div>
+        <!-- 사업자 정보 (전자상거래법 표시) -->
+        <div class="mt-8 text-xs leading-relaxed text-slate-500 space-y-1">
+          <p>법인명(상호): 주식회사 그리프 &nbsp;·&nbsp; 대표이사: 황성현 &nbsp;·&nbsp; 사업자등록번호: 859-88-00263 <a href="https://www.ftc.go.kr/bizCommPop.do?wrkr_no=8598800263" target="_blank" rel="noopener noreferrer" class="underline hover:text-white transition-colors">확인</a></p>
+          <p>통신판매업: 2018-서울송파-0571 &nbsp;·&nbsp; 개인정보보호책임자: 오승훈</p>
+          <p>주소: 서울 성동구 광나루로8길 31, SK V1 CENTER2, 1102-1103호</p>
+          <p>고객센터: 02-326-3701 &nbsp;·&nbsp; 대표 이메일: <a href="mailto:info@epiclounge.co.kr" class="underline hover:text-white transition-colors">info@epiclounge.co.kr</a></p>
+        </div>
       </div>
       <div>
         <h4 class="text-white font-bold mb-6 tracking-widest text-xs uppercase">Unreal Fest Seoul</h4>
         <ul class="space-y-4 text-slate-400">
-          <li><a href="index.html" class="hover:text-[#00C1D5] transition-colors">소개</a></li>
-          <li><a href="index.html" class="hover:text-[#00C1D5] transition-colors">아젠다</a></li>
-          <li><a href="index.html" class="hover:text-[#00C1D5] transition-colors">티켓</a></li>
-          <li><a href="index.html" class="hover:text-[#00C1D5] transition-colors">행사장 안내</a></li>
-          <li><a href="index.html" class="hover:text-[#00C1D5] transition-colors">이벤트</a></li>
-          <li><a href="index.html" class="hover:text-[#00C1D5] transition-colors">FAQ</a></li>
+          <li><a href="index.php#overview" class="hover:text-[#00C1D5] transition-colors">소개</a></li>
+          <li><a href="index.php#agenda" class="hover:text-[#00C1D5] transition-colors">아젠다</a></li>
+          <li><a href="index.php#register" class="hover:text-[#00C1D5] transition-colors">티켓</a></li>
+          <li><a href="index.php#venue" class="hover:text-[#00C1D5] transition-colors">행사장 안내</a></li>
+          <li><a href="index.php#event-benefits" class="hover:text-[#00C1D5] transition-colors">이벤트</a></li>
+          <li><a href="index.php#faq" class="hover:text-[#00C1D5] transition-colors">FAQ</a></li>
         </ul>
       </div>
       <div>

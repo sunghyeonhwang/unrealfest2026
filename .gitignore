@@ -5,3 +5,4 @@ dist/
 .bkit/
 document/2.0 V2.mp4
 public/*.mp4
+.convert/

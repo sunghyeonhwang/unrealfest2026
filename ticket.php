@@ -56,7 +56,7 @@ $sess_tel = isset($_SESSION['TEL_NO']) ? $_SESSION['TEL_NO'] : '';
   <div class="max-w-7xl mx-auto px-6">
     <a href="index.html#register" class="inline-flex items-center gap-2 text-[#71717a] hover:text-white transition-colors mb-8 text-sm"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> 돌아가기</a>
     <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">언리얼 페스트 2026 서울 오프라인 등록</h1>
-    <p class="text-[#a1a1aa] mb-10">아래 정보를 입력하고 티켓을 선택해주세요.</p>
+    <p class="text-[#a1a1aa] mb-10">티켓을 선택하고 정보를 입력해 주세요.</p>
 
     <div class="grid lg:grid-cols-12 gap-8 items-start">
       <!-- 좌측 폼 -->
@@ -127,11 +127,11 @@ $sess_tel = isset($_SESSION['TEL_NO']) ? $_SESSION['TEL_NO'] : '';
         <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
           <h2 class="text-lg font-bold text-white mb-5">기본 정보</h2>
           <div class="grid md:grid-cols-3 gap-6">
-            <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">이름 *</label>
+            <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">이름 <span class="text-[#00C1D5]">*</span></label>
               <input type="text" name="apply_user_name" id="apply_user_name" value="<?= e($sess_name) ?>" placeholder="본인인증 시 자동입력" readonly class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none text-sm"></div>
-            <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">이메일 *</label>
+            <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">이메일 <span class="text-[#00C1D5]">*</span></label>
               <input type="email" name="apply_user_email" placeholder="email@example.com" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
-            <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">연락처 *</label>
+            <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">연락처 <span class="text-[#00C1D5]">*</span></label>
               <input type="tel" name="apply_user_phone" value="<?= e($sess_tel) ?>" placeholder="010-1234-5678" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
           </div>
         </div>
@@ -141,21 +141,21 @@ $sess_tel = isset($_SESSION['TEL_NO']) ? $_SESSION['TEL_NO'] : '';
           <h2 class="text-lg font-bold text-white mb-5">소속 및 관심 분야</h2>
           <div class="space-y-6">
             <div class="grid md:grid-cols-2 gap-6">
-              <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">직업 *</label>
+              <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">직업 <span class="text-[#00C1D5]">*</span></label>
                 <select name="apply_user_job" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none">
                   <option value="">선택해주세요</option><option>직장인</option><option>학생</option><option>교육자/교육기관</option><option>인디 개발자</option><option>프리랜서</option>
                 </select></div>
-              <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">회사명/소속 *</label>
+              <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">회사명/소속 <span class="text-[#00C1D5]">*</span></label>
                 <input type="text" name="apply_user_company" placeholder="에픽게임즈" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
             </div>
             <div class="grid md:grid-cols-3 gap-6">
               <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">부서</label>
                 <input type="text" name="apply_user_depart" placeholder="개발팀" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
-              <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">직무 *</label>
+              <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">직무 <span class="text-[#00C1D5]">*</span></label>
                 <select name="apply_user_grade" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none">
                   <option value="">선택해주세요</option><option>비주얼 아트</option><option>프로그래밍</option><option>프로덕션</option><option>엔지니어링</option><option>설계</option><option>기획</option><option>R&D</option><option>IT</option><option>감독/PD</option><option>비즈니스/마케팅</option><option>C-level</option><option>기타</option>
                 </select></div>
-              <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">산업/관심 분야 *</label>
+              <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">산업/관심 분야 <span class="text-[#00C1D5]">*</span></label>
                 <select name="apply_user_ex1" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none">
                   <option value="">선택해주세요</option><option>게임</option><option>영화 &amp; TV</option><option>방송 &amp; 라이브 이벤트</option><option>애니메이션</option><option>건축</option><option>자동차</option><option>제조/시뮬레이션</option><option>소프트웨어 &amp; 툴 개발</option><option>VR·AR</option><option>교육</option><option>기타</option>
                 </select></div>
@@ -166,10 +166,10 @@ $sess_tel = isset($_SESSION['TEL_NO']) ? $_SESSION['TEL_NO'] : '';
         <!-- 티셔츠 + 트랙 -->
         <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
           <div class="mb-8">
-            <h2 class="text-lg font-bold text-white mb-2">티셔츠 사이즈 선택 *</h2>
-            <p class="text-xs text-[#71717a] mb-4">오프라인 참가자에게 티셔츠 등이 포함된 키트가 지급되며 사이즈 교환은 불가합니다.</p>
+            <h2 class="text-lg font-bold text-white mb-2">티셔츠 사이즈 선택 <span class="text-[#00C1D5]">*</span></h2>
+            <p class="text-xs text-[#71717a] mb-4">오프라인 참가자에게 지급되며 사이즈 교환은 불가합니다.</p>
             <div class="flex flex-wrap gap-3">
-              <?php foreach (array('M','L','XL','3XL') as $size): ?>
+              <?php foreach (array('M','L','XL','XXL') as $size): ?>
               <label class="relative cursor-pointer">
                 <input type="radio" name="tshirt" value="<?= $size ?>" class="peer sr-only">
                 <div class="w-14 h-14 border border-[#27272a] bg-[#0e0f14] flex items-center justify-center text-sm font-bold text-[#71717a] peer-checked:border-[#00C1D5] peer-checked:bg-[rgba(0,79,89,0.2)] peer-checked:text-[#00C1D5] transition-all hover:border-white/20"><?= $size ?></div>
@@ -178,7 +178,7 @@ $sess_tel = isset($_SESSION['TEL_NO']) ? $_SESSION['TEL_NO'] : '';
             </div>
           </div>
           <div id="day1box" class="mb-6">
-            <h3 class="text-sm font-bold text-white mb-3">Day 1. 8월 20일(목) 트랙 선택 *</h3>
+            <h3 class="text-sm font-bold text-white mb-3">Day 1. 8월 20일(목) 트랙 선택 <span class="text-[#00C1D5]">*</span></h3>
             <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <?php
               $d1 = array('DAY1_TR1'=>'게임: 프로그래밍','DAY1_TR2'=>'게임: 아트','DAY1_TR3'=>'미디어 & 엔터테인먼트','DAY1_TR4'=>'산업 & 시뮬레이션');
@@ -190,7 +190,7 @@ $sess_tel = isset($_SESSION['TEL_NO']) ? $_SESSION['TEL_NO'] : '';
             </div>
           </div>
           <div id="day2box">
-            <h3 class="text-sm font-bold text-white mb-3">Day 2. 8월 21일(금) 트랙 선택 *</h3>
+            <h3 class="text-sm font-bold text-white mb-3">Day 2. 8월 21일(금) 트랙 선택 <span class="text-[#00C1D5]">*</span></h3>
             <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <?php
               $d2 = array('DAY2_TR1'=>'게임: 프로그래밍','DAY2_TR2'=>'게임: 아트','DAY2_TR3'=>'미디어 & 엔터테인먼트','DAY2_TR4'=>'산업 & 시뮬레이션');
@@ -370,14 +370,27 @@ function collectTrack(){
   if(d2&&document.getElementById('day2box').style.display!=='none')arr.push(d2.value);
   document.getElementById('apply_track').value=arr.join(',');
 }
+function ufsFail(el, msg){
+  alert(msg);
+  if(el){ try{ el.scrollIntoView({behavior:'smooth', block:'center'}); el.focus({preventScroll:true}); }catch(e){} }
+  return false;
+}
+function val(sel){ return document.querySelector(sel); }
 function validateForm(){
   collectTrack();
-  if(!document.getElementById('apply_ci').value){alert('본인인증이 필요합니다.');return false;}
-  if(!document.querySelector('input[name="apply_user_email"]').value){alert('이메일을 입력해주세요.');return false;}
-  if(!document.querySelector('input[name="apply_user_phone"]').value){alert('연락처를 입력해주세요.');return false;}
-  if(!document.querySelector('input[name="apply_user_company"]').value){alert('회사명/소속을 입력해주세요.');return false;}
-  if(!document.querySelector('input[name="agree_req"]').checked){alert('필수 약관에 동의해주세요.');return false;}
-  if(!document.getElementById('agree_refund').checked){alert('취소/환불 규정에 동의해주세요.');return false;}
+  if(!document.getElementById('apply_ci').value) return ufsFail(document.getElementById('authState'), '본인인증을 먼저 진행해주세요.');
+  var f;
+  if(!(f=val('input[name="apply_user_email"]')).value.trim()) return ufsFail(f, '이메일을 입력해주세요.');
+  if(!(f=val('input[name="apply_user_phone"]')).value.trim()) return ufsFail(f, '연락처를 입력해주세요.');
+  if(!(f=val('select[name="apply_user_job"]')).value) return ufsFail(f, '직업을 선택해주세요.');
+  if(!(f=val('input[name="apply_user_company"]')).value.trim()) return ufsFail(f, '회사명/소속을 입력해주세요.');
+  if(!(f=val('select[name="apply_user_grade"]')).value) return ufsFail(f, '직무를 선택해주세요.');
+  if(!(f=val('select[name="apply_user_ex1"]')).value) return ufsFail(f, '산업/관심 분야를 선택해주세요.');
+  if(!val('input[name="tshirt"]:checked')) return ufsFail(document.getElementById('day1box')||val('input[name="tshirt"]'), '티셔츠 사이즈를 선택해주세요.');
+  if(document.getElementById('day1box').style.display!=='none' && !val('input[name="day1track"]:checked')) return ufsFail(document.getElementById('day1box'), 'Day 1 트랙을 선택해주세요.');
+  if(document.getElementById('day2box').style.display!=='none' && !val('input[name="day2track"]:checked')) return ufsFail(document.getElementById('day2box'), 'Day 2 트랙을 선택해주세요.');
+  if(!val('input[name="agree_req"]').checked) return ufsFail(val('input[name="agree_req"]'), '필수 약관에 동의해주세요.');
+  if(!document.getElementById('agree_refund').checked) return ufsFail(document.getElementById('agree_refund'), '취소/환불 규정에 동의해주세요.');
   return true;
 }
 selectTicket(<?= json_encode($type) ?>);

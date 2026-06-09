@@ -34,7 +34,7 @@ export default function TicketPurchase() {
         </Link>
 
         <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">언리얼 페스트 2026 서울 오프라인 등록</h1>
-        <p className="text-[#a1a1aa] mb-10">아래 정보를 입력하고 티켓을 선택해주세요.</p>
+        <p className="text-[#a1a1aa] mb-10">티켓을 선택하고 정보를 입력해 주세요.</p>
 
         <div className="grid lg:grid-cols-12 gap-8 items-start">
           {/* 좌측: 폼 영역 */}
@@ -141,15 +141,15 @@ export default function TicketPurchase() {
             <h2 className="text-lg font-bold text-white mb-5">기본 정보</h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="space-y-2">
-                <label className={labelCls}>이름 *</label>
+                <label className={labelCls}>이름 <span className="text-[#00C1D5]">*</span></label>
                 <input type="text" className={inputCls} placeholder="홍길동" />
               </div>
               <div className="space-y-2">
-                <label className={labelCls}>이메일 *</label>
+                <label className={labelCls}>이메일 <span className="text-[#00C1D5]">*</span></label>
                 <input type="email" className={inputCls} placeholder="email@example.com" />
               </div>
               <div className="space-y-2">
-                <label className={labelCls}>연락처 *</label>
+                <label className={labelCls}>연락처 <span className="text-[#00C1D5]">*</span></label>
                 <input type="tel" className={inputCls} placeholder="010-1234-5678" />
               </div>
             </div>
@@ -161,7 +161,7 @@ export default function TicketPurchase() {
             <div className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className={labelCls}>직업 *</label>
+                  <label className={labelCls}>직업 <span className="text-[#00C1D5]">*</span></label>
                   <select value={jobType} onChange={e => setJobType(e.target.value)} className={selectCls}>
                     <option value="">선택해주세요</option>
                     <option value="office">직장인</option>
@@ -172,7 +172,7 @@ export default function TicketPurchase() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className={labelCls}>회사명/소속 *</label>
+                  <label className={labelCls}>회사명/소속 <span className="text-[#00C1D5]">*</span></label>
                   <input type="text" className={inputCls} placeholder="에픽게임즈" />
                 </div>
               </div>
@@ -182,7 +182,7 @@ export default function TicketPurchase() {
                   <input type="text" className={inputCls} placeholder="개발팀" />
                 </div>
                 <div className="space-y-2">
-                  <label className={labelCls}>직무 *</label>
+                  <label className={labelCls}>직무 <span className="text-[#00C1D5]">*</span></label>
                   <select className={selectCls}>
                     <option value="">선택해주세요</option>
                     <option>비주얼 아트</option>
@@ -200,7 +200,7 @@ export default function TicketPurchase() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className={labelCls}>산업/관심 분야 *</label>
+                  <label className={labelCls}>산업/관심 분야 <span className="text-[#00C1D5]">*</span></label>
                   <select className={selectCls}>
                     <option value="">선택해주세요</option>
                     <option>게임</option>
@@ -223,10 +223,10 @@ export default function TicketPurchase() {
           {/* 티셔츠 + 트랙 선택 */}
           <div className={sectionCls}>
             <div className="mb-8">
-              <h2 className="text-lg font-bold text-white mb-2">티셔츠 관련 사이즈 선택 *</h2>
-              <p className="text-xs text-[#71717a] mb-4">오프라인 참가자에게 11종 및 티셔츠 등이 포함된 키트가 지급되며 사이즈 교환은 불가합니다.</p>
+              <h2 className="text-lg font-bold text-white mb-2">티셔츠 사이즈 선택 <span className="text-[#00C1D5]">*</span></h2>
+              <p className="text-xs text-[#71717a] mb-4">오프라인 참가자에게 지급되며 사이즈 교환은 불가합니다.</p>
               <div className="flex flex-wrap gap-3">
-                {["M", "L", "XL", "3XL"].map(size => (
+                {["M", "L", "XL", "XXL"].map(size => (
                   <label key={size} className="relative cursor-pointer">
                     <input type="radio" name="tshirt" value={size} className="peer sr-only" />
                     <div className="w-14 h-14 border border-[#27272a] bg-[#0e0f14] flex items-center justify-center text-sm font-bold text-[#71717a] peer-checked:border-[#00C1D5] peer-checked:bg-[rgba(0,79,89,0.2)] peer-checked:text-[#00C1D5] transition-all hover:border-white/20">
@@ -239,7 +239,7 @@ export default function TicketPurchase() {
 
             {showDay1 && (
               <div className="mb-6">
-                <h3 className="text-sm font-bold text-white mb-3">Day 1. 8월 20일(목) 트랙 선택 *</h3>
+                <h3 className="text-sm font-bold text-white mb-3">Day 1. 8월 20일(목) 트랙 선택 <span className="text-[#00C1D5]">*</span></h3>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {[
                     { value: "DAY1_TR1", label: "게임: 프로그래밍" },
@@ -258,7 +258,7 @@ export default function TicketPurchase() {
             )}
             {showDay2 && (
               <div>
-                <h3 className="text-sm font-bold text-white mb-3">Day 2. 8월 21일(금) 트랙 선택 *</h3>
+                <h3 className="text-sm font-bold text-white mb-3">Day 2. 8월 21일(금) 트랙 선택 <span className="text-[#00C1D5]">*</span></h3>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {[
                     { value: "DAY2_TR1", label: "게임: 프로그래밍" },

@@ -38,10 +38,12 @@ $apply_tshirt       = pp('tshirt');
 $apply_event_agree  = (pp('agree_mkt') !== '' ) ? '1' : '0';
 
 // 상품 화이트리스트 (서버측 금액 재검증 — 위변조 방지)
+// ※ 얼리버드 50% 할인가 적용 (~2026-07-13). 정가: 양일권 120,000 / 1일권 60,000.
+//   얼리버드 종료 후 정가 복귀 시 아래 price 와 ticket-all/day 카드·_ticket_sidebar 표시를 함께 수정.
 $PRODUCTS = array(
-  'NORMAL_ALL' => array('name'=>'양일권',       'price'=>120000),
-  'NORMAL_20'  => array('name'=>'Day 1 단일권', 'price'=>60000),
-  'NORMAL_21'  => array('name'=>'Day 2 단일권', 'price'=>60000),
+  'NORMAL_ALL' => array('name'=>'양일권',       'price'=>60000),
+  'NORMAL_20'  => array('name'=>'Day 1 단일권', 'price'=>30000),
+  'NORMAL_21'  => array('name'=>'Day 2 단일권', 'price'=>30000),
 );
 if (!isset($PRODUCTS[$apply_product_code])) { exit('잘못된 상품입니다.'); }
 $apply_product_name  = $PRODUCTS[$apply_product_code]['name'];
@@ -116,7 +118,7 @@ $veriParam  = array("oid"=>$oid, "price"=>$price, "signKey"=>$signKey, "timestam
 $sign2      = $util->makeSignature($veriParam);
 $base       = "https://".$_SERVER['HTTP_HOST']."/v3/unrealfest2026";
 $returnUrl  = $base."/apply_pay_return.php";
-$closeUrl   = $base."/ticket.php";
+$closeUrl   = $base."/".($apply_product_code === 'NORMAL_ALL' ? 'ticket-all.php' : 'ticket-day.php');
 function ev($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>

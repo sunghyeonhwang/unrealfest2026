@@ -8,6 +8,7 @@ require_once "../unrealfest2025/inisis_pc/libs/INIStdPayUtil.php";
 require_once "../unrealfest2025/inisis_pc/libs/HttpClient.php";
 require_once "../unrealfest2025/inisis_pc/libs/properties.php";
 include_once "../common.php";
+require_once __DIR__ . "/_sms.php";   // QR MMS / 가상계좌 안내 SMS
 
 $INICIS_TEST = true;
 if ($INICIS_TEST) { $mid="INIpayTest"; $signKey="SU5JTElURV9UUklQTEVERVNfS0VZU1RS"; }
@@ -93,6 +94,13 @@ if (isset($rm["payMethod"]) && $rm["payMethod"] === "VBank") {
   sql_query("UPDATE cb_unreal_2026_event2_apply SET pay_complete='N', apply_pay_status=1 WHERE apply_no='".intval($apply_no)."'");
   $_SESSION["VBANK_NUM"] = isset($rm["VACT_Num"]) ? $rm["VACT_Num"] : '';
   $_SESSION["VBANK_AMOUNT"] = isset($rm["TotPrice"]) ? $rm["TotPrice"] : '';
+  // 가상계좌 입금안내 SMS (운영 전환 시 발송)
+  ufs_send_vbank_sms(
+    $prev['apply_user_name'], $prev['apply_user_phone'],
+    $_SESSION["VBANK_NUM"],
+    ($_SESSION["VBANK_AMOUNT"] !== '' ? $_SESSION["VBANK_AMOUNT"] : $prev['apply_product_price']),
+    $prev['apply_product_code']
+  );
   header("Location: ticket-complete.php?vbank=1&k=".rawurlencode(base64_encode($apply_no))); exit;
 }
 
@@ -113,6 +121,9 @@ if (file_exists("../unrealfest2025/phpqrcode/qrlib.php")) {
     }
   }
 }
+
+// 카드 등 즉시완료 → QR jpg 첨부 MMS 발송 (운영 전환 시 발송; QR 파일 생성 후 호출)
+ufs_send_qr_mms($prev['apply_user_name'], $prev['apply_user_phone'], $apply_no, $prev['apply_product_code']);
 
 header("Location: ticket-complete.php?k=".rawurlencode(base64_encode($apply_no)));
 exit;

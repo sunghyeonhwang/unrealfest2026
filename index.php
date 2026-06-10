@@ -196,7 +196,7 @@ $ov_icons = array(
         <div class="mb-1"><span class="text-[18px] text-[#71717a] line-through tracking-tight">₩ 120,000</span></div>
         <div class="mb-2"><span class="text-[40px] font-bold text-white tracking-tight">₩ 60,000</span></div>
         <p class="text-[13px] text-[#9adbe8] mb-auto">얼리버드 할인 (~7/13 마감)</p>
-        <a href="ticket.php?type=all" class="mt-[35px] w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 transition-colors font-jamjil">
+        <a href="ticket-all.php" class="mt-[35px] w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 transition-colors font-jamjil">
           양일권 등록하기
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </a>
@@ -208,7 +208,7 @@ $ov_icons = array(
         <div class="mb-1"><span class="text-[18px] text-[#71717a] line-through tracking-tight">₩ 60,000</span></div>
         <div class="mb-2"><span class="text-[40px] font-bold text-white tracking-tight">₩ 30,000</span></div>
         <p class="text-[13px] text-[#9adbe8] mb-auto">얼리버드 할인 (~7/13 마감)</p>
-        <a href="ticket.php?type=day1" class="mt-[35px] w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 transition-colors font-jamjil">
+        <a href="ticket-day.php" class="mt-[35px] w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 transition-colors font-jamjil">
           1일권 등록하기
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </a>

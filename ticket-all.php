@@ -1,0 +1,107 @@
+<?php
+/* Unreal Fest Seoul 2026 — 양일권 오프라인 등록 (ticket-all.php)
+ * 양일권 전용. Day 1 + Day 2 트랙 모두 선택. product=NORMAL_ALL.
+ * 공통: _ticket_init.php / _ticket_fields.php / _ticket_sidebar.php / assets/js/ticket.js
+ */
+require __DIR__ . '/_ticket_init.php';
+?>
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>양일권 등록 — Unreal Fest Seoul 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="<?= asset_v('assets/style.css') ?>">
+<style>*{word-break:keep-all}</style>
+</head>
+<body class="bg-[#09090b] text-white" style="font-family:system-ui,'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+
+<header class="fixed top-0 inset-x-0 z-50 bg-[#09090b]/95 backdrop-blur border-b border-[#27272a]">
+  <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a href="index.php"><img src="white_logo.svg" alt="Unreal Fest Seoul 2026" class="h-7 w-auto"></a>
+    <a href="index.php" class="text-sm text-[#a1a1aa] hover:text-white">홈으로</a>
+  </div>
+</header>
+
+<form name="frm" id="frm" method="post" action="apply_pay.php" onsubmit="return validateForm()">
+<input type="hidden" name="apply_ci" id="apply_ci" value="<?= e($sess_ci) ?>">
+<input type="hidden" name="apply_di" id="apply_di" value="<?= e($sess_di) ?>">
+<input type="hidden" name="apply_real_type" id="apply_real_type" value="">
+<input type="hidden" name="apply_product_code" id="apply_product_code" value="">
+<input type="hidden" name="apply_product_name" id="apply_product_name" value="">
+<input type="hidden" name="apply_product_price" id="apply_product_price" value="">
+<input type="hidden" name="apply_track" id="apply_track" value="">
+
+<div class="pt-32 pb-24 min-h-screen bg-[#09090b]">
+  <div class="max-w-7xl mx-auto px-6">
+    <a href="index.php#register" class="inline-flex items-center gap-2 text-[#71717a] hover:text-white transition-colors mb-8 text-sm"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> 돌아가기</a>
+    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">양일권 등록 (8.20~21)</h1>
+    <p class="text-[#a1a1aa] mb-2">Day 1 · Day 2 전체를 참석하는 양일권입니다. 정보를 입력해 주세요.</p>
+    <p class="text-[#71717a] text-sm mb-10">1일만 참석하시나요? <a href="ticket-day.php" class="text-[#00C1D5] hover:underline">일일권 등록</a> · 온라인은 <a href="ticket-online.php" class="text-[#00C1D5] hover:underline">온라인 무료 등록</a></p>
+
+    <div class="grid lg:grid-cols-12 gap-8 items-start">
+      <!-- 좌측 폼 -->
+      <div class="lg:col-span-7 xl:col-span-8 space-y-4">
+
+        <?php include __DIR__ . '/_ticket_agree.php'; ?>
+
+        <!-- 티켓(양일권 고정) -->
+        <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
+          <h2 class="text-lg font-bold text-white mb-5">티켓</h2>
+          <div class="grid gap-4 mb-8" id="ticketGroup">
+            <label class="ticket-card relative p-5 border transition-all border-[#27272a]"
+                   data-code="ALL" data-price="60000" data-orig="120000" data-sub="양일권" data-pcode="NORMAL_ALL" data-days="1,2">
+              <input type="radio" name="ticket" value="ALL" class="sr-only" checked>
+              <div class="mb-1">
+                <div class="text-base text-[#71717a] line-through">₩120,000</div>
+                <div class="text-xs font-bold text-[#00C1D5] my-0.5">얼리버드 50% 할인</div>
+                <div class="text-2xl font-black text-white">₩60,000</div>
+              </div>
+              <div class="text-sm font-bold text-[#a1a1aa] mb-2">양일권 (8.20~21)</div>
+              <div class="text-xs text-[#71717a]">Day 1 + Day 2 전체 참석</div>
+              <div class="tk-check absolute top-3 right-3 hidden"><svg class="w-5 h-5 text-[#00C1D5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg></div>
+            </label>
+          </div>
+          <div class="bg-[#111115] p-5 border border-[#27272a]">
+            <h4 class="text-sm font-bold text-[#a1a1aa] mb-3">혜택</h4>
+            <div class="grid sm:grid-cols-2 gap-2 text-sm text-[#a1a1aa]">
+              <?php foreach (array('전체 세션 참여','한정판 굿즈 제공','Q&A 참여','전시 및 체험존 이용','이벤트 및 경품 참여') as $b): ?>
+              <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-[#00C1D5]"></span><?= e($b) ?></div>
+              <?php endforeach; ?>
+            </div>
+          </div>
+        </div>
+
+        <?php include __DIR__ . '/_ticket_fields.php'; ?>
+
+        <!-- 트랙 선택 (양일권: Day1 + Day2 모두) -->
+        <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
+          <?php ufs_track_box(1, $UFS_TRACKS[1], $trackRemain); ?>
+          <?php ufs_track_box(2, $UFS_TRACKS[2], $trackRemain); ?>
+        </div>
+      </div>
+
+      <?php include __DIR__ . '/_ticket_sidebar.php'; ?>
+    </div>
+  </div>
+</div>
+</form>
+
+<?php include __DIR__ . '/_pf_footer.php'; ?>
+
+<!-- 본인인증 팝업 타깃 (2025 real/ 재사용) -->
+<form name="form1" id="form1" method="post"></form>
+<form name="kcbResultForm" id="kcbResultForm">
+  <input type="hidden" name="CP_CD" value=""><input type="hidden" name="TX_SEQ_NO" value=""><input type="hidden" name="RSLT_CD" value="">
+  <input type="hidden" name="RSLT_MSG" value=""><input type="hidden" name="RETURN_MSG" value=""><input type="hidden" name="RSLT_NAME" value="">
+  <input type="hidden" name="RSLT_BIRTHDAY" value=""><input type="hidden" name="RSLT_SEX_CD" value=""><input type="hidden" name="RSLT_NTV_FRNR_CD" value="">
+  <input type="hidden" name="DI" value=""><input type="hidden" name="CI" value=""><input type="hidden" name="CI_UPDATE" value="">
+  <input type="hidden" name="TEL_COM_CD" value=""><input type="hidden" name="TEL_NO" value="">
+</form>
+
+<script src="<?= asset_v('assets/js/ticket.js') ?>"></script>
+<script>selectTicket('ALL');</script>
+</body>
+</html>

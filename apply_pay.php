@@ -36,6 +36,7 @@ $apply_product_price= pp('apply_product_price');
 $apply_track        = pp('apply_track');
 $apply_tshirt       = pp('tshirt');
 $apply_event_agree  = (pp('agree_mkt') !== '' ) ? '1' : '0';
+$payment            = pp('payment');   // Card | kakaopay | naverpay | tosspay (결제수단 라디오)
 
 // 상품 화이트리스트 (서버측 금액 재검증 — 위변조 방지)
 // ※ 얼리버드 50% 할인가 적용 (~2026-07-13). 정가: 양일권 120,000 / 1일권 60,000.
@@ -119,6 +120,13 @@ $sign2      = $util->makeSignature($veriParam);
 $base       = "https://".$_SERVER['HTTP_HOST']."/v3/unrealfest2026";
 $returnUrl  = $base."/apply_pay_return.php";
 $closeUrl   = $base."/".($apply_product_code === 'NORMAL_ALL' ? 'ticket-all.php' : 'ticket-day.php');
+
+// 결제수단 라디오 → INICIS gopaymethod 매핑 (간편결제 직접호출)
+//   간편결제는 운영 MID에 각 페이 가맹 신청 완료 시 동작 (테스트 MID는 제한될 수 있음).
+$gopaymethod = "Card:Directbank:vbank"; // 기본: 카드/계좌이체/가상계좌
+if ($payment === 'kakaopay')      { $gopaymethod = "onlykakaopay"; }
+else if ($payment === 'naverpay') { $gopaymethod = "onlynaverpay"; }
+else if ($payment === 'tosspay')  { $gopaymethod = "onlytosspay"; }
 function ev($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>
@@ -143,7 +151,7 @@ function ev($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
   <input type="hidden" name="buyername" value="<?= ev($apply_user_name) ?>">
   <input type="hidden" name="buyertel" value="<?= ev($apply_user_phone) ?>">
   <input type="hidden" name="buyeremail" value="<?= ev($apply_user_email) ?>">
-  <input type="hidden" name="gopaymethod" value="Card:Directbank:vbank">
+  <input type="hidden" name="gopaymethod" value="<?= ev($gopaymethod) ?>">
   <input type="hidden" name="acceptmethod" value="HPP(1):below1000:centerCd(Y)">
   <input type="hidden" name="merchantData" value="<?= ev($apply_no) ?>">
   <input type="hidden" name="returnUrl" value="<?= ev($returnUrl) ?>">

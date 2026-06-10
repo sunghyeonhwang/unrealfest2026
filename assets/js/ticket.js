@@ -63,6 +63,26 @@ function bindTicketCards(){
   });
 }
 
+// 결제수단 라디오 선택 → 해당 label 하이라이트 이동
+function bindPayment(){
+  var radios=document.querySelectorAll('input[name="payment"]');
+  if(!radios.length) return;
+  function upd(){
+    radios.forEach(function(r){
+      var lab=r.closest('label'); if(!lab) return;
+      if(r.checked){
+        lab.classList.add('border-[#00C1D5]','bg-[rgba(0,79,89,0.2)]');
+        lab.classList.remove('border-[#27272a]','bg-[#111115]');
+      } else {
+        lab.classList.remove('border-[#00C1D5]','bg-[rgba(0,79,89,0.2)]');
+        lab.classList.add('border-[#27272a]','bg-[#111115]');
+      }
+    });
+  }
+  radios.forEach(function(r){ r.addEventListener('change', upd); });
+  upd();
+}
+
 // 약관
 function toggleAllAgree(cb){ document.querySelectorAll('.agree-item').forEach(function(i){ i.checked=cb.checked; }); }
 function checkAgree(){
@@ -165,6 +185,7 @@ function validateForm(){
 (function(){
   bindTicketCards();
   bindTracks();
+  bindPayment();
   window.addEventListener('focus', function(){ refreshAuth(); focusEmail(); });
   setInterval(refreshAuth, 1000);
   refreshAuth();

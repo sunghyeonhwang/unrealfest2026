@@ -1,0 +1,5 @@
+# Unreal Fest Seoul 2026 — 검색엔진 색인 차단 (비공개/테스트 기간)
+# 정식 공개 시 이 파일을 제거하거나 아래 헤더를 주석 처리하세요.
+<IfModule mod_headers.c>
+  Header set X-Robots-Tag "noindex, nofollow, noarchive"
+</IfModule>

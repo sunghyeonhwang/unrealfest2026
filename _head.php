@@ -14,6 +14,7 @@ $nav        = ufs_nav_links();
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
 <title><?= e($page_title) ?></title>
 <meta name="description" content="<?= e($page_desc) ?>">
 <meta property="og:title" content="<?= e($page_title) ?>">

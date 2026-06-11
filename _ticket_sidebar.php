@@ -19,7 +19,7 @@
       <label class="flex items-center gap-3 p-3 border border-[#27272a] bg-[#111115] cursor-pointer hover:border-white/20"><input type="radio" name="payment" value="naverpay" class="accent-[#00C1D5] w-4 h-4"><span class="w-4 h-4 rounded bg-[#03C75A] text-white flex items-center justify-center font-bold text-[10px]">N</span><span class="text-white font-medium text-sm">네이버페이</span></label>
       <label class="flex items-center gap-3 p-3 border border-[#27272a] bg-[#111115] cursor-pointer hover:border-white/20"><input type="radio" name="payment" value="tosspay" class="accent-[#00C1D5] w-4 h-4"><span class="w-4 h-4 rounded bg-[#0064FF] text-white flex items-center justify-center font-bold text-[8px]">T</span><span class="text-white font-medium text-sm">토스페이</span></label>
     </div>
-    <div class="text-xs text-[#71717a] space-y-1"><p>• 8월 13일 23:59까지 환불 가능</p><p>• 이후 취소/노쇼: 환불 불가</p></div>
+    <div class="text-xs text-[#71717a] space-y-1"><p>• 8월 13일 23:59까지 환불 가능</p><p>• 8월 14일 이후 취소/환불 불가</p></div>
     <label class="flex items-start gap-2 cursor-pointer"><input type="checkbox" id="agree_refund" class="mt-0.5 accent-[#00C1D5]"><span class="text-xs text-[#a1a1aa]">취소/환불 규정에 동의합니다. (필수)</span></label>
     <button type="submit" class="w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all">
       <span id="payBtnLabel">결제하기</span>

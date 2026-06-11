@@ -15,7 +15,7 @@ function ufs_track_label_code($code, $UFS_TRACKS){
 function ufs_track_select($day, $tracks, $trackRemain, $current){
     $field = ($day === 1) ? 'day1track' : 'day2track';
     echo '<select name="'.$field.'" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none">';
-    echo '<option value="">선택해주세요</option>';
+    echo '<option value="">선택해 주세요</option>';
     foreach ($tracks as $v=>$l) {
         $full = isset($trackRemain[$v]) && $trackRemain[$v] <= 0;
         $sel  = ($v === $current);
@@ -31,10 +31,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = pp('email'); $phone = pp('phone');
     $action = pp('action');
     $em = sql_real_escape_string($email); $ph = sql_real_escape_string($phone);
+    $ph_digits = sql_real_escape_string(preg_replace('/[^0-9]/', '', $phone)); // 하이픈 무관 조회용 (숫자만)
     if ($email === '' || $phone === '') {
         $error = '이메일과 연락처를 모두 입력해주세요.';
     } else {
-        $row = sql_fetch("select * from cb_unreal_2026_event2_apply where apply_user_email = '$em' and apply_user_phone = '$ph' and apply_temp_yn = 'N' order by apply_no desc limit 1");
+        $row = sql_fetch("select * from cb_unreal_2026_event2_apply where apply_user_email = '$em' and REPLACE(REPLACE(apply_user_phone,'-',''),' ','') = '$ph_digits' and apply_temp_yn = 'N' order by apply_no desc limit 1");
         if (!$row) {
             $error = '등록 정보를 찾을 수 없습니다. 이메일과 연락처를 확인해주세요.';
         } else {
@@ -141,14 +142,14 @@ function ufs_opt($list,$cur){ foreach($list as $o){ echo '<option'.($o===$cur?' 
   <?php if ($mode === 'cancelled'): ?>
     <div class="text-center">
       <h1 class="text-3xl font-bold mb-3">등록이 취소되었습니다</h1>
-      <p class="text-[#a1a1aa] mb-10">유료 등록의 환불은 영업일 기준 최대 5일 이내 처리됩니다.</p>
+      <p class="text-[#a1a1aa] mb-10">유료 등록의 환불은 카드사에 따라 영업일 기준 최대 7일 정도의 기간이 소요됩니다.</p>
       <a href="myticket.php" class="clip-btn inline-block bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] px-8 py-4 font-bold">확인</a>
     </div>
 
   <?php elseif ($mode === 'lookup'): ?>
     <!-- 조회 -->
     <a href="index.php#register" class="inline-flex items-center gap-2 text-[#71717a] hover:text-white transition-colors mb-6 text-sm"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> 돌아가기</a>
-    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">언리얼 페스트 2026 등록확인</h1>
+    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">언리얼 페스트 2026 등록 확인</h1>
     <p class="text-[#a1a1aa] mb-8">등록 정보를 확인 및 수정하실 수 있습니다.</p>
 
     <!-- 안내 -->
@@ -156,9 +157,9 @@ function ufs_opt($list,$cur){ foreach($list as $o){ echo '<option'.($o===$cur?' 
       <h2 class="text-lg font-bold text-white mb-4">안내</h2>
       <ul class="space-y-2 text-sm text-[#a1a1aa]">
         <li class="flex gap-2"><span class="text-[#71717a]">•</span><span>등록 정보 확인 후 수정 혹은 등록 취소가 가능합니다.</span></li>
-        <li class="flex gap-2"><span class="text-[#71717a]">•</span><span>온라인 등록 후 오프라인 등록을 원하시면 기존 등록 취소 후 티켓 구매/결제 진행을 완료해야 합니다. (중복불가)</span></li>
+        <li class="flex gap-2"><span class="text-[#71717a]">•</span><span>온라인 등록 후 오프라인 등록을 원하시면 기존 등록 취소 후 티켓 구매/결제 진행을 완료해야 합니다. (중복 불가)</span></li>
         <li class="flex gap-2"><span class="text-[#71717a]">•</span><span>1인당 티켓은 1매만 가능합니다.</span></li>
-        <li class="flex gap-2 text-[#00C1D5]"><span>•</span><span>얼리버드 기간내 구매한 티켓은 2026년 8월 13일까지만 환불이 가능합니다.</span></li>
+        <li class="flex gap-2 text-[#00C1D5]"><span>•</span><span>얼리버드 기간 내 구매한 티켓은 2026년 8월 13일까지만 환불이 가능합니다.</span></li>
       </ul>
     </div>
 
@@ -193,7 +194,7 @@ function ufs_opt($list,$cur){ foreach($list as $o){ echo '<option'.($o===$cur?' 
       <div class="space-y-6">
         <div class="grid md:grid-cols-2 gap-6">
           <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">직업</label>
-            <select name="apply_user_job" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none"><option value="">선택해주세요</option><?php ufs_opt($OPT_JOB, $row['apply_user_job']); ?></select></div>
+            <select name="apply_user_job" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none"><option value="">선택해 주세요</option><?php ufs_opt($OPT_JOB, $row['apply_user_job']); ?></select></div>
           <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">회사명/소속</label>
             <input type="text" name="apply_user_company" value="<?= e($row['apply_user_company']) ?>" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
         </div>
@@ -201,9 +202,9 @@ function ufs_opt($list,$cur){ foreach($list as $o){ echo '<option'.($o===$cur?' 
           <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">부서</label>
             <input type="text" name="apply_user_depart" value="<?= e($row['apply_user_depart']) ?>" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
           <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">직무</label>
-            <select name="apply_user_grade" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none"><option value="">선택해주세요</option><?php ufs_opt($OPT_GRADE, $row['apply_user_grade']); ?></select></div>
+            <select name="apply_user_grade" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none"><option value="">선택해 주세요</option><?php ufs_opt($OPT_GRADE, $row['apply_user_grade']); ?></select></div>
           <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">산업/관심 분야</label>
-            <select name="apply_user_ex1" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none"><option value="">선택해주세요</option><?php ufs_opt($OPT_EX1, $row['apply_user_ex1']); ?></select></div>
+            <select name="apply_user_ex1" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none"><option value="">선택해 주세요</option><?php ufs_opt($OPT_EX1, $row['apply_user_ex1']); ?></select></div>
         </div>
         <?php if ($is_paid): ?>
         <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">티셔츠 사이즈</label>
@@ -308,4 +309,17 @@ function ufs_opt($list,$cur){ foreach($list as $o){ echo '<option'.($o===$cur?' 
   </div>
 </main>
 <?php include __DIR__ . '/_pf_footer.php'; ?>
+<script>
+// 조회 연락처 입력 자동 하이픈 (010-1234-5678)
+(function(){
+  var p=document.querySelector('input[type="tel"][name="phone"]');
+  if(!p) return;
+  p.addEventListener('input',function(){
+    var v=this.value.replace(/[^0-9]/g,'').slice(0,11);
+    if(v.length<4){ this.value=v; }
+    else if(v.length<8){ this.value=v.replace(/(\d{3})(\d+)/,'$1-$2'); }
+    else { this.value=v.replace(/(\d{3})(\d{4})(\d+)/,'$1-$2-$3'); }
+  });
+})();
+</script>
 </body></html>

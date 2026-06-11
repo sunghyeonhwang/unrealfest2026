@@ -46,7 +46,7 @@
       </div>
     </div>
     <div class="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-slate-500">
-      <p>© 2026 Epic Games, Inc. 모든 권리 보유. Unreal, Unreal Engine은 에픽게임즈의 상표입니다.</p>
+      <p>© 2026 Epic Games, Inc. All Rights Reserved. Unreal 및 그 로고의 저작권은 Epic Games, Inc. 에 있으며, 이는 미국 및 그 외 국가에 모두 해당됩니다.</p>
       <div class="flex gap-6">
         <a href="#" class="hover:text-white transition-colors">이용약관</a>
         <a href="#" class="hover:text-white transition-colors">개인정보처리방침</a>

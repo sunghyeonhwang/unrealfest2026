@@ -14,9 +14,11 @@ function selectTicket(code){
   var sel=null;
   document.querySelectorAll('.ticket-card').forEach(function(c){
     var on = c.getAttribute('data-code')===code;
-    c.classList.toggle('border-[#00C1D5]',on);
-    c.classList.toggle('bg-[rgba(0,79,89,0.2)]',on);
+    // 선택 강조(#00EEFF) — Tailwind가 .js를 스캔하지 않으므로 인라인 스타일로 적용
     c.classList.toggle('border-[#27272a]',!on);
+    c.style.borderColor = on ? '#00EEFF' : '';
+    c.style.backgroundColor = on ? 'rgba(0,238,255,0.10)' : '';
+    c.style.boxShadow = on ? '0 0 0 1px #00EEFF' : '';
     var inp=c.querySelector('input'); if(inp) inp.checked=on;
     var chk=c.querySelector('.tk-check'); if(chk) chk.classList.toggle('hidden',!on);
     if(on) sel=c;
@@ -132,7 +134,7 @@ window.handleKcbAuthResult = function(){
   var nameEl=document.querySelector('input[name="apply_user_name"]');
   if(nameEl) nameEl.value=name;
   var telEl=document.querySelector('input[name="apply_user_phone"]');
-  if(telEl && tel) telEl.value=tel;
+  if(telEl){ if(tel){ telEl.value=tel; telEl.readOnly=true; } else { telEl.readOnly=false; } } // 아이핀: TEL_NO 없으면 수동 입력
   refreshAuth();
   window._justAuthed=true;
   setTimeout(focusEmail, 300);

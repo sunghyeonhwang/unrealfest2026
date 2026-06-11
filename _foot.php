@@ -17,13 +17,13 @@ if (!isset($is_home)) { $is_home = false; }
           <img src="./white_logo.svg" alt="Unreal Fest 2026" class="h-8">
         </div>
         <div class="flex gap-4">
-          <a href="#" aria-label="YouTube" class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-[#00C1D5] transition-colors">
+          <a href="https://www.youtube.com/@unrealenginekr" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-[#00C1D5] transition-colors">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></svg>
           </a>
-          <a href="#" aria-label="Naver" class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-[#00C1D5] transition-colors">
+          <a href="https://cafe.naver.com/unrealenginekr" target="_blank" rel="noopener noreferrer" aria-label="Naver Cafe" class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-[#00C1D5] transition-colors">
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727v12.845z"/></svg>
           </a>
-          <a href="#" aria-label="KakaoTalk" class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-[#00C1D5] transition-colors">
+          <a href="https://pf.kakao.com/_xfdmNb" target="_blank" rel="noopener noreferrer" aria-label="KakaoTalk" class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-[#00C1D5] transition-colors">
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.477 3 2 6.463 2 10.691c0 2.818 1.867 5.29 4.682 6.678-.177.63-.64 2.284-.733 2.64-.117.443.162.436.34.317.14-.093 2.23-1.516 3.132-2.132.52.078 1.053.12 1.579.12 5.523 0 10-3.463 10-7.623C22 6.463 17.523 3 12 3z"/></svg>
           </a>
         </div>
@@ -71,7 +71,7 @@ if (!isset($is_home)) { $is_home = false; }
 
     <!-- Bottom bar -->
     <div class="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-slate-500">
-      <p>© 2026 Epic Games, Inc. 모든 권리 보유. Unreal, Unreal Engine은 에픽게임즈의 상표입니다.</p>
+      <p>© 2026 Epic Games, Inc. All Rights Reserved. Unreal 및 그 로고의 저작권은 Epic Games, Inc. 에 있으며, 이는 미국 및 그 외 국가에 모두 해당됩니다.</p>
       <div class="flex gap-6">
         <?php foreach (ufs_footer_legal_links() as $label): ?>
           <a href="#" class="hover:text-white transition-colors"><?= e($label) ?></a>

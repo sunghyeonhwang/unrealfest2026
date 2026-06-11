@@ -333,7 +333,7 @@ $ov_icons = array(
       </div>
     </div>
     <div class="mt-20 text-center">
-      <a href="sponsors.php" class="inline-flex items-center px-8 py-3.5 bg-[#27272a] hover:bg-[#3f3f46] text-white font-semibold transition-all duration-200">자세히보기</a>
+      <a href="sponsors.php" class="inline-flex items-center px-8 py-3.5 bg-[#27272a] hover:bg-[#3f3f46] text-white font-semibold transition-all duration-200">자세히 보기</a>
     </div>
   </div>
 </section>

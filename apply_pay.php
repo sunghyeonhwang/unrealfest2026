@@ -75,7 +75,7 @@ foreach ($_sel_tracks as $tk) {
     $reg = sql_fetch("select count(*) c from cb_unreal_2026_event2_apply where apply_temp_yn='N' and apply_pay_status<>0 and apply_track like '%$tke%'");
     $regN = $reg ? (int)$reg['c'] : 0;
     if ($capN > 0 && $regN >= $capN) {
-        exit('<script>alert("선택하신 트랙의 정원이 마감되었습니다. 다른 트랙을 선택해주세요.");history.back();</script>');
+        exit('<script>alert("선택하신 트랙의 정원이 마감되었습니다. 다른 트랙을 선택해 주세요.");history.back();</script>');
     }
 }
 

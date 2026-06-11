@@ -9,9 +9,9 @@
  *   ufs_send_text_sms($name, $phone, $title, $message);        // 온라인/가상계좌 (텍스트)
  */
 
-// ── 발송 스위치 ── false: 실제 발송 안 함(테스트/가오픈). 운영 전환 시 true 로 변경.
-//    INICIS 운영 전환($INICIS_TEST=false)과 함께 true 로 바꿔주세요.
-if (!defined('UFS_SMS_LIVE'))     define('UFS_SMS_LIVE',     false);
+// ── 발송 스위치 ── true: 실제 발송. (2026-06-11 테스트 중 문자 확인용으로 ON)
+//    INICIS 테스트모드와 무관하게 독립 동작. 끄려면 false.
+if (!defined('UFS_SMS_LIVE'))     define('UFS_SMS_LIVE',     true);
 if (!defined('UFS_SMS_SENDER'))   define('UFS_SMS_SENDER',   '023263701');       // 발신번호 (02-326-3701)
 if (!defined('UFS_SMS_USERNAME')) define('UFS_SMS_USERNAME', 'griff16');          // DirectSend 계정
 if (!defined('UFS_SMS_KEY'))      define('UFS_SMS_KEY',      'BaIpwA1FNBOYszC');  // DirectSend API key

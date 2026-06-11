@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit('<script>alert("직업·회사명/소속·부서·직무·산업/관심 분야를 모두 입력해주세요.");history.back();</script>');
     }
     $em = sql_real_escape_string($email); $ph = sql_real_escape_string($phone);
-    $dup = sql_fetch("select count(*) as cnt from cb_unreal_2026_event2_apply where apply_user_email = '$em' and apply_temp_yn = 'N'");
+    $dup = sql_fetch("select count(*) as cnt from cb_unreal_2026_event2_apply where apply_user_email = '$em' and apply_temp_yn = 'N' and apply_pay_status <> 0");
     if ($dup && $dup['cnt'] > 0) { exit('<script>alert("이미 등록된 이메일입니다. 등록 확인 페이지에서 확인해주세요.");location.href="myticket.php";</script>'); }
     $pw = md5(str_replace("'","\\'",$email));
     $sql = "INSERT INTO cb_unreal_2026_event2_apply

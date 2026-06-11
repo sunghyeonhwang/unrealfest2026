@@ -181,12 +181,24 @@ function validateForm(){
   return true;
 }
 
+// INICIS 결제창이 건 스크롤 잠금(body overflow/position) 복원
+// — 결제 취소로 등록폼 복귀 시 스크롤이 막히는 문제 방지 (새 로드 + bfcache 모두 대응)
+function ufsResetScroll(){
+  document.documentElement.style.overflow='';
+  document.body.style.overflow='';
+  document.body.style.position='';
+  document.body.style.top='';
+  document.body.style.width='';
+}
+
 // 초기화
 (function(){
   bindTicketCards();
   bindTracks();
   bindPayment();
-  window.addEventListener('focus', function(){ refreshAuth(); focusEmail(); });
+  window.addEventListener('focus', function(){ refreshAuth(); focusEmail(); ufsResetScroll(); });
+  window.addEventListener('pageshow', ufsResetScroll);
   setInterval(refreshAuth, 1000);
   refreshAuth();
+  ufsResetScroll();
 })();

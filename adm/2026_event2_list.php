@@ -31,14 +31,55 @@ if (isset($_GET['export'])) {
     header('Content-Disposition: attachment; filename="ufs2026_apply_'.date('Ymd').'.csv"');
     echo "\xEF\xBB\xBF";
     $out = fopen('php://output', 'w');
-    fputcsv($out, array('번호','이름','이메일','연락처','직업','회사','직무','산업','유형','상품','금액','트랙','티셔츠','상태','TID','등록일'));
+    fputcsv($out, array('번호','이름','이메일','연락처','직업','회사','직무','산업','광고동의','유형','상품','금액','트랙','티셔츠','상태','TID','등록일'));
     $res = sql_query("SELECT * FROM cb_unreal_2026_event2_apply WHERE $where ORDER BY apply_no DESC");
     if ($res) { while ($r = $res->fetch_assoc()) {
         $type = ($r['free_yn']==='Y'||$r['apply_product_code']==='ONLINE') ? '온라인' : '오프라인';
         $stt = ((int)$r['apply_pay_status']===10)?'완료':(((int)$r['apply_pay_status']===1)?'입금대기':'취소');
-        fputcsv($out, array($r['apply_no'],$r['apply_user_name'],$r['apply_user_email'],$r['apply_user_phone'],$r['apply_user_job'],$r['apply_user_company'],$r['apply_user_grade'],$r['apply_user_ex1'],$type,$r['apply_product_name'],$r['apply_product_price'],$r['apply_track'],$r['apply_tshirt'],$stt,$r['pay_tid'],$r['apply_reg_datetime']));
+        $ad = ($r['apply_user_event_agree']==='1')?'동의':'미동의';
+        fputcsv($out, array($r['apply_no'],$r['apply_user_name'],$r['apply_user_email'],$r['apply_user_phone'],$r['apply_user_job'],$r['apply_user_company'],$r['apply_user_grade'],$r['apply_user_ex1'],$ad,$type,$r['apply_product_name'],$r['apply_product_price'],$r['apply_track'],$r['apply_tshirt'],$stt,$r['pay_tid'],$r['apply_reg_datetime']));
     }}
     fclose($out); exit;
+}
+
+// 결제 취소 처리 (관리자) — admin.head 출력 전에 처리 후 redirect
+// 유료건은 INICIS 자동 환불 시도(운영모드에서만 실제 환불). 환불 실패 시 상태 미변경 + 안내.
+if (isset($_POST['cancel_no'])) {
+    $cno = (int)$_POST['cancel_no'];
+    $done = 'cancel';
+    if ($cno > 0) {
+        $crow = sql_fetch("SELECT free_yn, apply_product_code, pay_tid, pay_paymethod FROM cb_unreal_2026_event2_apply WHERE apply_no='".$cno."' AND apply_temp_yn='N'");
+        $refund_failed = false;
+        if ($crow) {
+            $paid_cancel = ($crow['free_yn']==='N' && $crow['apply_product_code']!=='ONLINE' && trim((string)$crow['pay_tid'])!=='');
+            if ($paid_cancel) {
+                require_once(__DIR__.'/../unrealfest2026/_refund.php');
+                $rf = ufs_inicis_refund($crow['pay_tid'], isset($crow['pay_paymethod'])?$crow['pay_paymethod']:'', '관리자 취소');
+                if (empty($rf['skipped']) && empty($rf['ok'])) { $refund_failed = true; }
+            }
+            if (!$refund_failed) {
+                sql_query("UPDATE cb_unreal_2026_event2_apply SET apply_pay_status=0, refund_date=now() WHERE apply_no='".$cno."' AND apply_temp_yn='N'");
+            } else {
+                $done = 'refundfail';
+            }
+        }
+    }
+    $rp = isset($_GET['p']) ? max(1,(int)$_GET['p']) : 1;
+    header('Location: 2026_event2_list.php?'.http_build_query(array('q'=>$q,'st'=>$st,'p'=>$rp,'done'=>$done)));
+    exit;
+}
+
+// 등록 삭제 처리 (관리자) — DB 행 영구 삭제 + QR 파일 정리
+if (isset($_POST['delete_no'])) {
+    $dno = (int)$_POST['delete_no'];
+    if ($dno > 0) {
+        sql_query("DELETE FROM cb_unreal_2026_event2_apply WHERE apply_no='".$dno."'");
+        @unlink(__DIR__.'/../unrealfest2026/qrdata/'.$dno.'.jpg');
+        @unlink(__DIR__.'/../unrealfest2026/qrdata/'.$dno.'.png');
+    }
+    $rp = isset($_GET['p']) ? max(1,(int)$_GET['p']) : 1;
+    header('Location: 2026_event2_list.php?'.http_build_query(array('q'=>$q,'st'=>$st,'p'=>$rp,'done'=>'delete')));
+    exit;
 }
 
 function cnt2($w){ $r = sql_fetch("SELECT count(*) c FROM cb_unreal_2026_event2_apply WHERE $w"); return $r ? (int)$r['c'] : 0; }
@@ -166,28 +207,53 @@ include_once('./admin.head.php');   // ← 왼쪽 관리자 메뉴 + 상단 chro
       <span style="margin-left:auto;color:#8a90a2;font-size:13px">총 <?= number_format($total) ?>건</span>
     </form>
 
+    <?php if (isset($_GET['done']) && $_GET['done']==='cancel'): ?>
+    <div style="background:rgba(57,217,138,.1);border:1px solid rgba(57,217,138,.3);color:#39d98a;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:13px">선택한 등록이 취소 처리되었습니다.</div>
+    <?php elseif (isset($_GET['done']) && $_GET['done']==='delete'): ?>
+    <div style="background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);color:#ff6b6b;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:13px">선택한 등록이 삭제되었습니다.</div>
+    <?php elseif (isset($_GET['done']) && $_GET['done']==='refundfail'): ?>
+    <div style="background:rgba(255,143,28,.12);border:1px solid rgba(255,143,28,.4);color:#FF8F1C;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:13px">INICIS 환불에 실패하여 취소 처리되지 않았습니다. INICIS 상점관리자에서 결제 상태를 확인해 주세요.</div>
+    <?php endif; ?>
+
     <div style="overflow-x:auto">
     <table>
-      <thead><tr><th>#</th><th>이름</th><th>이메일</th><th>연락처</th><th>유형</th><th>상품</th><th>트랙</th><th>상태</th><th>등록일</th></tr></thead>
+      <thead><tr><th>이름</th><th>이메일</th><th>연락처</th><th>유형</th><th>상품</th><th>트랙</th><th>광고</th><th>상태</th><th>등록일</th><th>취소</th><th>삭제</th></tr></thead>
       <tbody>
       <?php if ($list && $list->num_rows): while ($r = $list->fetch_assoc()):
         $type = ($r['free_yn']==='Y'||$r['apply_product_code']==='ONLINE') ? '온라인' : '오프라인';
         $ps = (int)$r['apply_pay_status'];
         $stt = $ps===10?'완료':($ps===1?'입금대기':'취소');
-        $stc = $ps===10?'#00C1D5':($ps===1?'#FF8F1C':'#9aa0af'); ?>
+        $stc = $ps===10?'#00C1D5':($ps===1?'#FF8F1C':'#9aa0af');
+        $ad = ($r['apply_user_event_agree']==='1'); ?>
         <tr>
-          <td style="color:#9aa0af"><?= e2($r['apply_no']) ?></td>
           <td style="font-weight:600"><?= e2($r['apply_user_name']) ?></td>
           <td style="color:#6b7280"><?= e2($r['apply_user_email']) ?></td>
           <td style="color:#6b7280"><?= e2($r['apply_user_phone']) ?></td>
           <td><?= e2($type) ?></td>
           <td><?= e2($r['apply_product_name']) ?></td>
           <td style="color:#9aa0af;font-size:12px"><?= e2($r['apply_track']) ?></td>
+          <td class="badge" style="color:<?= $ad?'#39d98a':'#9aa0af' ?>"><?= $ad?'동의':'미동의' ?></td>
           <td class="badge" style="color:<?= $stc ?>"><?= e2($stt) ?></td>
           <td style="color:#9aa0af;font-size:12px"><?= e2($r['apply_reg_datetime']) ?></td>
+          <td style="white-space:nowrap">
+            <?php if ($ps !== 0): ?>
+              <form method="post" action="2026_event2_list.php?<?= e2(http_build_query(array('q'=>$q,'st'=>$st,'p'=>$page))) ?>" style="display:inline" onsubmit="return confirm('[<?= e2($r['apply_user_name']) ?>] 님의 등록을 취소 처리할까요?\n(상태가 취소로 바뀝니다. 실결제 환불은 INICIS에서 별도 처리)');">
+                <input type="hidden" name="cancel_no" value="<?= e2($r['apply_no']) ?>">
+                <button type="submit" class="btn" style="border-color:rgba(255,143,28,.4);color:#FF8F1C;padding:4px 10px;font-size:12px"><?= $type==='온라인'?'등록취소':'결제취소' ?></button>
+              </form>
+            <?php else: ?>
+              <span style="color:#9aa0af;font-size:12px">취소됨</span>
+            <?php endif; ?>
+          </td>
+          <td style="white-space:nowrap">
+            <form method="post" action="2026_event2_list.php?<?= e2(http_build_query(array('q'=>$q,'st'=>$st,'p'=>$page))) ?>" style="display:inline" onsubmit="return confirm('[<?= e2($r['apply_user_name']) ?>] 등록을 완전히 삭제할까요?\n삭제하면 복구할 수 없습니다.');">
+              <input type="hidden" name="delete_no" value="<?= e2($r['apply_no']) ?>">
+              <button type="submit" class="btn" style="border-color:rgba(255,107,107,.5);color:#ff6b6b;padding:4px 10px;font-size:12px">삭제</button>
+            </form>
+          </td>
         </tr>
       <?php endwhile; else: ?>
-        <tr><td colspan="9" style="padding:40px;text-align:center;color:#9aa0af">등록 내역이 없습니다.</td></tr>
+        <tr><td colspan="11" style="padding:40px;text-align:center;color:#9aa0af">등록 내역이 없습니다.</td></tr>
       <?php endif; ?>
       </tbody>
     </table>

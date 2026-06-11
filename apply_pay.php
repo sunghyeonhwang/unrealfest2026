@@ -55,12 +55,15 @@ if ($apply_ci === '')          { exit('<script>alert("본인인증을 먼저 진
 if ($apply_user_email === '' || $apply_user_phone === '') { exit('<script>alert("이메일/연락처를 입력해주세요.");history.back();</script>'); }
 
 // ── 중복 등록 체크 (확정건 기준) ──
+// ※ 테스트모드($INICIS_TEST) 동안은 같은 본인인증/이메일로 반복 테스트가 가능하도록 건너뜀.
+//   운영 전환($INICIS_TEST=false) 시 자동으로 1인 1등록 중복 차단이 복구됨.
+// 중복 등록 차단 (테스트/운영 모두 적용). apply_pay_status<>0 : 취소(0)건은 제외 → 취소 후 재등록 허용.
 $ci_esc = sql_real_escape_string($apply_ci);
 $em_esc = sql_real_escape_string($apply_user_email);
 $ph_esc = sql_real_escape_string($apply_user_phone);
-$dup = sql_fetch("select count(*) as cnt from cb_unreal_2026_event2_apply where apply_ci = '$ci_esc' and apply_temp_yn = 'N'");
+$dup = sql_fetch("select count(*) as cnt from cb_unreal_2026_event2_apply where apply_ci = '$ci_esc' and apply_temp_yn = 'N' and apply_pay_status <> 0");
 if ($dup && $dup['cnt'] > 0) { exit('<script>alert("이미 등록된 본인인증 정보입니다. 등록 확인 페이지에서 확인해주세요.");location.href="myticket.php";</script>'); }
-$dup = sql_fetch("select count(*) as cnt from cb_unreal_2026_event2_apply where apply_user_email = '$em_esc' and apply_user_phone = '$ph_esc' and apply_temp_yn = 'N'");
+$dup = sql_fetch("select count(*) as cnt from cb_unreal_2026_event2_apply where apply_user_email = '$em_esc' and apply_user_phone = '$ph_esc' and apply_temp_yn = 'N' and apply_pay_status <> 0");
 if ($dup && $dup['cnt'] > 0) { exit('<script>alert("이미 등록된 이메일/연락처입니다.");location.href="myticket.php";</script>'); }
 
 // ── 트랙 정원 체크 (오프라인만; 온라인은 무제한) — 결제 전 강제 ──

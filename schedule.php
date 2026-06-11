@@ -53,7 +53,12 @@ function ufs_render_track_view($daySessions) {
 }
 
 // 그리드뷰(타임테이블) 렌더 — 필터 미적용(React 동일)
-function ufs_render_grid_view($daySessions) {
+// 그리드 트랙 표시 라벨 — '산업 & 시뮬레이션'은 Day별로 다름 (Day1=공통, Day2=제조 및 시뮬레이션)
+function ufs_grid_track_label($tr, $day) {
+    if ($tr === '산업 & 시뮬레이션') return ((int)$day === 1) ? '공통' : '제조 및 시뮬레이션';
+    return ufs_track_label_list($tr);
+}
+function ufs_render_grid_view($daySessions, $day) {
     $gridTracks = array('게임 - 프로그래밍', '게임 - 아트', '미디어 & 엔터테인먼트', '산업 & 시뮬레이션');
     $keynotes = array(); $nonkey = array();
     foreach ($daySessions as $s) { if ($s['track'] === '키노트') $keynotes[] = $s; else $nonkey[] = $s; }
@@ -62,7 +67,7 @@ function ufs_render_grid_view($daySessions) {
     echo '<th class="w-[100px] p-3 text-left text-xs font-bold text-[#71717a] uppercase border-b border-[#27272a] sticky left-0 bg-[#09090b] z-10">시간</th>';
     foreach ($gridTracks as $tr) {
         $c = ufs_sched_colors($tr);
-        echo '<th class="p-3 text-center text-xs font-bold border-b border-[#27272a]"><span class="'.$c['text'].'">'.e(ufs_track_label_list($tr)).'</span></th>';
+        echo '<th class="p-3 text-center text-xs font-bold border-b border-[#27272a]"><span class="'.$c['text'].'">'.e(ufs_grid_track_label($tr, $day)).'</span></th>';
     }
     echo '</tr></thead><tbody>';
     // 키노트 행
@@ -89,7 +94,7 @@ function ufs_render_grid_view($daySessions) {
             if ($cell) {
                 $c = ufs_sched_colors($cell['track']);
                 echo '<a href="session.php?id='.e($cell['id']).'" class="block bg-[#0e0f14] p-5 hover:bg-[#111115] transition-colors h-full min-h-[240px] flex flex-col gap-2">';
-                echo '<div class="flex items-center gap-2 flex-wrap"><span class="px-2.5 py-0.5 text-[11px] font-bold '.$c['bg'].' '.$c['text'].'">'.e(ufs_track_label_list($cell['track'])).'</span><span class="px-2 py-0.5 text-[11px] font-semibold bg-[#27272a] text-[#f4f4f5]">'.e(ufs_level_label_short($cell['level'])).'</span></div>';
+                echo '<div class="flex items-center gap-2 flex-wrap"><span class="px-2.5 py-0.5 text-[11px] font-bold '.$c['bg'].' '.$c['text'].'">'.e(ufs_grid_track_label($cell['track'], $day)).'</span><span class="px-2 py-0.5 text-[11px] font-semibold bg-[#27272a] text-[#f4f4f5]">'.e(ufs_level_label_short($cell['level'])).'</span></div>';
                 echo '<h4 class="text-[15px] font-bold text-[#fafafa] leading-snug tracking-tight line-clamp-3 flex-grow">'.e($cell['title']).'</h4>';
                 echo '<div class="flex items-center gap-2.5 mt-auto"><div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 '.$c['dot'].'">'.ufs_user_svg('w-4 h-4 text-black/60').'</div><div class="min-w-0"><div class="text-sm font-medium text-[#fafafa] truncate">'.e($cell['speaker']['name']).'</div><div class="text-xs text-[#71717a] truncate">'.e($cell['speaker']['company']).'</div></div></div>';
                 echo '</a>';
@@ -105,7 +110,7 @@ function ufs_render_grid_view($daySessions) {
     echo '<div class="flex flex-wrap gap-4 mt-8 pt-6 border-t border-[#27272a]">';
     foreach (array('키노트','게임 - 프로그래밍','게임 - 아트','미디어 & 엔터테인먼트','산업 & 시뮬레이션') as $tr) {
         $c = ufs_sched_colors($tr);
-        echo '<div class="flex items-center gap-1.5 text-xs text-[#a1a1aa]"><span class="w-2.5 h-2.5 rounded-full '.$c['dot'].'"></span>'.e(ufs_track_label_list($tr)).'</div>';
+        echo '<div class="flex items-center gap-1.5 text-xs text-[#a1a1aa]"><span class="w-2.5 h-2.5 rounded-full '.$c['dot'].'"></span>'.e(ufs_grid_track_label($tr, $day)).'</div>';
     }
     echo '</div>';
 }
@@ -211,12 +216,12 @@ include __DIR__ . '/_head.php';
     <!-- Day1 -->
     <div data-day-content="day1">
       <div data-view-content="track"><?php ufs_render_track_view($day1); ?></div>
-      <div data-view-content="grid" class="hidden"><?php ufs_render_grid_view($day1); ?></div>
+      <div data-view-content="grid" class="hidden"><?php ufs_render_grid_view($day1, 1); ?></div>
     </div>
     <!-- Day2 -->
     <div data-day-content="day2" class="hidden">
       <div data-view-content="track"><?php ufs_render_track_view($day2); ?></div>
-      <div data-view-content="grid" class="hidden"><?php ufs_render_grid_view($day2); ?></div>
+      <div data-view-content="grid" class="hidden"><?php ufs_render_grid_view($day2, 2); ?></div>
     </div>
   </div>
 </div>

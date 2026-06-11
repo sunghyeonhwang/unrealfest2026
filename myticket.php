@@ -40,6 +40,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $is_paid_row = $row['free_yn'] === 'N' && $row['apply_product_code'] !== 'ONLINE';
             if ($action === 'cancel') {
+                // 유료 결제건이면 INICIS 자동 환불 시도 (운영모드에서만 실제 환불; 테스트는 상태만)
+                $paid_cancel = ($row['free_yn']==='N' && $row['apply_product_code']!=='ONLINE' && trim((string)$row['pay_tid'])!=='');
+                if ($paid_cancel) {
+                    require_once __DIR__.'/_refund.php';
+                    $rf = ufs_inicis_refund($row['pay_tid'], isset($row['pay_paymethod'])?$row['pay_paymethod']:'', '회원요청 취소');
+                    if (empty($rf['skipped']) && empty($rf['ok'])) {
+                        exit('<script>alert("환불 처리에 실패했습니다. 사무국(02-326-3701)으로 문의해주세요.");history.back();</script>');
+                    }
+                }
                 sql_query("UPDATE cb_unreal_2026_event2_apply SET apply_pay_status = 0, refund_date = now() WHERE apply_no = '".intval($row['apply_no'])."'");
                 $mode = 'cancelled'; $row = null;
             } else if ($action === 'edit') {

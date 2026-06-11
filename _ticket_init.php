@@ -24,8 +24,8 @@ $sess_tel  = isset($_SESSION['TEL_NO']) ? $_SESSION['TEL_NO'] : '';
 
 // 트랙 정의 (Day 1 / Day 2 동일 4트랙)
 $UFS_TRACKS = array(
-  1 => array('DAY1_TR1'=>'게임: 프로그래밍','DAY1_TR2'=>'게임: 아트','DAY1_TR3'=>'미디어 & 엔터테인먼트','DAY1_TR4'=>'산업 & 시뮬레이션'),
-  2 => array('DAY2_TR1'=>'게임: 프로그래밍','DAY2_TR2'=>'게임: 아트','DAY2_TR3'=>'미디어 & 엔터테인먼트','DAY2_TR4'=>'산업 & 시뮬레이션'),
+  1 => array('DAY1_TR1'=>'게임: 프로그래밍','DAY1_TR2'=>'게임: 아트','DAY1_TR3'=>'미디어 & 엔터테인먼트','DAY1_TR4'=>'공통'),
+  2 => array('DAY2_TR1'=>'게임: 프로그래밍','DAY2_TR2'=>'게임: 아트','DAY2_TR3'=>'미디어 & 엔터테인먼트','DAY2_TR4'=>'제조 및 시뮬레이션'),
 );
 
 // 트랙 선택 박스 렌더 (day=1|2). $trackRemain 으로 마감 처리.

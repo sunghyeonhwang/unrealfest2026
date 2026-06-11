@@ -14,6 +14,7 @@ $qr_jpg = ($apply_no !== '' && file_exists(__DIR__."/qrdata/".$apply_no.".jpg"))
 <!DOCTYPE html>
 <html lang="ko" class="dark"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<script>/* INICIS 결제 레이어(iframe) 안에서 로드된 경우 최상위로 탈출 → 스크롤 잠김 방지 */try{if(window.top!==window.self){window.top.location.replace(window.location.href);}}catch(e){}</script>
 <title>등록 완료 — Unreal Fest Seoul 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= asset_v('assets/style.css') ?>">

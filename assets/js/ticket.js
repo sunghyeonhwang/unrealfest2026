@@ -1,3 +1,7 @@
+// INICIS 결제 레이어(iframe) 안에서 closeUrl로 복귀하면 부모의 overflow:hidden 때문에 스크롤이 막힌다.
+// iframe 안이면 최상위 창으로 탈출(frame busting)하여 정상 페이지로 복귀시킨다.
+try { if (window.top !== window.self) { window.top.location.replace(window.location.href); } } catch(e){}
+
 /* Unreal Fest Seoul 2026 — 티켓 등록 공통 스크립트 (ticket.js)
  * ticket-all.php / ticket-day.php 공유. 본인인증 훅 + 티켓선택/가격갱신 + 트랙선택 + 폼검증.
  * 페이지는 .ticket-card[data-code,data-price,data-sub,data-pcode,data-days] 마크업과

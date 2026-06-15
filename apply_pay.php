@@ -136,14 +136,13 @@ $closeUrl   = $base."/".($apply_product_code === 'NORMAL_ALL' ? 'ticket-all.php'
 //   간편결제 직접호출은 gopaymethod=onlyXXX + acceptmethod에 'cardonly' 가 함께 있어야
 //   선택한 페이만 단독으로 뜬다 (없으면 통합 결제창이 노출됨). ref: INICIS_Stdpay#114
 //   운영 MID에 각 페이 가맹 + '신용카드 직접호출' 설정이 되어 있어야 동작 (1588-4954).
-$gopaymethod  = "Card:Directbank:vbank";          // 기본: 카드/계좌이체/가상계좌
-$acceptmethod = "HPP(1):below1000:centerCd(Y)";   // 기본 acceptmethod
-$easypay = true;
+//   cardonly 를 항상 부여: 일반카드는 신용/체크카드만(간편결제·계좌이체·가상계좌 제외),
+//   간편결제(onlyXXX)는 선택한 페이만 단독 노출.
+$gopaymethod  = "Card";                                       // 신용/체크카드
+$acceptmethod = "HPP(1):below1000:centerCd(Y):cardonly";      // cardonly: 카드(또는 선택 페이) 외 노출 제외
 if ($payment === 'kakaopay')      { $gopaymethod = "onlykakaopay"; }
 else if ($payment === 'naverpay') { $gopaymethod = "onlynaverpay"; }
 else if ($payment === 'tosspay')  { $gopaymethod = "onlytosspay"; }
-else { $easypay = false; }
-if ($easypay) { $acceptmethod .= ":cardonly"; }   // 간편결제 단독 호출 트리거
 function ev($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>

@@ -22,7 +22,7 @@ if ($q !== '') {
 if ($st === 'allday')     $where .= " AND apply_pay_status=10 AND apply_product_code='NORMAL_ALL'";
 elseif ($st === 'day1')   $where .= " AND apply_pay_status=10 AND apply_product_code='NORMAL_20'";
 elseif ($st === 'day2')   $where .= " AND apply_pay_status=10 AND apply_product_code='NORMAL_21'";
-elseif ($st === 'online') $where .= " AND (free_yn='Y' OR apply_product_code='ONLINE')";
+elseif ($st === 'online') $where .= " AND apply_pay_status<>0 AND (free_yn='Y' OR apply_product_code='ONLINE')";
 elseif ($st === 'cancel') $where .= " AND apply_pay_status=0";
 
 // CSV 내보내기 (admin.head 출력 전에 처리)
@@ -88,7 +88,7 @@ $stat = array(
   'allday' => cnt2("apply_temp_yn='N' AND apply_pay_status=10 AND apply_product_code='NORMAL_ALL'"),
   'day1'   => cnt2("apply_temp_yn='N' AND apply_pay_status=10 AND apply_product_code='NORMAL_20'"),
   'day2'   => cnt2("apply_temp_yn='N' AND apply_pay_status=10 AND apply_product_code='NORMAL_21'"),
-  'online' => cnt2("apply_temp_yn='N' AND (free_yn='Y' OR apply_product_code='ONLINE')"),
+  'online' => cnt2("apply_temp_yn='N' AND apply_pay_status<>0 AND (free_yn='Y' OR apply_product_code='ONLINE')"),
   'cancel' => cnt2("apply_temp_yn='N' AND apply_pay_status=0"),
 );
 

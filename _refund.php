@@ -12,7 +12,7 @@
  */
 
 // ── 환불 스위치 ── false: 실제 환불 API 호출 안 함(테스트모드). 운영 전환($INICIS_TEST=false) 시 true.
-if (!defined('UFS_REFUND_LIVE')) define('UFS_REFUND_LIVE', false);
+if (!defined('UFS_REFUND_LIVE')) define('UFS_REFUND_LIVE', true);
 if (!defined('UFS_INIAPI_KEY'))  define('UFS_INIAPI_KEY',  'nf2Vszdaxij1qXsm'); // INIAPI 환불 키 (결제 signKey와 별개)
 if (!defined('UFS_INIAPI_MID'))  define('UFS_INIAPI_MID',  'MOIepiclou');       // 운영 MID
 

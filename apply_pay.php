@@ -7,7 +7,7 @@ include_once "../common.php";                 // sql_query/sql_fetch/sql_real_es
 require_once "../unrealfest2025/inisis_pc/libs/INIStdPayUtil.php";
 
 // ── INICIS 모드 (검증 후 false 로 전환) ──
-$INICIS_TEST = true;
+$INICIS_TEST = false;
 if ($INICIS_TEST) {
     $mid     = "INIpayTest";
     $signKey = "SU5JTElURV9UUklQTEVERVNfS0VZU1RS";
@@ -53,6 +53,14 @@ $apply_product_price = (string)$PRODUCTS[$apply_product_code]['price'];
 // ── 검증 ──
 if ($apply_ci === '')          { exit('<script>alert("본인인증을 먼저 진행해주세요.");history.back();</script>'); }
 if ($apply_user_email === '' || $apply_user_phone === '') { exit('<script>alert("이메일/연락처를 입력해주세요.");history.back();</script>'); }
+
+// ── 본인인증 결과를 세션에 보존 ──
+//   결제창에서 취소하고 등록폼(closeUrl)으로 돌아와도 _ticket_init 이 세션에서 복원 →
+//   본인인증을 다시 하지 않아도 됨. (본인인증 결과가 폼 hidden 에만 있던 문제 보완)
+$_SESSION['CI'] = $apply_ci;
+$_SESSION['DI'] = $apply_di;
+if ($apply_user_name  !== '') { $_SESSION['RSLT_NAME'] = $apply_user_name; }
+if ($apply_user_phone !== '') { $_SESSION['TEL_NO']    = $apply_user_phone; }
 
 // ── 중복 등록 체크 (확정건 기준) ──
 // ※ 테스트모드($INICIS_TEST) 동안은 같은 본인인증/이메일로 반복 테스트가 가능하도록 건너뜀.
@@ -125,11 +133,17 @@ $returnUrl  = $base."/apply_pay_return.php";
 $closeUrl   = $base."/".($apply_product_code === 'NORMAL_ALL' ? 'ticket-all.php' : 'ticket-day.php');
 
 // 결제수단 라디오 → INICIS gopaymethod 매핑 (간편결제 직접호출)
-//   간편결제는 운영 MID에 각 페이 가맹 신청 완료 시 동작 (테스트 MID는 제한될 수 있음).
-$gopaymethod = "Card:Directbank:vbank"; // 기본: 카드/계좌이체/가상계좌
+//   간편결제 직접호출은 gopaymethod=onlyXXX + acceptmethod에 'cardonly' 가 함께 있어야
+//   선택한 페이만 단독으로 뜬다 (없으면 통합 결제창이 노출됨). ref: INICIS_Stdpay#114
+//   운영 MID에 각 페이 가맹 + '신용카드 직접호출' 설정이 되어 있어야 동작 (1588-4954).
+$gopaymethod  = "Card:Directbank:vbank";          // 기본: 카드/계좌이체/가상계좌
+$acceptmethod = "HPP(1):below1000:centerCd(Y)";   // 기본 acceptmethod
+$easypay = true;
 if ($payment === 'kakaopay')      { $gopaymethod = "onlykakaopay"; }
 else if ($payment === 'naverpay') { $gopaymethod = "onlynaverpay"; }
 else if ($payment === 'tosspay')  { $gopaymethod = "onlytosspay"; }
+else { $easypay = false; }
+if ($easypay) { $acceptmethod .= ":cardonly"; }   // 간편결제 단독 호출 트리거
 function ev($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>
@@ -155,7 +169,7 @@ function ev($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
   <input type="hidden" name="buyertel" value="<?= ev($apply_user_phone) ?>">
   <input type="hidden" name="buyeremail" value="<?= ev($apply_user_email) ?>">
   <input type="hidden" name="gopaymethod" value="<?= ev($gopaymethod) ?>">
-  <input type="hidden" name="acceptmethod" value="HPP(1):below1000:centerCd(Y)">
+  <input type="hidden" name="acceptmethod" value="<?= ev($acceptmethod) ?>">
   <input type="hidden" name="merchantData" value="<?= ev($apply_no) ?>">
   <input type="hidden" name="returnUrl" value="<?= ev($returnUrl) ?>">
   <input type="hidden" name="closeUrl" value="<?= ev($closeUrl) ?>">

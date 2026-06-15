@@ -92,4 +92,5 @@ $qr_jpg = ($apply_no !== '' && file_exists(__DIR__."/qrdata/".$apply_no.".jpg"))
   </div>
 </main>
 <?php include __DIR__ . '/_pf_footer.php'; ?>
+<script>try{localStorage.removeItem('ufs_ticket_form');}catch(e){}</script>
 </body></html>

@@ -197,6 +197,32 @@ function ufsResetScroll(){
   document.body.style.width='';
 }
 
+// 입력값 임시 저장/복원 (결제창 취소로 폼 복귀 시 재입력 방지)
+// — 민감정보(CI/DI)·약관 동의는 제외. 결제 완료 시 ticket-complete 에서 clear.
+var UFS_FKEY = 'ufs_ticket_form';
+var UFS_TEXT = ['apply_user_email','apply_user_phone','apply_user_company','apply_user_depart','apply_user_job','apply_user_grade','apply_user_ex1'];
+function ufsSaveForm(){
+  try{
+    var d = {};
+    for (var i=0;i<UFS_TEXT.length;i++){ var el=document.querySelector('[name="'+UFS_TEXT[i]+'"]'); if(el) d[UFS_TEXT[i]]=el.value; }
+    var ts=document.querySelector('input[name="tshirt"]:checked'); if(ts) d.tshirt=ts.value;
+    var d1=document.querySelector('input[name="day1track"]:checked'); if(d1) d.day1track=d1.value;
+    var d2=document.querySelector('input[name="day2track"]:checked'); if(d2) d.day2track=d2.value;
+    localStorage.setItem(UFS_FKEY, JSON.stringify(d));
+  }catch(e){}
+}
+function ufsRestoreForm(){
+  try{
+    var raw=localStorage.getItem(UFS_FKEY); if(!raw) return;
+    var d=JSON.parse(raw);
+    for (var i=0;i<UFS_TEXT.length;i++){ var n=UFS_TEXT[i]; if(d[n]!=null){ var el=document.querySelector('[name="'+n+'"]'); if(el && !el.value) el.value=d[n]; } }
+    function setRadio(name,val){ if(val==null) return; var el=document.querySelector('input[name="'+name+'"][value="'+val+'"]'); if(el && !el.disabled){ el.checked=true; try{ el.dispatchEvent(new Event('change',{bubbles:true})); }catch(e){} } }
+    setRadio('tshirt', d.tshirt);
+    setRadio('day1track', d.day1track);
+    setRadio('day2track', d.day2track);
+  }catch(e){}
+}
+
 // 초기화
 (function(){
   bindTicketCards();
@@ -207,4 +233,7 @@ function ufsResetScroll(){
   setInterval(refreshAuth, 1000);
   refreshAuth();
   ufsResetScroll();
+  ufsRestoreForm();
+  var _frm=document.getElementById('frm');
+  if(_frm){ _frm.addEventListener('input', ufsSaveForm); _frm.addEventListener('change', ufsSaveForm); }
 })();

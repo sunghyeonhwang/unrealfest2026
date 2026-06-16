@@ -63,4 +63,11 @@
   /* 드래그 캐러셀 스크롤바 숨김 */
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
+  /* 다크 테마 스크롤바 (전역) */
+  html { scrollbar-color: #3f3f46 #0b0c10; scrollbar-width: thin; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: #0b0c10; }
+  ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 6px; border: 2px solid #0b0c10; }
+  ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+  ::-webkit-scrollbar-corner { background: #0b0c10; }
 }

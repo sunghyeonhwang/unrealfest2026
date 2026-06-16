@@ -14,11 +14,12 @@
     <div class="h-px bg-[#27272a]"></div>
     <label class="flex items-start gap-3 px-3 py-2 cursor-pointer">
       <input type="checkbox" name="agree_req" class="agree-item mt-0.5 accent-[#00C1D5]">
-      <span class="text-sm text-[#a1a1aa]">에픽 라운지 이용약관 동의 및 개인정보보호정책 확인<span class="ml-1 text-xs text-[#00C1D5]">(필수)</span></span>
+      <span class="text-sm text-[#a1a1aa]"><button type="button" onclick="event.preventDefault();event.stopPropagation();openLegal('terms');" class="underline text-[#00C1D5] hover:text-white">이용약관</button> 동의 및 <button type="button" onclick="event.preventDefault();event.stopPropagation();openLegal('privacy');" class="underline text-[#00C1D5] hover:text-white">개인정보처리방침</button> 확인<span class="ml-1 text-xs text-[#00C1D5]">(필수)</span></span>
     </label>
     <label class="flex items-start gap-3 px-3 py-2 cursor-pointer">
       <input type="checkbox" name="agree_mkt" class="agree-item mt-0.5 accent-[#00C1D5]">
-      <span class="text-sm text-[#a1a1aa]">광고 수신 동의<span class="ml-1 text-xs text-[#71717a]">(선택)</span></span>
+      <span class="text-sm text-[#a1a1aa]"><button type="button" onclick="event.preventDefault();event.stopPropagation();openLegal('marketing');" class="underline text-[#a1a1aa] hover:text-white">광고 수신 동의</button><span class="ml-1 text-xs text-[#71717a]">(선택)</span></span>
     </label>
   </div>
 </div>
+<?php include __DIR__ . '/_legal_modal.php'; ?>

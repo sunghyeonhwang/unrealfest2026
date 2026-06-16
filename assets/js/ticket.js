@@ -236,4 +236,7 @@ function ufsRestoreForm(){
   ufsRestoreForm();
   var _frm=document.getElementById('frm');
   if(_frm){ _frm.addEventListener('input', ufsSaveForm); _frm.addEventListener('change', ufsSaveForm); }
+  // 연락처 숫자만 유지(하이픈 등 제거) — myticket 조회와 형식 통일
+  var _phone=document.querySelector('input[name="apply_user_phone"]');
+  if(_phone){ _phone.addEventListener('input',function(){ this.value=this.value.replace(/[^0-9]/g,'').slice(0,11); }); }
 })();

@@ -170,7 +170,7 @@ function ufs_opt($list,$cur){ foreach($list as $o){ echo '<option'.($o===$cur?' 
       <?php if ($error): ?><p class="text-[#ff8674] text-sm mb-4"><?= e($error) ?></p><?php endif; ?>
       <div class="space-y-5">
         <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">이메일 <span class="text-[#00C1D5]">*</span></label><input type="email" name="email" placeholder="등록 시 사용한 이메일" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
-        <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">연락처 <span class="text-[#00C1D5]">*</span></label><input type="tel" name="phone" placeholder="010-1234-5678" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
+        <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">연락처 <span class="text-[#00C1D5]">*</span></label><input type="tel" name="phone" placeholder="01034567890" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
       </div>
       <button type="submit" class="mt-6 w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-3 font-bold flex items-center justify-center gap-2 transition-all">조회하기 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button>
     </form>
@@ -311,15 +311,12 @@ function ufs_opt($list,$cur){ foreach($list as $o){ echo '<option'.($o===$cur?' 
 </main>
 <?php include __DIR__ . '/_pf_footer.php'; ?>
 <script>
-// 조회 연락처 입력 자동 하이픈 (010-1234-5678)
+// 조회 연락처 입력 — 숫자만 유지(하이픈 등 제거). 등록 시 하이픈 없이 저장되므로 매칭 일치.
 (function(){
   var p=document.querySelector('input[type="tel"][name="phone"]');
   if(!p) return;
   p.addEventListener('input',function(){
-    var v=this.value.replace(/[^0-9]/g,'').slice(0,11);
-    if(v.length<4){ this.value=v; }
-    else if(v.length<8){ this.value=v.replace(/(\d{3})(\d+)/,'$1-$2'); }
-    else { this.value=v.replace(/(\d{3})(\d{4})(\d+)/,'$1-$2-$3'); }
+    this.value=this.value.replace(/[^0-9]/g,'').slice(0,11);
   });
 })();
 </script>

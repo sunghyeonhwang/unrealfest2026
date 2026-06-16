@@ -25,7 +25,7 @@ $sp = ufs_sponsors_detail();
   </section>
 
   <!-- 실버 -->
-  <section class="max-w-7xl mx-auto px-6 pb-16">
+  <section class="max-w-7xl mx-auto px-6 pt-16 pb-16">
     <h2 class="text-2xl font-bold text-[#a1a1aa] mb-8 tracking-tight">실버 스폰서</h2>
     <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
       <?php foreach ($sp['silver'] as $s): ?>

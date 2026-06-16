@@ -24,25 +24,6 @@ $sp = ufs_sponsors_detail();
     </div>
   </section>
 
-  <!-- 골드 -->
-  <section class="max-w-7xl mx-auto px-6 py-16">
-    <h2 class="text-2xl font-bold text-[#D4A843] mb-8 tracking-tight">골드 스폰서</h2>
-    <div class="grid md:grid-cols-2 gap-6">
-      <?php foreach ($sp['gold'] as $g): ?>
-        <div class="bg-[#0e0f14] border border-[rgba(212,168,67,0.3)] p-8 flex flex-col">
-          <div class="h-24 flex items-center justify-center mb-6">
-            <img src="<?= e($g['logo']) ?>" alt="<?= e($g['name']) ?>" class="object-contain invert" style="width:300px;" onerror="this.style.display='none'">
-          </div>
-          <p class="text-sm text-[#a1a1aa] leading-relaxed mb-6 flex-grow"><?= e($g['desc']) ?></p>
-          <a href="<?= e($g['link']) ?>" class="inline-flex items-center gap-1.5 text-sm text-[#D4A843] font-medium hover:underline">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
-            웹사이트 방문하기
-          </a>
-        </div>
-      <?php endforeach; ?>
-    </div>
-  </section>
-
   <!-- 실버 -->
   <section class="max-w-7xl mx-auto px-6 pb-16">
     <h2 class="text-2xl font-bold text-[#a1a1aa] mb-8 tracking-tight">실버 스폰서</h2>

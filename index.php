@@ -99,41 +99,13 @@ $ov_icons = array(
     <p class="text-[#90a1b9]">최신 기술과 새로운 아이디어, 다양한 산업 분야의 세션을 만나보세요.</p>
   </div>
 
-  <!-- 키노트 -->
-  <div class="max-w-7xl mx-auto px-6 mb-12">
-    <div class="grid md:grid-cols-2 gap-6">
-      <?php foreach (ufs_db_keynotes() as $k):
-        $img = !empty($k['speaker']['photo']) ? $k['speaker']['photo'] : ($k['id'] === 'keynote-1' ? './Tim_Sweeney_1.png' : ($k['id'] === 'keynote-2' ? './keynote2.png' : '')); ?>
-        <a href="session.php?id=<?= e($k['id']) ?>" class="block bg-[#00C1D5] p-6 hover:bg-[#00b0c2] transition-colors relative overflow-hidden min-h-[240px] rounded-[6px]">
-          <span class="absolute top-6 right-6 text-sm font-bold text-black/70 z-10"><?= e($k['time']) ?></span>
-          <div class="relative z-10 max-w-[65%]">
-            <div class="flex items-center gap-2 mb-4">
-              <span class="px-2.5 py-0.5 text-[11px] font-bold bg-black/20 text-white">키노트</span>
-              <span class="px-2 py-0.5 text-[11px] font-semibold bg-black/20 text-white"><?= e(ufs_level_label_short($k['level'])) ?></span>
-            </div>
-            <h3 class="text-xl font-bold text-black mb-6 tracking-tight leading-snug"><?= e($k['title']) ?></h3>
-            <div>
-              <div class="text-sm font-bold text-black"><?= e($k['speaker']['name']) ?></div>
-              <div class="text-xs text-black/60"><?= e($k['speaker']['role']) ?> · <?= e($k['speaker']['company']) ?></div>
-            </div>
-          </div>
-          <?php if ($img): ?>
-            <div class="absolute right-4 bottom-0 w-[35%] hidden md:flex items-end justify-center">
-              <img src="<?= e($img) ?>" alt="<?= e($k['speaker']['name']) ?>" class="h-full object-cover object-top" onerror="this.style.display='none'">
-            </div>
-          <?php endif; ?>
-        </a>
-      <?php endforeach; ?>
-    </div>
-  </div>
-
-  <!-- Day1 / Day2 캐러셀 -->
+  <!-- Day1 / Day2 캐러셀 (키노트는 Day1 헤더 하단) -->
   <?php
   $day_blocks = array(
-    array('title' => 'Day. 1 | 8월 20일 (목)', 'sessions' => ufs_db_day_sessions(1)),
-    array('title' => 'Day. 2 | 8월 21일 (금)', 'sessions' => ufs_db_day_sessions(2)),
+    array('title' => 'Day 1. 8월 20일', 'sessions' => ufs_db_day_sessions(1)),
+    array('title' => 'Day 2. 8월 21일', 'sessions' => ufs_db_day_sessions(2)),
   );
-  foreach ($day_blocks as $db): ?>
+  foreach ($day_blocks as $bi => $db): ?>
     <div class="mb-10" data-carousel>
       <div class="max-w-7xl mx-auto px-6 flex items-center justify-between mb-6">
         <h3 class="text-xl font-bold text-white tracking-tight"><?= e($db['title']) ?></h3>
@@ -146,6 +118,35 @@ $ov_icons = array(
           </button>
         </div>
       </div>
+      <?php if ($bi === 0): ?>
+      <!-- 키노트 (8월 20일 Day1 진행) -->
+      <div class="max-w-7xl mx-auto px-6 mb-6">
+        <div class="grid md:grid-cols-2 gap-6">
+          <?php foreach (ufs_db_keynotes() as $k):
+            $img = !empty($k['speaker']['photo']) ? $k['speaker']['photo'] : ($k['id'] === 'keynote-1' ? './Tim_Sweeney_1.png' : ($k['id'] === 'keynote-2' ? './keynote2.png' : '')); ?>
+            <a href="session.php?id=<?= e($k['id']) ?>" class="block bg-[#00C1D5] p-6 hover:bg-[#00b0c2] transition-colors relative overflow-hidden min-h-[240px] rounded-[6px]">
+              <span class="absolute top-6 right-6 text-sm font-bold text-black/70 z-10"><?= e($k['time']) ?></span>
+              <div class="relative z-10 max-w-[65%]">
+                <div class="flex items-center gap-2 mb-4">
+                  <span class="px-2.5 py-0.5 text-[11px] font-bold bg-black/20 text-white">키노트</span>
+                  <span class="px-2 py-0.5 text-[11px] font-semibold bg-black/20 text-white"><?= e(ufs_level_label_short($k['level'])) ?></span>
+                </div>
+                <h3 class="text-xl font-bold text-black mb-6 tracking-tight leading-snug"><?= e($k['title']) ?></h3>
+                <div>
+                  <div class="text-sm font-bold text-black"><?= e($k['speaker']['name']) ?></div>
+                  <div class="text-xs text-black/60"><?= e($k['speaker']['role']) ?> · <?= e($k['speaker']['company']) ?></div>
+                </div>
+              </div>
+              <?php if ($img): ?>
+                <div class="absolute right-4 bottom-0 w-[35%] hidden md:flex items-end justify-center">
+                  <img src="<?= e($img) ?>" alt="<?= e($k['speaker']['name']) ?>" class="h-full object-cover object-top" onerror="this.style.display='none'">
+                </div>
+              <?php endif; ?>
+            </a>
+          <?php endforeach; ?>
+        </div>
+      </div>
+      <?php endif; ?>
       <div class="max-w-7xl mx-auto px-6">
         <div class="relative">
           <div data-carousel-track class="overflow-x-auto pb-2 no-scrollbar cursor-grab select-none">
@@ -193,7 +194,7 @@ $ov_icons = array(
   <div class="max-w-7xl mx-auto px-6">
     <div class="mb-16">
       <h2 class="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">티켓</h2>
-      <p class="text-base text-[#90a1b9]">오프라인과 온라인으로 Unreal Fest Seoul 2026을 경험해 보세요.</p>
+      <p class="text-base text-[#90a1b9]">오프라인과 온라인으로 언리얼 페스트 서울 2026을 경험해 보세요.</p>
     </div>
     <div class="grid md:grid-cols-3 gap-[26px] pt-[35px]">
       <!-- 양일권 -->
@@ -319,17 +320,7 @@ $ov_icons = array(
     </div>
     <div class="space-y-16">
       <div>
-        <h3 class="text-center text-amber-600 dark:text-amber-500 font-bold tracking-[0.2em] mb-8 text-sm">GOLD SPONSORS</h3>
-        <div class="grid md:grid-cols-2 gap-6 lg:gap-8">
-          <?php foreach ($sp['gold'] as $g): ?>
-            <div class="h-40 md:h-48 bg-white dark:bg-gradient-to-br dark:from-[#1c1c21] dark:to-[#111115] border border-amber-200 dark:border-amber-500/20 hover:border-amber-400 dark:hover:border-amber-500/50 rounded-none flex items-center justify-center transition-all group shadow-sm dark:shadow-none">
-              <img src="<?= e($g['src']) ?>" alt="<?= e($g['name']) ?>" class="w-64 h-20 object-contain dark:invert transition-opacity">
-            </div>
-          <?php endforeach; ?>
-        </div>
-      </div>
-      <div>
-        <h3 class="text-center text-black/60 dark:text-slate-400 font-bold tracking-[0.2em] mb-8 text-sm">SILVER SPONSORS</h3>
+        <h3 class="text-center text-black/60 dark:text-slate-400 font-bold tracking-[0.2em] mb-8 text-sm">Silver</h3>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
           <?php foreach ($sp['silver'] as $s): ?>
             <div class="h-28 md:h-32 bg-white dark:bg-gradient-to-br dark:from-[#16161c] dark:to-[#0d0d11] border border-black/10 dark:border-white/10 hover:border-black/15 dark:hover:border-slate-400/50 rounded-none flex items-center justify-center transition-all group shadow-sm dark:shadow-none">
@@ -407,7 +398,7 @@ $ov_icons = array(
     <!-- 문의 CTA -->
     <div class="mt-12 max-w-full">
       <div class="bg-[rgba(0,193,213,0.05)] p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <p class="text-[#a1a1aa] font-medium">추가적인 문의사항이 있으신가요?</p>
+        <p class="text-[#a1a1aa] font-medium">추가로 궁금한 사항이 있으신가요?</p>
         <a href="mailto:info@epiclounge.co.kr" class="bg-white text-black px-6 py-3 font-bold hover:bg-slate-200 transition-colors whitespace-nowrap clip-btn-8">이메일로 문의하기</a>
       </div>
     </div>

@@ -2,7 +2,9 @@
 // Unreal Fest Seoul 2026 — 홈 (React Home.tsx 1:1: Hero/Overview/Agenda/Register/Venue/Sponsors/EventBenefits/FAQ)
 // 순수 PHP/HTML/CSS/JS. 데이터는 data/lib.php 접근자. 디자인 기준 = 라이브 React 렌더 캡처.
 $ufs_page = 'home';
+include_once __DIR__ . '/../common.php';        // DB (sql_query)
 require_once __DIR__ . '/data/lib.php';
+require_once __DIR__ . '/data/agenda_db.php';
 include __DIR__ . '/_head.php';
 ?>
 
@@ -100,8 +102,8 @@ $ov_icons = array(
   <!-- 키노트 -->
   <div class="max-w-7xl mx-auto px-6 mb-12">
     <div class="grid md:grid-cols-2 gap-6">
-      <?php foreach (ufs_keynotes() as $k):
-        $img = $k['id'] === 'keynote-1' ? './Tim_Sweeney_1.png' : ($k['id'] === 'keynote-2' ? './keynote2.png' : ''); ?>
+      <?php foreach (ufs_db_keynotes() as $k):
+        $img = !empty($k['speaker']['photo']) ? $k['speaker']['photo'] : ($k['id'] === 'keynote-1' ? './Tim_Sweeney_1.png' : ($k['id'] === 'keynote-2' ? './keynote2.png' : '')); ?>
         <a href="session.php?id=<?= e($k['id']) ?>" class="block bg-[#00C1D5] p-6 hover:bg-[#00b0c2] transition-colors relative overflow-hidden min-h-[240px] rounded-[6px]">
           <span class="absolute top-6 right-6 text-sm font-bold text-black/70 z-10"><?= e($k['time']) ?></span>
           <div class="relative z-10 max-w-[65%]">
@@ -128,8 +130,8 @@ $ov_icons = array(
   <!-- Day1 / Day2 캐러셀 -->
   <?php
   $day_blocks = array(
-    array('title' => 'Day. 1 | 8월 20일 (목)', 'sessions' => ufs_sessions_by_day(1)),
-    array('title' => 'Day. 2 | 8월 21일 (금)', 'sessions' => ufs_sessions_by_day(2)),
+    array('title' => 'Day. 1 | 8월 20일 (목)', 'sessions' => ufs_db_day_sessions(1)),
+    array('title' => 'Day. 2 | 8월 21일 (금)', 'sessions' => ufs_db_day_sessions(2)),
   );
   foreach ($day_blocks as $db): ?>
     <div class="mb-10" data-carousel>
@@ -155,11 +157,16 @@ $ov_icons = array(
                   </div>
                   <h4 class="text-[18px] font-bold text-white leading-[28px] tracking-tight line-clamp-3 flex-grow font-display"><?= e($s['title']) ?></h4>
                   <div class="flex items-center gap-2.5 mt-auto">
-                    <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 <?= ufs_track_avatar_home($s['track']) ?>">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-black/60"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <?php $cs_photo = !empty($s['speaker']['photo']) ? $s['speaker']['photo'] : ''; ?>
+                    <?php if ($cs_photo !== ''): ?>
+                      <img src="<?= e($cs_photo) ?>" alt="<?= e($s['speaker']['name']) ?>" class="w-12 h-12 rounded-full object-cover flex-shrink-0" onerror="this.style.display='none'">
+                    <?php else: ?>
+                    <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 <?= ufs_track_avatar_home($s['track']) ?>">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-black/60"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     </div>
+                    <?php endif; ?>
                     <div class="min-w-0">
-                      <div class="text-[13px] font-bold text-white truncate"><?= e($s['speaker']['name']) ?></div>
+                      <div class="text-[13px] font-bold text-white truncate"><?= e($s['_speakers_label']) ?></div>
                       <div class="text-[13px] text-white/80 truncate"><?= e($s['speaker']['company']) ?></div>
                     </div>
                   </div>

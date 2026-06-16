@@ -1,17 +1,20 @@
 <?php
-// Unreal Fest Seoul 2026 — 타임테이블. React Schedule.tsx 1:1.
-// Day1/Day2 탭 · 트랙뷰(시간대 행)/그리드뷰(테이블) · Filter(트랙/난이도/토픽, 트랙뷰에만 적용).
-// 4블록(day1/day2 × track/grid)을 서버 렌더 후 app.js 가 토글/필터.
+// Unreal Fest Seoul 2026 — 타임테이블 (DB 버전). schedule.php 의 DB 연동 포크.
+// 데이터 출처: cb_unreal_2026_agenda (관리자 CSV 업로드/아젠다 관리로 채움).
+// Day1/Day2 탭 · 트랙뷰/그리드뷰 · Filter. 휴식/점심 등 공통행 렌더 분기 포함.
 $ufs_page   = 'schedule';
 $page_title = '타임테이블 — Unreal Fest Seoul 2026';
 $page_desc  = 'Unreal Fest Seoul 2026 양일간의 세션 타임테이블. 트랙별/시간대별로 일정을 확인하세요.';
+include_once __DIR__ . '/../common.php';        // DB (sql_query / sql_real_escape_string)
 require_once __DIR__ . '/data/lib.php';
+require_once __DIR__ . '/data/agenda_db.php';
 
-function ufs_sched_slots($sessions) {
-    $set = array();
-    foreach ($sessions as $s) { $set[$s['time']] = true; }
-    $slots = array_keys($set);
-    sort($slots);
+// 시간 슬롯을 등장(=ag_sort 정렬) 순서대로, 중복 제거하여 수집
+function ufs_s_sched_slots($sessions) {
+    $slots = array();
+    foreach ($sessions as $s) {
+        if (!in_array($s['time'], $slots, true)) $slots[] = $s['time'];
+    }
     return $slots;
 }
 function ufs_sched_colors($track) {
@@ -27,10 +30,18 @@ function ufs_sched_colors($track) {
 function ufs_user_svg($cls) {
     return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="'.$cls.'"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
 }
+// 연사 아바타 — 헤드샷(ag_sp_photo) 있으면 사진, 없으면 트랙색 원형 + 아이콘
+function ufs_avatar($s, $wh, $dot, $svgcls) {
+    $photo = isset($s['speaker']['photo']) ? $s['speaker']['photo'] : '';
+    if ($photo !== '') {
+        return '<img src="'.e($photo).'" alt="'.e($s['speaker']['name']).'" class="'.$wh.' rounded-full object-cover flex-shrink-0" onerror="this.style.display=\'none\'">';
+    }
+    return '<div class="'.$wh.' rounded-full flex items-center justify-center flex-shrink-0 '.$dot.'">'.ufs_user_svg($svgcls).'</div>';
+}
 
 // 트랙뷰 렌더
 function ufs_render_track_view($daySessions) {
-    foreach (ufs_sched_slots($daySessions) as $time) {
+    foreach (ufs_s_sched_slots($daySessions) as $time) {
         $inSlot = array();
         foreach ($daySessions as $s) { if ($s['time'] === $time) $inSlot[] = $s; }
         if (!$inSlot) continue;
@@ -38,21 +49,36 @@ function ufs_render_track_view($daySessions) {
         echo '<div class="w-[120px] md:w-[160px] flex-shrink-0 py-6 pr-6"><div class="text-lg font-bold text-white tracking-tight sticky top-[140px]">'.e($time).'</div></div>';
         echo '<div class="flex-grow border-l border-[#27272a] divide-y divide-[#27272a]">';
         foreach ($inSlot as $s) {
+            // 공통행(휴식/점심/등록확인/환영사/경품추첨) — 클릭 불가 풀폭 라벨
+            if (!empty($s['_slot_type']) && ufs_slot_is_common($s['_slot_type'])) {
+                echo '<div data-sched-common class="block px-6 py-4 text-center text-sm font-semibold text-[#71717a] bg-[#0b0c10]">'.e(ufs_slot_common_label($s)).'</div>';
+                continue;
+            }
+            // 가림 세션 — "곧 공개 예정"(제목/연사 숨김)
+            if (!empty($s['_hidden'])) {
+                $c = ufs_sched_colors($s['track']);
+                $isKeyH = ($s['track'] === '키노트' || !empty($s['is_keynote']));
+                echo '<div data-sched-card data-track="'.e($s['track']).'" data-level="'.e($s['level']).'" data-topics="" class="block p-6 opacity-70">';
+                echo '<div class="flex items-center gap-2 mb-2"><span class="px-2 py-0.5 text-[11px] font-bold '.$c['bg'].' '.$c['text'].'">'.e($isKeyH ? '키노트' : ufs_track_label_list($s['track'])).'</span></div>';
+                echo '<div class="flex items-center gap-2 text-[#71717a] font-bold"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>곧 공개 예정</div>';
+                echo '</div>';
+                continue;
+            }
             $c = ufs_sched_colors($s['track']);
-            $isKey = ($s['track'] === '키노트');
+            $isKey = ($s['track'] === '키노트' || !empty($s['is_keynote']));
             $topics = implode(' ', ufs_session_topics($s));
             echo '<a href="session.php?id='.e($s['id']).'" data-sched-card data-track="'.e($s['track']).'" data-level="'.e($s['level']).'" data-topics="'.e($topics).'" class="block p-6 hover:bg-[#0e0f14] transition-colors'.($isKey ? ' bg-[rgba(0,193,213,0.03)]' : '').'">';
-            echo '<div class="flex items-center gap-2 mb-2"><span class="px-2 py-0.5 text-[11px] font-bold '.$c['bg'].' '.$c['text'].'">'.e(ufs_track_label_list($s['track'])).'</span><span class="px-2 py-0.5 text-[11px] font-semibold bg-[#27272a] text-[#f4f4f5]">'.e(ufs_level_label_short($s['level'])).'</span></div>';
+            echo '<div class="flex items-center gap-2 mb-2"><span class="px-2 py-0.5 text-[11px] font-bold '.$c['bg'].' '.$c['text'].'">'.e($isKey ? '키노트' : ufs_track_label_list($s['track'])).'</span><span class="px-2 py-0.5 text-[11px] font-semibold bg-[#27272a] text-[#f4f4f5]">'.e(ufs_level_label_short($s['level'])).'</span></div>';
             echo '<h3 class="font-bold text-[#fafafa] mb-2 tracking-tight leading-snug '.($isKey ? 'text-xl' : 'text-base').'">'.e($s['title']).'</h3>';
-            echo '<p class="text-sm text-[#a1a1aa] mb-3 line-clamp-2">'.e($s['desc']).'</p>';
-            echo '<div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 '.$c['dot'].'">'.ufs_user_svg('w-3.5 h-3.5 text-black/60').'</div><span class="text-sm text-[#a1a1aa]">'.e($s['speaker']['name']).'</span><span class="text-xs text-[#71717a]">'.e($s['speaker']['company']).'</span></div>';
+            if ($s['desc'] !== '') echo '<p class="text-sm text-[#a1a1aa] mb-3 line-clamp-2">'.e($s['desc']).'</p>';
+            echo '<div class="flex items-center gap-2">'.ufs_avatar($s, 'w-12 h-12', $c['dot'], 'w-6 h-6 text-black/60').'<span class="text-sm text-[#a1a1aa]">'.e($s['_speakers_label']).'</span><span class="text-xs text-[#71717a]">'.e($s['speaker']['company']).'</span></div>';
             echo '</a>';
         }
         echo '</div></div>';
     }
 }
 
-// 그리드뷰(타임테이블) 렌더 — 필터 미적용(React 동일)
+// 그리드뷰(타임테이블) 렌더 — 시간 슬롯 순서대로 키노트/공통/세션 행을 통합 렌더
 // 그리드 트랙 표시 라벨 — '산업 & 시뮬레이션'은 Day별로 다름 (Day1=공통, Day2=제조 및 시뮬레이션)
 function ufs_grid_track_label($tr, $day) {
     if ($tr === '산업 & 시뮬레이션') return ((int)$day === 1) ? '공통' : '제조 및 시뮬레이션';
@@ -60,9 +86,6 @@ function ufs_grid_track_label($tr, $day) {
 }
 function ufs_render_grid_view($daySessions, $day) {
     $gridTracks = array('게임 - 프로그래밍', '게임 - 아트', '미디어 & 엔터테인먼트', '산업 & 시뮬레이션');
-    $keynotes = array(); $nonkey = array();
-    foreach ($daySessions as $s) { if ($s['track'] === '키노트') $keynotes[] = $s; else $nonkey[] = $s; }
-    $gridSlots = ufs_sched_slots($nonkey);
     echo '<div class="overflow-x-auto"><table class="w-full min-w-[900px] border-collapse"><thead><tr>';
     echo '<th class="w-[100px] p-3 text-left text-xs font-bold text-[#71717a] uppercase border-b border-[#27272a] sticky left-0 bg-[#09090b] z-10">시간</th>';
     foreach ($gridTracks as $tr) {
@@ -70,40 +93,73 @@ function ufs_render_grid_view($daySessions, $day) {
         echo '<th class="p-3 text-center text-xs font-bold border-b border-[#27272a]"><span class="'.$c['text'].'">'.e(ufs_grid_track_label($tr, $day)).'</span></th>';
     }
     echo '</tr></thead><tbody>';
-    // 키노트 행
-    foreach ($keynotes as $k) {
-        $img = $k['id'] === 'keynote-1' ? './Tim_Sweeney_1.png' : ($k['id'] === 'keynote-2' ? './keynote2.png' : '');
-        echo '<tr class="border-b border-[#27272a]"><td class="p-3 text-sm font-bold text-white align-top sticky left-0 bg-[#09090b] z-10">'.e($k['time']).'</td>';
-        echo '<td colspan="4" class="p-2"><a href="session.php?id='.e($k['id']).'" class="block bg-[#00C1D5] hover:bg-[#00b0c2] p-6 rounded-[6px] transition-all relative overflow-hidden">';
-        echo '<div class="relative z-10 max-w-[70%]"><div class="flex items-center gap-2 mb-2"><span class="px-2 py-0.5 text-[11px] font-bold bg-black/20 text-white">키노트</span><span class="px-2 py-0.5 text-[11px] font-semibold bg-black/20 text-white">'.e(ufs_level_label_short($k['level'])).'</span></div>';
-        echo '<h3 class="text-lg font-bold text-black mb-3 tracking-tight leading-snug">'.e($k['title']).'</h3>';
-        echo '<div><div class="text-sm font-bold text-black">'.e($k['speaker']['name']).'</div><div class="text-xs text-black/60">'.e($k['speaker']['role']).' · '.e($k['speaker']['company']).'</div></div></div>';
-        if ($img) echo '<div class="absolute right-4 bottom-0 w-[25%] hidden md:flex items-end justify-center"><img src="'.e($img).'" alt="'.e($k['speaker']['name']).'" class="h-32 object-cover object-top" onerror="this.style.display=\'none\'"></div>';
-        echo '</a></td></tr>';
-    }
-    // 일반 세션 행
-    foreach ($gridSlots as $time) {
+    foreach (ufs_s_sched_slots($daySessions) as $time) {
         $inSlot = array();
-        foreach ($nonkey as $s) { if ($s['time'] === $time) $inSlot[] = $s; }
+        foreach ($daySessions as $s) { if ($s['time'] === $time) $inSlot[] = $s; }
         if (!$inSlot) continue;
-        echo '<tr class="border-b border-[#27272a]"><td class="p-3 text-sm font-bold text-white align-top sticky left-0 bg-[#09090b] z-10">'.e($time).'</td>';
-        foreach ($gridTracks as $tr) {
-            $cell = null;
-            foreach ($inSlot as $s) { if ($s['track'] === $tr) { $cell = $s; break; } }
-            echo '<td class="p-2 align-top">';
-            if ($cell) {
-                $c = ufs_sched_colors($cell['track']);
-                echo '<a href="session.php?id='.e($cell['id']).'" class="block bg-[#0e0f14] p-5 hover:bg-[#111115] transition-colors h-full min-h-[240px] flex flex-col gap-2">';
-                echo '<div class="flex items-center gap-2 flex-wrap"><span class="px-2.5 py-0.5 text-[11px] font-bold '.$c['bg'].' '.$c['text'].'">'.e(ufs_grid_track_label($cell['track'], $day)).'</span><span class="px-2 py-0.5 text-[11px] font-semibold bg-[#27272a] text-[#f4f4f5]">'.e(ufs_level_label_short($cell['level'])).'</span></div>';
-                echo '<h4 class="text-[15px] font-bold text-[#fafafa] leading-snug tracking-tight line-clamp-3 flex-grow">'.e($cell['title']).'</h4>';
-                echo '<div class="flex items-center gap-2.5 mt-auto"><div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 '.$c['dot'].'">'.ufs_user_svg('w-4 h-4 text-black/60').'</div><div class="min-w-0"><div class="text-sm font-medium text-[#fafafa] truncate">'.e($cell['speaker']['name']).'</div><div class="text-xs text-[#71717a] truncate">'.e($cell['speaker']['company']).'</div></div></div>';
-                echo '</a>';
-            } else {
-                echo '<div class="h-full"></div>';
-            }
-            echo '</td>';
+        // 슬롯 유형별 분류
+        $keys = array(); $commons = array(); $normals = array();
+        foreach ($inSlot as $s) {
+            if ($s['track'] === '키노트' || !empty($s['is_keynote'])) $keys[] = $s;
+            elseif (!empty($s['_slot_type']) && ufs_slot_is_common($s['_slot_type'])) $commons[] = $s;
+            else $normals[] = $s;
         }
-        echo '</tr>';
+        // 키노트 행(풀폭)
+        foreach ($keys as $k) {
+            if (!empty($k['_hidden'])) {
+                echo '<tr class="border-b border-[#27272a]"><td class="p-3 text-sm font-bold text-white align-top sticky left-0 bg-[#09090b] z-10">'.e($k['time']).'</td>';
+                echo '<td colspan="4" class="p-2"><div class="block bg-[#0e0f14] p-6 rounded-[6px] text-center text-[#71717a] font-bold">곧 공개 예정</div></td></tr>';
+                continue;
+            }
+            $img = $k['id'] === 'keynote-1' ? './Tim_Sweeney_1.png' : ($k['id'] === 'keynote-2' ? './keynote2.png' : '');
+            echo '<tr class="border-b border-[#27272a]"><td class="p-3 text-sm font-bold text-white align-top sticky left-0 bg-[#09090b] z-10">'.e($k['time']).'</td>';
+            echo '<td colspan="4" class="p-2"><a href="session.php?id='.e($k['id']).'" data-grid-cell data-track="키노트" data-level="'.e($k['level']).'" data-topics="'.e(implode(' ', ufs_session_topics($k))).'" class="block bg-[#00C1D5] hover:bg-[#00b0c2] p-6 rounded-[6px] transition-all relative overflow-hidden">';
+            echo '<div class="relative z-10 max-w-[70%]"><div class="flex items-center gap-2 mb-2"><span class="px-2 py-0.5 text-[11px] font-bold bg-black/20 text-white">키노트</span><span class="px-2 py-0.5 text-[11px] font-semibold bg-black/20 text-white">'.e(ufs_level_label_short($k['level'])).'</span></div>';
+            echo '<h3 class="text-lg font-bold text-black mb-3 tracking-tight leading-snug">'.e($k['title']).'</h3>';
+            echo '<div><div class="text-sm font-bold text-black">'.e($k['speaker']['name']).'</div><div class="text-xs text-black/60">'.e($k['speaker']['role']).($k['speaker']['role']!==''&&$k['speaker']['company']!=='' ? ' · ' : '').e($k['speaker']['company']).'</div></div></div>';
+            if ($img) echo '<div class="absolute right-4 bottom-0 w-[25%] hidden md:flex items-end justify-center"><img src="'.e($img).'" alt="'.e($k['speaker']['name']).'" class="h-32 object-cover object-top" onerror="this.style.display=\'none\'"></div>';
+            echo '</a></td></tr>';
+        }
+        // 공통 행(풀폭, 클릭 불가)
+        foreach ($commons as $cm) {
+            echo '<tr class="border-b border-[#27272a] bg-[#0b0c10]"><td class="p-3 text-sm font-bold text-white align-top sticky left-0 bg-[#0b0c10] z-10">'.e($cm['time']).'</td>';
+            echo '<td colspan="4" class="p-3 text-center text-sm font-semibold text-[#71717a]">'.e(ufs_slot_common_label($cm)).'</td></tr>';
+        }
+        // 일반 세션 행(4트랙 셀)
+        if ($normals) {
+            echo '<tr class="border-b border-[#27272a]"><td class="p-3 text-sm font-bold text-white align-top sticky left-0 bg-[#09090b] z-10">'.e($time).'</td>';
+            foreach ($gridTracks as $tr) {
+                $cells = array();
+                foreach ($normals as $s) { if ($s['track'] === $tr) $cells[] = $s; }
+                echo '<td class="p-2 align-top h-px">';
+                if ($cells) {
+                    echo '<div class="flex flex-col gap-2 h-full">';
+                    foreach ($cells as $cell) {
+                        $c = ufs_sched_colors($cell['track']);
+                        $minh = (count($cells) > 1) ? '' : ' min-h-[240px]';
+                        // 가림 셀 — "곧 공개 예정"
+                        if (!empty($cell['_hidden'])) {
+                            echo '<div class="block bg-[#0e0f14] p-5 flex-grow'.$minh.' flex flex-col gap-2 opacity-70">';
+                            echo '<div class="flex items-center gap-2 flex-wrap"><span class="px-2.5 py-0.5 text-[11px] font-bold '.$c['bg'].' '.$c['text'].'">'.e(ufs_grid_track_label($cell['track'], $day)).'</span></div>';
+                            echo '<div class="flex-grow flex items-center justify-center gap-2 text-[#71717a] font-bold text-sm">곧 공개 예정</div>';
+                            echo '</div>';
+                            continue;
+                        }
+                        $gtopics = implode(' ', ufs_session_topics($cell));
+                        echo '<a href="session.php?id='.e($cell['id']).'" data-grid-cell data-track="'.e($cell['track']).'" data-level="'.e($cell['level']).'" data-topics="'.e($gtopics).'" class="block bg-[#0e0f14] p-5 hover:bg-[#111115] transition-colors transition-opacity flex-grow'.$minh.' flex flex-col gap-2">';
+                        echo '<div class="flex items-center gap-2 flex-wrap"><span class="px-2.5 py-0.5 text-[11px] font-bold '.$c['bg'].' '.$c['text'].'">'.e(ufs_grid_track_label($cell['track'], $day)).'</span><span class="px-2 py-0.5 text-[11px] font-semibold bg-[#27272a] text-[#f4f4f5]">'.e(ufs_level_label_short($cell['level'])).'</span></div>';
+                        echo '<h4 class="text-[15px] font-bold text-[#fafafa] leading-snug tracking-tight line-clamp-3 flex-grow">'.e($cell['title']).'</h4>';
+                        echo '<div class="flex items-center gap-2.5 mt-auto">'.ufs_avatar($cell, 'w-12 h-12', $c['dot'], 'w-6 h-6 text-black/60').'<div class="min-w-0"><div class="text-sm font-medium text-[#fafafa] truncate">'.e($cell['_speakers_label']).'</div><div class="text-xs text-[#71717a] truncate">'.e($cell['speaker']['company']).'</div></div></div>';
+                        echo '</a>';
+                    }
+                    echo '</div>';
+                } else {
+                    echo '<div class="h-full"></div>';
+                }
+                echo '</td>';
+            }
+            echo '</tr>';
+        }
     }
     echo '</tbody></table></div>';
     // 범례
@@ -115,8 +171,8 @@ function ufs_render_grid_view($daySessions, $day) {
     echo '</div>';
 }
 
-$day1 = ufs_sessions_by_day_all(1);
-$day2 = ufs_sessions_by_day_all(2);
+$day1 = ufs_db_day_all(1);
+$day2 = ufs_db_day_all(2);
 include __DIR__ . '/_head.php';
 ?>
 
@@ -203,7 +259,7 @@ include __DIR__ . '/_head.php';
                   <?php endforeach; ?>
                 </div>
               </div>
-              <button type="button" data-filter-apply class="w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-2.5 font-bold text-sm transition-all">적용하기</button>
+              <button type="button" data-grid-reset class="w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-2.5 font-bold text-sm transition-all">초기화</button>
             </div>
           </div>
         </div>
@@ -226,4 +282,39 @@ include __DIR__ . '/_head.php';
   </div>
 </div>
 
+<script>
+(function(){
+  // 그리드뷰 필터: 매치=opacity 1, 비매치=opacity .5 (app.js 트랙뷰 필터와 별개)
+  function checked(attr){
+    var ck = document.querySelectorAll('[' + attr + ']'), list = [], all = false;
+    for (var i = 0; i < ck.length; i++) {
+      if (ck[i].checked) { var v = ck[i].getAttribute(attr); if (v === 'all') all = true; else list.push(v); }
+    }
+    return { list: list, all: all };
+  }
+  function applyGrid(){
+    var tr = checked('data-filter-track'), lv = checked('data-filter-level');
+    var tpCk = document.querySelectorAll('[data-filter-topic]'), topics = [];
+    for (var i = 0; i < tpCk.length; i++) { if (tpCk[i].checked) topics.push(tpCk[i].getAttribute('data-filter-topic')); }
+    var cells = document.querySelectorAll('[data-grid-cell]');
+    for (var j = 0; j < cells.length; j++) {
+      var c = cells[j];
+      var t = c.getAttribute('data-track'), l = c.getAttribute('data-level');
+      var tp = (c.getAttribute('data-topics') || '').split(' ');
+      var okT = tr.all || tr.list.length === 0 || tr.list.indexOf(t) >= 0;
+      var okL = lv.all || lv.list.length === 0 || lv.list.indexOf(l) >= 0;
+      var okP = topics.length === 0;
+      if (!okP) { for (var k = 0; k < topics.length; k++) { if (tp.indexOf(topics[k]) >= 0) { okP = true; break; } } }
+      c.style.opacity = (okT && okL && okP) ? '1' : '0.5';
+    }
+  }
+  // 체크박스 변경 시 즉시 적용
+  var fcbs = document.querySelectorAll('[data-filter-track],[data-filter-level],[data-filter-topic]');
+  for (var i = 0; i < fcbs.length; i++) fcbs[i].addEventListener('change', applyGrid);
+  // 초기화 버튼: app.js 상단 Reset 로직 실행 + 그리드 리셋
+  var gr = document.querySelector('[data-grid-reset]');
+  if (gr) gr.addEventListener('click', function(){ var tr = document.querySelector('[data-filter-reset]'); if (tr) tr.click(); setTimeout(applyGrid, 0); });
+  applyGrid();
+})();
+</script>
 <?php include __DIR__ . '/_foot.php'; ?>

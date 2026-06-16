@@ -1,10 +1,12 @@
 <?php
 // Unreal Fest Seoul 2026 — 세션 상세. React SessionDetail.tsx 1:1. URL: session.php?id=<id>
 $ufs_page = 'session';
+include_once __DIR__ . '/../common.php';        // DB (sql_query)
 require_once __DIR__ . '/data/lib.php';
+require_once __DIR__ . '/data/agenda_db.php';
 
 $id = isset($_GET['id']) ? (string)$_GET['id'] : '';
-$session = $id !== '' ? ufs_session($id) : null;
+$session = $id !== '' ? ufs_db_session($id) : null;
 
 $page_title = $session ? ($session['title'] . ' — Unreal Fest Seoul 2026') : '세션을 찾을 수 없습니다 — Unreal Fest Seoul 2026';
 $page_desc  = $session ? $session['desc'] : 'Unreal Fest Seoul 2026 세션 정보.';
@@ -22,7 +24,7 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
 <?php else:
   $cats = ufs_session_keywords($session);
   $date_iso = ufs_day_iso($session['day']);
-  $related = ufs_related_sessions($session, 2);
+  $related = ufs_db_related($session, 2);
 ?>
 <div class="bg-[#09090b] min-h-screen text-white">
   <!-- 상단 헤딩 -->
@@ -63,7 +65,7 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
           <h2 class="text-xl font-bold text-white mb-4">세션 목차</h2>
           <ul class="space-y-2">
             <?php foreach ($session['contents'] as $c): ?>
-              <li class="flex items-start gap-2 text-[#a1a1aa]"><span class="text-[#00C1D5] mt-1">•</span><?= e($c) ?></li>
+              <li class="flex items-baseline gap-2 text-[#a1a1aa]"><span class="text-[#00C1D5] flex-shrink-0">•</span><span><?= e($c) ?></span></li>
             <?php endforeach; ?>
           </ul>
         </div>
@@ -71,7 +73,7 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
           <h2 class="text-xl font-bold text-white mb-4">권장 대상</h2>
           <ul class="space-y-2">
             <?php foreach (explode(',', $session['target']) as $tg): ?>
-              <li class="flex items-start gap-2 text-[#a1a1aa]"><span class="text-[#00C1D5] mt-1">•</span><?= e(trim($tg)) ?></li>
+              <li class="flex items-baseline gap-2 text-[#a1a1aa]"><span class="text-[#00C1D5] flex-shrink-0">•</span><span><?= e(trim($tg)) ?></span></li>
             <?php endforeach; ?>
           </ul>
         </div>
@@ -79,32 +81,54 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
 
       <!-- 우측 -->
       <div class="space-y-6">
+        <?php foreach ($session['speakers'] as $spi => $sp): ?>
         <div class="bg-[#0e0f14] p-6">
-          <div class="flex items-start justify-between mb-4">
-            <div>
-              <div class="text-xl font-bold text-[#fafafa]"><?= e($session['speaker']['name']) ?></div>
-              <div class="text-sm text-[#a1a1aa]"><?= e($session['speaker']['role']) ?></div>
-              <div class="text-xs text-[#71717a]"><?= e($session['speaker']['company']) ?></div>
-            </div>
-            <div class="w-16 h-16 rounded-full bg-[#1a1a1f] border border-[#27272a] flex items-center justify-center flex-shrink-0 overflow-hidden">
-              <?php if ($session['id'] === 'keynote-1'): ?>
-                <img src="./Tim_Sweeney_1.png" alt="<?= e($session['speaker']['name']) ?>" class="w-full h-full object-cover" onerror="this.style.display='none'">
-              <?php elseif ($session['id'] === 'keynote-2'): ?>
-                <img src="./keynote2.png" alt="<?= e($session['speaker']['name']) ?>" class="w-full h-full object-cover" onerror="this.style.display='none'">
+          <div class="flex items-center gap-4 mb-4">
+            <div class="w-24 h-24 rounded-full bg-[#1a1a1f] border border-[#27272a] flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <?php if ($sp['photo'] !== ''): ?>
+                <img src="<?= e($sp['photo']) ?>" alt="<?= e($sp['name']) ?>" class="w-full h-full object-cover" onerror="this.style.display='none'">
+              <?php elseif ($spi === 0 && $session['id'] === 'keynote-1'): ?>
+                <img src="./Tim_Sweeney_1.png" alt="<?= e($sp['name']) ?>" class="w-full h-full object-cover" onerror="this.style.display='none'">
+              <?php elseif ($spi === 0 && $session['id'] === 'keynote-2'): ?>
+                <img src="./keynote2.png" alt="<?= e($sp['name']) ?>" class="w-full h-full object-cover" onerror="this.style.display='none'">
               <?php else: ?>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-[#71717a]"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 text-[#71717a]"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               <?php endif; ?>
             </div>
+            <div class="min-w-0">
+              <div class="text-xl font-bold text-[#fafafa]"><?= e($sp['name']) ?></div>
+              <?php if ($sp['role'] !== ''): ?><div class="text-sm text-[#a1a1aa]"><?= e($sp['role']) ?></div><?php endif; ?>
+              <?php if ($sp['company'] !== ''): ?><div class="text-xs text-[#71717a]"><?= e($sp['company']) ?></div><?php endif; ?>
+            </div>
           </div>
-          <p class="text-sm text-[#a1a1aa] leading-relaxed"><?= e($speaker_bio) ?></p>
+          <?php $bio_txt = $sp['bio'] !== '' ? $sp['bio'] : $speaker_bio; ?>
+          <?php if (count($session['speakers']) > 1): ?>
+            <details class="mt-1 group"><summary class="text-sm font-semibold text-[#00C1D5] cursor-pointer select-none list-none flex items-center gap-1.5"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 transition-transform group-open:rotate-180"><path d="m6 9 6 6 6-6"/></svg>약력 보기</summary><p class="text-sm text-[#a1a1aa] leading-relaxed mt-3"><?= e($bio_txt) ?></p></details>
+          <?php else: ?>
+            <p class="text-sm text-[#a1a1aa] leading-relaxed"><?= e($bio_txt) ?></p>
+          <?php endif; ?>
         </div>
+        <?php endforeach; ?>
 
+        <?php
+          $cal_date  = str_replace('-', '', ufs_day_iso($session['day']));      // 20260820
+          $cal_tp    = preg_split('/\s*[~\-]\s*/u', $session['time'], 2);
+          $cal_start = isset($cal_tp[0]) ? preg_replace('/[^0-9]/', '', $cal_tp[0]) : '';
+          $cal_end   = isset($cal_tp[1]) ? preg_replace('/[^0-9]/', '', $cal_tp[1]) : '';
+        ?>
         <div class="space-y-3">
-          <button type="button" class="w-full flex items-center justify-center gap-2 py-3 border border-[#27272a] text-[#a1a1aa] text-sm font-medium hover:text-white hover:border-white/20 transition-colors">
+          <button type="button" data-addcal
+            data-title="<?= e($session['title']) ?>"
+            data-date="<?= e($cal_date) ?>"
+            data-start="<?= e($cal_start) ?>"
+            data-end="<?= e($cal_end) ?>"
+            data-location="<?= e($session['location']) ?>"
+            data-desc="<?= e($session['desc']) ?>"
+            class="w-full flex items-center justify-center gap-2 py-3 border border-[#27272a] text-[#a1a1aa] text-sm font-medium hover:text-white hover:border-white/20 transition-colors">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
             일정에 추가하기
           </button>
-          <button type="button" data-share class="w-full flex items-center justify-center gap-2 py-3 border border-[#27272a] text-[#a1a1aa] text-sm font-medium hover:text-white hover:border-white/20 transition-colors">
+          <button type="button" data-share data-title="<?= e($session['title']) ?>" class="w-full flex items-center justify-center gap-2 py-3 border border-[#27272a] text-[#a1a1aa] text-sm font-medium hover:text-white hover:border-white/20 transition-colors">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
             세션 공유하기
           </button>
@@ -148,4 +172,37 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
 </div>
 <?php endif; ?>
 
+<script>
+(function(){
+  function t4(s){ s = (s || '').replace(/[^0-9]/g, ''); return (s + '0000').slice(0, 4); }
+  var add = document.querySelector('[data-addcal]');
+  if (add) add.addEventListener('click', function(){
+    var date = add.getAttribute('data-date') || '';
+    if (!date) { alert('일정 정보가 없습니다.'); return; }
+    var st = t4(add.getAttribute('data-start')), en = t4(add.getAttribute('data-end'));
+    if (en === '0000') en = st;
+    var title = add.getAttribute('data-title') || '세션';
+    var loc = add.getAttribute('data-location') || '';
+    var desc = add.getAttribute('data-desc') || '';
+    var details = (desc ? desc + '\n\n' : '') + 'Unreal Fest Seoul 2026';
+    var dates = date + 'T' + st + '00/' + date + 'T' + en + '00';
+    var url = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+      + '&text=' + encodeURIComponent('[UNREAL FEST SEOUL 2026] ' + title)
+      + '&dates=' + dates
+      + '&ctz=Asia/Seoul'
+      + '&location=' + encodeURIComponent(loc)
+      + '&details=' + encodeURIComponent(details);
+    window.open(url, '_blank');
+  });
+  var sh = document.querySelector('[data-share]');
+  if (sh) sh.addEventListener('click', function(){
+    var title = sh.getAttribute('data-title') || document.title;
+    var url = location.href;
+    if (navigator.share) { navigator.share({title: title, text: title, url: url}).catch(function(){}); }
+    else if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function(){ alert('세션 링크가 복사되었습니다.'); }, function(){ window.prompt('아래 링크를 복사하세요', url); });
+    } else { window.prompt('아래 링크를 복사하세요', url); }
+  });
+})();
+</script>
 <?php include __DIR__ . '/_foot.php'; ?>

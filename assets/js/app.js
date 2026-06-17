@@ -297,7 +297,9 @@
         card.classList.toggle('hidden', !(okT && okL && okTop));
       });
       $all('[data-slot-row]', tv).forEach(function (row) {
-        var any = $all('[data-sched-card]', row).some(function (c) { return !c.classList.contains('hidden'); });
+        // 공통 슬롯(환영사/휴식/점심 등)은 트랙 필터와 무관하게 항상 표시
+        var hasCommon = $all('[data-sched-common]', row).length > 0;
+        var any = hasCommon || $all('[data-sched-card]', row).some(function (c) { return !c.classList.contains('hidden'); });
         row.classList.toggle('hidden', !any);
       });
     }

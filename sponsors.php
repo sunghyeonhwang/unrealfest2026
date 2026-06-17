@@ -55,7 +55,7 @@ $sp = ufs_sponsors_detail();
     <div class="text-center py-16 border-t border-[#27272a]">
       <h2 class="text-2xl md:text-3xl font-bold text-white mb-4 tracking-tight">스폰서십 문의</h2>
       <p class="text-[#a1a1aa] max-w-2xl mx-auto mb-8 leading-relaxed">리얼타임 3D 생태계를 이끌어가는 진보가 및 의사결정자들을 직접 만날 수 있는 특별한 기회를 잡으세요. 다양한 스폰서십 패키지가 준비되어 있습니다.</p>
-      <a href="mailto:sponsor@unrealfest.kr" class="inline-flex items-center gap-2 px-8 py-3.5 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] font-medium transition-colors clip-btn">스폰서십 브로셔 요청하기</a>
+      <a href="mailto:info@epiclounge.co.kr" class="inline-flex items-center gap-2 px-8 py-3.5 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] font-medium transition-colors clip-btn">스폰서십 브로셔 요청하기</a>
     </div>
   </section>
   <?php endif; ?>

@@ -44,7 +44,12 @@ function ufs_nav_links() {
         array('name'=>'행사장 안내', 'id'=>'venue'),
         array('name'=>'이벤트', 'id'=>'event-benefits'),
         array('name'=>'FAQ', 'id'=>'faq'),
+        array('name'=>'스폰서', 'id'=>'sponsors'),
     );
+}
+// {br} 토큰을 PC(lg+)에서만 줄바꿈으로 렌더 (모바일은 줄바꿈 없음). 텍스트는 이스케이프.
+function ufs_render_br($text) {
+    return str_replace('{br}', '<br class="hidden lg:inline">', htmlspecialchars((string)$text, ENT_QUOTES, 'UTF-8'));
 }
 function ufs_footer_epic_links() {
     return array('새소식', '이벤트', '리소스');
@@ -64,10 +69,10 @@ function ufs_tracks() {
 function ufs_track_badge_home($track) {
     $m = array(
         '키노트' => 'bg-[#00C1D5] text-black',
-        '게임 - 프로그래밍' => 'bg-[#307fe2] text-black',
-        '게임 - 아트' => 'bg-[#FF8F1C] text-black',
-        '미디어 & 엔터테인먼트' => 'bg-[#FA4616] text-black',
-        '산업 & 시뮬레이션' => 'bg-[#DD0AB2] text-black',
+        '게임 - 프로그래밍' => 'bg-[#307fe2]/50 text-white',
+        '게임 - 아트' => 'bg-[#FF8F1C]/50 text-white',
+        '미디어 & 엔터테인먼트' => 'bg-[#FA4616]/50 text-white',
+        '산업 & 시뮬레이션' => 'bg-[#DD0AB2]/50 text-white',
     );
     return isset($m[$track]) ? $m[$track] : 'bg-[#00C1D5] text-black';
 }

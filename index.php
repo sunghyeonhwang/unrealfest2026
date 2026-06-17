@@ -17,7 +17,7 @@ include __DIR__ . '/_head.php';
   <div class="absolute inset-0 bg-gradient-to-b from-black via-black/60 to-transparent"></div>
   <div class="relative z-10 max-w-7xl mx-auto px-6 w-full flex flex-col items-start pt-52 md:pt-64 pb-[45vh]">
     <div class="mb-10">
-      <img src="./hero_new_main_logo.svg" alt="Unreal Fest Seoul 2026" style="width: 700px; max-width: 100%;">
+      <img src="https://unrealsummit16.cafe24.com/2026/ufs26/hero_new_main_logo.svg" alt="Unreal Fest Seoul 2026" style="width: 700px; max-width: 100%;">
     </div>
     <div class="flex flex-col sm:flex-row items-start gap-4 mb-10">
       <button type="button" data-scroll="register" class="bg-[#00C1D5] hover:bg-[#004F59] text-white px-8 py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-lg clip-btn">
@@ -32,7 +32,7 @@ include __DIR__ . '/_head.php';
     <div class="max-w-7xl mx-auto px-6 flex justify-end">
       <div class="relative bg-[#050508] px-8 py-4 pointer-events-auto" data-countdown data-deadline="<?= e(ufs_earlybird_deadline()) ?>">
         <div class="absolute -top-[30px] left-0 bg-[#00C1D5] px-5 py-1">
-          <span class="text-[#090a0f] text-[14px] font-bold tracking-tight">얼리버드 종료까지</span>
+          <span class="text-[#090a0f] text-[14px] font-bold tracking-tight">얼리버드 할인 종료까지</span>
         </div>
         <div class="flex items-center gap-0 mt-1">
           <div class="flex flex-col items-center w-[40px]">
@@ -74,7 +74,7 @@ $ov_icons = array(
       <div>
         <img src="<?= e($ov['image']) ?>" alt="<?= e($ov['image_alt']) ?>" class="mb-6" style="width: 420px; max-width: 100%;">
         <div class="space-y-4 text-[#a1a1aa] leading-relaxed text-[18px] font-jamjil font-normal">
-          <?php foreach ($ov['paragraphs'] as $p): ?><p><?= e($p) ?></p><?php endforeach; ?>
+          <?php foreach ($ov['paragraphs'] as $p): ?><p><?= ufs_render_br($p) ?></p><?php endforeach; ?>
         </div>
       </div>
       <div class="grid sm:grid-cols-2 gap-6">
@@ -84,7 +84,7 @@ $ov_icons = array(
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-[#00C1D5]"><?= $ov_icons[$f['icon']] ?></svg>
             </div>
             <h3 class="text-lg font-bold text-white mb-2"><?= e($f['title']) ?></h3>
-            <p class="text-sm text-[#a1a1aa] leading-relaxed font-jamjil font-normal"><?= e($f['desc']) ?></p>
+            <p class="text-sm text-[#a1a1aa] leading-relaxed font-jamjil font-normal"><?= ufs_render_br($f['desc']) ?></p>
           </div>
         <?php endforeach; ?>
       </div>
@@ -102,8 +102,8 @@ $ov_icons = array(
   <!-- Day1 / Day2 캐러셀 (키노트는 Day1 헤더 하단) -->
   <?php
   $day_blocks = array(
-    array('title' => 'Day 1. 8월 20일', 'sessions' => ufs_db_day_sessions(1)),
-    array('title' => 'Day 2. 8월 21일', 'sessions' => ufs_db_day_sessions(2)),
+    array('title' => 'Day 1. 8월 20일(목)', 'sessions' => ufs_db_day_sessions(1)),
+    array('title' => 'Day 2. 8월 21일(금)', 'sessions' => ufs_db_day_sessions(2)),
   );
   foreach ($day_blocks as $bi => $db): ?>
     <div class="mb-10" data-carousel>
@@ -122,10 +122,14 @@ $ov_icons = array(
       <!-- 키노트 (8월 20일 Day1 진행) -->
       <div class="max-w-7xl mx-auto px-6 mb-6">
         <div class="grid md:grid-cols-2 gap-6">
-          <?php foreach (ufs_db_keynotes() as $k):
-            $img = !empty($k['speaker']['photo']) ? $k['speaker']['photo'] : ($k['id'] === 'keynote-1' ? './Tim_Sweeney_1.png' : ($k['id'] === 'keynote-2' ? './keynote2.png' : '')); ?>
+          <?php
+          $kn_imgs = array(
+            'https://unrealsummit16.cafe24.com/2026/ufs26/epicgames_ceo.png',  // 1번째 키노트(CEO)
+            'https://unrealsummit16.cafe24.com/2026/ufs26/epicgames_cto.png',  // 2번째 키노트(CTO)
+          );
+          foreach (ufs_db_keynotes() as $ki => $k):
+            $img = isset($kn_imgs[$ki]) ? $kn_imgs[$ki] : (!empty($k['speaker']['photo']) ? $k['speaker']['photo'] : ''); ?>
             <a href="session.php?id=<?= e($k['id']) ?>" class="block bg-[#00C1D5] p-6 hover:bg-[#00b0c2] transition-colors relative overflow-hidden min-h-[240px] rounded-[6px]">
-              <span class="absolute top-6 right-6 text-sm font-bold text-black/70 z-10"><?= e($k['time']) ?></span>
               <div class="relative z-10 max-w-[65%]">
                 <div class="flex items-center gap-2 mb-4">
                   <span class="px-2.5 py-0.5 text-[11px] font-bold bg-black/20 text-white">키노트</span>
@@ -138,8 +142,8 @@ $ov_icons = array(
                 </div>
               </div>
               <?php if ($img): ?>
-                <div class="absolute right-4 bottom-0 w-[35%] hidden md:flex items-end justify-center">
-                  <img src="<?= e($img) ?>" alt="<?= e($k['speaker']['name']) ?>" class="h-full object-cover object-top" onerror="this.style.display='none'">
+                <div class="absolute right-0 bottom-0 top-0 w-[42%] hidden md:flex items-end justify-end pointer-events-none">
+                  <img src="<?= e($img) ?>" alt="<?= e($k['speaker']['name']) ?>" class="max-h-full w-auto object-contain object-bottom" onerror="this.style.display='none'">
                 </div>
               <?php endif; ?>
             </a>
@@ -152,9 +156,9 @@ $ov_icons = array(
           <div data-carousel-track class="overflow-x-auto pb-2 no-scrollbar cursor-grab select-none">
             <div class="flex gap-4">
               <?php for ($rep = 0; $rep < 3; $rep++): foreach ($db['sessions'] as $s): ?>
-                <a href="schedule.php" class="flex-shrink-0 w-[320px] min-h-[240px] bg-[#131418] rounded-[6px] px-5 py-[22px] flex flex-col gap-2 cursor-pointer hover:bg-[#1a1b20] transition-colors">
+                <a href="session.php?id=<?= e($s['id']) ?>" class="flex-shrink-0 w-[320px] min-h-[240px] bg-[#131418] rounded-[6px] px-5 py-[22px] flex flex-col gap-2 cursor-pointer hover:bg-[#1a1b20] transition-colors">
                   <div class="flex items-center gap-2 flex-wrap">
-                    <span class="px-1.5 py-1 text-[12px] font-extrabold rounded-[4px] <?= ufs_track_badge_home($s['track']) ?>"><?= e(ufs_track_label_home($s['track'])) ?></span>
+                    <span class="px-1.5 py-1 text-[10px] rounded-[4px] <?= ufs_track_badge_home($s['track']) ?>"><?= e(ufs_track_label_home($s['track'])) ?></span>
                   </div>
                   <h4 class="text-[18px] font-bold text-white leading-[28px] tracking-tight line-clamp-3 flex-grow font-display"><?= e($s['title']) ?></h4>
                   <div class="flex items-center gap-2.5 mt-auto">
@@ -182,7 +186,7 @@ $ov_icons = array(
 
   <!-- CTA -->
   <div class="text-center mt-4">
-    <a href="schedule.php" class="inline-flex items-center gap-2 px-10 py-3.5 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#090a0f] font-medium transition-colors clip-btn">
+    <a href="schedule.php" class="inline-flex items-center gap-2 px-10 py-3.5 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#090a0f] font-bold transition-colors clip-btn">
       전체 세션 보기
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
     </a>
@@ -238,7 +242,7 @@ $ov_icons = array(
         <h3 class="text-xl font-bold text-[#fafafa] mb-2">단체 등록 및 기업 결제</h3>
         <p class="text-sm text-[#a1a1aa]">5인 이상 단체 등록 시 세금계산서 발행 및 무통장 입금을 지원합니다. 관련 문의는 운영 사무국으로 연락해 주세요.</p>
       </div>
-      <a href="mailto:contact@epicgames.com" class="flex-shrink-0 inline-flex items-center gap-2 px-6 py-2.5 bg-white text-black text-sm font-bold hover:bg-white/90 transition-colors whitespace-nowrap clip-btn-8">
+      <a href="mailto:info@epiclounge.co.kr" class="flex-shrink-0 inline-flex items-center gap-2 px-6 py-2.5 bg-white text-black text-sm font-bold hover:bg-white/90 transition-colors whitespace-nowrap clip-btn-8">
         문의하기
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </a>
@@ -310,32 +314,6 @@ $ov_icons = array(
   </div>
 </section>
 
-<!-- ===== Sponsors ===== -->
-<?php $sp = ufs_sponsors_home(); ?>
-<section id="sponsors" class="py-24 bg-neutral-50 dark:bg-[#0B0C10] relative transition-colors duration-300">
-  <div class="max-w-7xl mx-auto px-6">
-    <div class="mb-16">
-      <h2 class="text-3xl md:text-5xl font-bold text-black dark:text-white mb-4 tracking-tight">스폰서</h2>
-      <p class="text-lg text-black/60 dark:text-slate-400">언리얼 페스트 서울 2026을 함께 만들어가는 파트너사입니다.</p>
-    </div>
-    <div class="space-y-16">
-      <div>
-        <h3 class="text-center text-black/60 dark:text-slate-400 font-bold tracking-[0.2em] mb-8 text-sm">Silver</h3>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
-          <?php foreach ($sp['silver'] as $s): ?>
-            <div class="h-28 md:h-32 bg-white dark:bg-gradient-to-br dark:from-[#16161c] dark:to-[#0d0d11] border border-black/10 dark:border-white/10 hover:border-black/15 dark:hover:border-slate-400/50 rounded-none flex items-center justify-center transition-all group shadow-sm dark:shadow-none">
-              <img src="<?= e($s['src']) ?>" alt="<?= e($s['name']) ?>" class="w-32 h-12 object-contain dark:invert transition-opacity">
-            </div>
-          <?php endforeach; ?>
-        </div>
-      </div>
-    </div>
-    <div class="mt-20 text-center">
-      <a href="sponsors.php" class="inline-flex items-center px-8 py-3.5 bg-[#27272a] hover:bg-[#3f3f46] text-white font-semibold transition-all duration-200">자세히 보기</a>
-    </div>
-  </div>
-</section>
-
 <!-- ===== Event Benefits ===== -->
 <?php $evs = ufs_events(); ?>
 <section id="event-benefits" class="py-24 bg-[#09090b] relative border-t border-white/5">
@@ -358,7 +336,7 @@ $ov_icons = array(
         </div>
       <?php endforeach; ?>
     </div>
-    <p class="text-xs text-[#71717a] mt-8 text-right">· 경품은 사정에 따라 변경되거나 이미지와 다를 수 있습니다.</p>
+    <p class="text-xs text-[#71717a] mt-8 text-right">※ 이벤트는 사정에 따라 변경될 수 있습니다.</p>
   </div>
 </section>
 
@@ -367,8 +345,8 @@ $ov_icons = array(
 <section id="faq" class="py-24 bg-[#09090b] relative border-t border-white/5">
   <div class="max-w-7xl mx-auto px-6" data-faq>
     <div class="mb-12">
-      <h2 class="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">자주 묻는 질문</h2>
-      <p class="text-lg text-[#90a1b9]">참가 신청 및 행사 운영에 관한 궁금증을 해결해 드립니다.</p>
+      <h2 class="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">FAQ</h2>
+      <p class="text-lg text-[#90a1b9]">참가 신청 및 행사 운영 관련 자주 묻는 질문을 확인해 보세요.</p>
     </div>
     <!-- 탭 -->
     <div class="flex gap-2 mb-10 flex-wrap">
@@ -402,6 +380,32 @@ $ov_icons = array(
         <a href="mailto:info@epiclounge.co.kr" class="bg-white text-black px-6 py-3 font-bold hover:bg-slate-200 transition-colors whitespace-nowrap clip-btn-8">이메일로 문의하기</a>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- ===== Sponsors (FAQ 다음 배치) ===== -->
+<?php $sp = ufs_sponsors_home(); ?>
+<section id="sponsors" class="py-24 bg-neutral-50 dark:bg-[#0B0C10] relative transition-colors duration-300">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="mb-16">
+      <h2 class="text-3xl md:text-5xl font-bold text-black dark:text-white mb-4 tracking-tight">스폰서</h2>
+      <p class="text-lg text-black/60 dark:text-slate-400">언리얼 페스트 서울 2026을 함께 만들어가는 파트너사를 소개합니다.</p>
+    </div>
+    <div class="space-y-16">
+      <div>
+        <h3 class="text-center text-black/60 dark:text-slate-400 font-bold tracking-[0.2em] mb-8 text-sm">Silver</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
+          <?php foreach ($sp['silver'] as $s): ?>
+            <div class="h-28 md:h-32 bg-white dark:bg-gradient-to-br dark:from-[#16161c] dark:to-[#0d0d11] border border-black/10 dark:border-white/10 hover:border-black/15 dark:hover:border-slate-400/50 rounded-none flex items-center justify-center transition-all group shadow-sm dark:shadow-none">
+              <img src="<?= e($s['src']) ?>" alt="<?= e($s['name']) ?>" class="w-[8.8rem] h-[3.3rem] object-contain dark:invert transition-opacity">
+            </div>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    </div>
+    <!-- <div class="mt-20 text-center">
+      <a href="sponsors.php" class="inline-flex items-center px-8 py-3.5 bg-[#27272a] hover:bg-[#3f3f46] text-white font-semibold transition-all duration-200">자세히 보기</a>
+    </div> -->
   </div>
 </section>
 

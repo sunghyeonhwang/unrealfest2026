@@ -14,10 +14,10 @@ $sponsors_home = [
     ['name'=>'Gold Sponsor 2', 'src'=>'./logo2.svg'],
   ],
   'silver' => [
-    ['name'=>'Silver Sponsor 1', 'src'=>'./logo3.svg'],
-    ['name'=>'Silver Sponsor 2', 'src'=>'./logo4.svg'],
-    ['name'=>'Silver Sponsor 3', 'src'=>'./logo7.svg'],
-    ['name'=>'Silver Sponsor 4', 'src'=>'./logo8.svg'],
+    ['name'=>'Perforce', 'src'=>'https://unrealsummit16.cafe24.com/2026/ufs26/logo_perforce.svg'],
+    ['name'=>'Giant Step', 'src'=>'https://unrealsummit16.cafe24.com/2026/ufs26/logo_giantstep.svg'],
+    ['name'=>'Hospi', 'src'=>'https://unrealsummit16.cafe24.com/2026/ufs26/logo_hospi.svg'],
+    ['name'=>'Audiokinetic', 'src'=>'https://unrealsummit16.cafe24.com/2026/ufs26/logo_audiokinetic.svg'],
   ],
 ];
 

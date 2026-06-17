@@ -51,6 +51,14 @@ function ufs_nav_links() {
 function ufs_render_br($text) {
     return str_replace('{br}', '<br class="hidden lg:inline">', htmlspecialchars((string)$text, ENT_QUOTES, 'UTF-8'));
 }
+// 키노트 연사 이미지 (id 매핑; index.php 키노트 카드와 동일 에셋). 없으면 ''.
+function ufs_keynote_img($id) {
+    $m = array(
+        'd1-k1' => 'https://unrealsummit16.cafe24.com/2026/ufs26/epicgames_ceo.png',
+        'd1-k2' => 'https://unrealsummit16.cafe24.com/2026/ufs26/epicgames_cto.png',
+    );
+    return isset($m[$id]) ? $m[$id] : '';
+}
 function ufs_footer_epic_links() {
     return array('새소식', '이벤트', '리소스');
 }

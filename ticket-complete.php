@@ -39,7 +39,7 @@ $qr_jpg = ($apply_no !== '' && file_exists(__DIR__."/qrdata/".$apply_no.".jpg"))
         <svg class="w-9 h-9 text-[#00C1D5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>
       </div>
       <h1 class="text-3xl md:text-4xl font-bold mb-3">온라인 등록이 완료되었습니다!</h1>
-      <p class="text-[#a1a1aa] mb-10">행사 당일 첫 세션 30분 전, 등록하신 이메일과 문자로 <span class="text-white">시청 링크</span>가 발송됩니다.<br>링크를 받지 못하신 경우, 행사 홈페이지에서 등록 정보 확인 후 시청하실 수 있습니다.</p>
+      <p class="text-[#a1a1aa] mb-10">행사 당일 첫 세션 30분 전, 등록하신 이메일과 카카오 알림톡(또는 문자)으로 <span class="text-white">시청 링크</span>가 발송됩니다.<br>링크를 받지 못하신 경우, 행사 홈페이지에서 등록 정보 확인 후 시청하실 수 있습니다.</p>
       <div class="bg-[#0e0f14] border border-[#27272a] p-6 text-left space-y-3 mb-10">
         <div class="flex justify-between"><span class="text-[#a1a1aa]">이름</span><span class="font-bold"><?= e($row['apply_user_name']) ?></span></div>
         <div class="flex justify-between"><span class="text-[#a1a1aa]">이메일</span><span><?= e($row['apply_user_email']) ?></span></div>

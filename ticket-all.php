@@ -52,13 +52,15 @@ require __DIR__ . '/_ticket_init.php';
           <h2 class="text-lg font-bold text-white mb-5">티켓</h2>
           <div class="grid gap-4 mb-8" id="ticketGroup">
             <label class="ticket-card relative p-5 border transition-all border-[#27272a]"
-                   data-code="ALL" data-price="60000" data-orig="120000" data-sub="양일권 (8월 20일-21일)" data-pcode="NORMAL_ALL" data-days="1,2">
+                   data-code="ALL" data-price="<?= ufs_ticket_price('NORMAL_ALL') ?>" data-orig="<?= ufs_ticket_orig('NORMAL_ALL') ?>" data-sub="양일권 (8월 20일-21일)" data-pcode="NORMAL_ALL" data-days="1,2">
               <input type="radio" name="ticket" value="ALL" class="sr-only" checked>
               <div class="text-base font-bold text-white mb-3">양일권 - 8월 20일(목)~21일(금)</div>
               <div class="mb-1">
-                <div class="text-base text-[#71717a] line-through">₩120,000</div>
+                <?php if (ufs_is_earlybird()): ?>
+                <div class="text-base text-[#71717a] line-through">₩<?= number_format(ufs_ticket_orig('NORMAL_ALL')) ?></div>
                 <div class="text-xs font-bold text-[#00C1D5] my-0.5">얼리버드 50% 할인</div>
-                <div class="text-2xl font-black text-white">₩60,000</div>
+                <?php endif; ?>
+                <div class="text-2xl font-black text-white">₩<?= number_format(ufs_ticket_price('NORMAL_ALL')) ?></div>
               </div>
               <div class="tk-check absolute top-3 right-3 hidden"><svg class="w-5 h-5 text-[#00C1D5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg></div>
             </label>

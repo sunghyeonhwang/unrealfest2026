@@ -149,8 +149,7 @@
         var item = trg.closest('[data-acc]'); if (!item) return;
         var body = item.querySelector('[data-acc-body]'); if (!body) return;
         var isOpen = !body.classList.contains('hidden');
-        var panel = item.closest('[data-faq-panel]');
-        if (panel) $all('[data-acc]', panel).forEach(function (it) { setAcc(it, false); });
+        // 독립 토글: 다른 항목은 그대로 두고 클릭한 항목만 열고/닫음 (여러 개 동시 열림 허용)
         setAcc(item, !isOpen);
       });
     });
@@ -359,7 +358,7 @@
 
   /* 11) 스크롤스파이: 현재 섹션의 GNB 메뉴 강조 (홈 전용 — data-scroll 메뉴가 있을 때만 동작) */
   function initScrollSpy() {
-    var ids = ['overview', 'agenda', 'register', 'venue', 'event-benefits', 'faq'];
+    var ids = ['overview', 'agenda', 'register', 'venue', 'event-benefits', 'faq', 'sponsors'];
     var sections = [];
     ids.forEach(function (id) { var el = document.getElementById(id); if (el) sections.push(el); });
     if (!sections.length) return;

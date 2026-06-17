@@ -53,24 +53,28 @@ $d = (isset($_GET['d']) && $_GET['d'] === '2') ? 'DAY2' : 'DAY1';
           <h2 class="text-lg font-bold text-white mb-5">참석일 선택</h2>
           <div class="grid md:grid-cols-2 gap-4 mb-8" id="ticketGroup">
             <label class="ticket-card relative p-5 border cursor-pointer transition-all border-[#27272a] hover:border-white/20"
-                   data-code="DAY1" data-price="30000" data-orig="60000" data-sub="1일권 - 8월 20일(목)" data-benefit="8월 20일 전체 세션 참여" data-pcode="NORMAL_20" data-days="1">
+                   data-code="DAY1" data-price="<?= ufs_ticket_price('NORMAL_20') ?>" data-orig="<?= ufs_ticket_orig('NORMAL_20') ?>" data-sub="1일권 - 8월 20일(목)" data-benefit="8월 20일 전체 세션 참여" data-pcode="NORMAL_20" data-days="1">
               <input type="radio" name="ticket" value="DAY1" class="sr-only">
               <div class="text-base font-bold text-white mb-3">1일권 - 8월 20일(목)</div>
               <div class="mb-1">
-                <div class="text-base text-[#71717a] line-through">₩60,000</div>
+                <?php if (ufs_is_earlybird()): ?>
+                <div class="text-base text-[#71717a] line-through">₩<?= number_format(ufs_ticket_orig('NORMAL_20')) ?></div>
                 <div class="text-xs font-bold text-[#00C1D5] my-0.5">얼리버드 50% 할인</div>
-                <div class="text-2xl font-black text-white">₩30,000</div>
+                <?php endif; ?>
+                <div class="text-2xl font-black text-white">₩<?= number_format(ufs_ticket_price('NORMAL_20')) ?></div>
               </div>
               <div class="tk-check absolute top-3 right-3 hidden"><svg class="w-5 h-5 text-[#00C1D5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg></div>
             </label>
             <label class="ticket-card relative p-5 border cursor-pointer transition-all border-[#27272a] hover:border-white/20"
-                   data-code="DAY2" data-price="30000" data-orig="60000" data-sub="1일권 - 8월 21일(금)" data-benefit="8월 21일 전체 세션 참여" data-pcode="NORMAL_21" data-days="2">
+                   data-code="DAY2" data-price="<?= ufs_ticket_price('NORMAL_21') ?>" data-orig="<?= ufs_ticket_orig('NORMAL_21') ?>" data-sub="1일권 - 8월 21일(금)" data-benefit="8월 21일 전체 세션 참여" data-pcode="NORMAL_21" data-days="2">
               <input type="radio" name="ticket" value="DAY2" class="sr-only">
               <div class="text-base font-bold text-white mb-3">1일권 - 8월 21일(금)</div>
               <div class="mb-1">
-                <div class="text-base text-[#71717a] line-through">₩60,000</div>
+                <?php if (ufs_is_earlybird()): ?>
+                <div class="text-base text-[#71717a] line-through">₩<?= number_format(ufs_ticket_orig('NORMAL_21')) ?></div>
                 <div class="text-xs font-bold text-[#00C1D5] my-0.5">얼리버드 50% 할인</div>
-                <div class="text-2xl font-black text-white">₩30,000</div>
+                <?php endif; ?>
+                <div class="text-2xl font-black text-white">₩<?= number_format(ufs_ticket_price('NORMAL_21')) ?></div>
               </div>
               <div class="tk-check absolute top-3 right-3 hidden"><svg class="w-5 h-5 text-[#00C1D5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg></div>
             </label>

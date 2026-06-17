@@ -34,6 +34,14 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
         아젠다로 돌아가기
       </a>
+      <!-- 키워드 (강연 제목 상단) — 일정표 세션 배지와 동일 디자인, 크기 유지 -->
+      <div class="flex flex-wrap gap-2 mb-5">
+        <span class="px-1.5 py-1 text-xs rounded-[4px] <?= ufs_track_badge_home($session['track']) ?>"><?= e(ufs_track_label_list($session['track'])) ?></span>
+        <span class="px-1.5 py-1 text-xs font-semibold rounded-[4px] bg-[#27272a] text-[#f4f4f5]"><?= e(ufs_level_label_detail($session['level'])) ?></span>
+        <?php foreach ($cats as $cat): ?>
+          <span class="px-1.5 py-1 text-xs text-[#a1a1aa] border border-[#27272a] rounded-[4px]"><?= e($cat) ?></span>
+        <?php endforeach; ?>
+      </div>
       <h1 class="text-3xl md:text-4xl font-bold text-[#fafafa] mb-6 tracking-tight leading-tight"><?= e($session['title']) ?></h1>
       <div class="flex flex-wrap items-center gap-6 text-sm text-[#a1a1aa] mb-6">
         <span class="flex items-center gap-1.5">
@@ -85,12 +93,9 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
         <div class="bg-[#0e0f14] p-6">
           <div class="flex items-center gap-4 mb-4">
             <div class="w-24 h-24 rounded-full bg-[#1a1a1f] border border-[#27272a] flex items-center justify-center flex-shrink-0 overflow-hidden">
-              <?php if ($sp['photo'] !== ''): ?>
-                <img src="<?= e($sp['photo']) ?>" alt="<?= e($sp['name']) ?>" class="w-full h-full object-cover" onerror="this.style.display='none'">
-              <?php elseif ($spi === 0 && $session['id'] === 'keynote-1'): ?>
-                <img src="./Tim_Sweeney_1.png" alt="<?= e($sp['name']) ?>" class="w-full h-full object-cover" onerror="this.style.display='none'">
-              <?php elseif ($spi === 0 && $session['id'] === 'keynote-2'): ?>
-                <img src="./keynote2.png" alt="<?= e($sp['name']) ?>" class="w-full h-full object-cover" onerror="this.style.display='none'">
+              <?php $sp_photo = $sp['photo'] !== '' ? $sp['photo'] : ($spi === 0 ? ufs_keynote_img($session['id']) : ''); ?>
+              <?php if ($sp_photo !== ''): ?>
+                <img src="<?= e($sp_photo) ?>" alt="<?= e($sp['name']) ?>" class="w-full h-full object-cover" onerror="this.style.display='none'">
               <?php else: ?>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 text-[#71717a]"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               <?php endif; ?>
@@ -139,18 +144,6 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
           <a href="index.php#register" class="inline-flex items-center justify-center w-full py-3 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] font-bold transition-colors clip-btn-sm">지금 등록하기</a>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- 키워드 -->
-  <section class="max-w-7xl mx-auto px-6 pb-12">
-    <h2 class="text-xl font-bold text-white mb-4">키워드</h2>
-    <div class="flex flex-wrap gap-2">
-      <span class="px-3 py-1.5 text-sm font-medium <?= ufs_track_badge_detail($session['track']) ?>"><?= e(ufs_track_label_list($session['track'])) ?></span>
-      <span class="px-3 py-1.5 text-sm font-semibold bg-[#27272a] text-[#f4f4f5]"><?= e(ufs_level_label_detail($session['level'])) ?></span>
-      <?php foreach ($cats as $cat): ?>
-        <span class="px-3 py-1.5 text-sm text-[#a1a1aa] border border-[#27272a]"><?= e($cat) ?></span>
-      <?php endforeach; ?>
     </div>
   </section>
 

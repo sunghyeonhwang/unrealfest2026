@@ -5,6 +5,7 @@ $ufs_page = 'home';
 include_once __DIR__ . '/../common.php';        // DB (sql_query)
 require_once __DIR__ . '/data/lib.php';
 require_once __DIR__ . '/data/agenda_db.php';
+require_once __DIR__ . '/_pricing.php';   // 가격 단일 소스(얼리버드/정가 자동)
 include __DIR__ . '/_head.php';
 ?>
 
@@ -186,7 +187,7 @@ $ov_icons = array(
 
   <!-- CTA -->
   <div class="text-center mt-4">
-    <a href="schedule.php" class="inline-flex items-center gap-2 px-10 py-3.5 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#090a0f] font-bold transition-colors clip-btn">
+    <a href="schedule.php" class="inline-flex items-center gap-2 px-10 py-3.5 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#090a0f] font-extrabold transition-colors clip-btn">
       전체 세션 보기
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
     </a>
@@ -203,11 +204,11 @@ $ov_icons = array(
     <div class="grid md:grid-cols-3 gap-[26px] pt-[35px]">
       <!-- 양일권 -->
       <div class="relative bg-[#0e0f14] border border-[#27272a] p-9 flex flex-col items-center text-center">
-        <div class="absolute -top-[13px] left-0 bg-[#00C1D5] text-[#090a0f] text-[14px] font-bold px-[18px] py-[7px]">얼리버드 50% 할인</div>
+        <?php if (ufs_is_earlybird()): ?><div class="absolute -top-[13px] left-0 bg-[#00C1D5] text-[#090a0f] text-[14px] font-bold px-[18px] py-[7px]">얼리버드 50% 할인</div><?php endif; ?>
         <h3 class="text-[38px] text-white mt-[18px] mb-[26px] leading-[46px] font-jamjil font-medium">오프라인 양일권</h3>
-        <div class="mb-1"><span class="text-[18px] text-[#71717a] line-through tracking-tight">₩ 120,000</span></div>
-        <div class="mb-2"><span class="text-[40px] font-bold text-white tracking-tight">₩ 60,000</span></div>
-        <p class="text-[13px] text-[#9adbe8] mb-auto">얼리버드 할인 (~7/13 마감)</p>
+        <?php if (ufs_is_earlybird()): ?><div class="mb-1"><span class="text-[18px] text-[#71717a] line-through tracking-tight">₩ <?= number_format(ufs_ticket_orig('NORMAL_ALL')) ?></span></div><?php endif; ?>
+        <div class="mb-2"><span class="text-[40px] font-bold text-white tracking-tight">₩ <?= number_format(ufs_ticket_price('NORMAL_ALL')) ?></span></div>
+        <?php if (ufs_is_earlybird()): ?><p class="text-[13px] text-[#9adbe8] mb-auto">얼리버드 할인 (~7/13 마감)</p><?php else: ?><div class="mb-auto"></div><?php endif; ?>
         <a href="ticket-all.php" class="mt-[35px] w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 transition-colors font-jamjil">
           양일권 등록하기
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
@@ -215,11 +216,11 @@ $ov_icons = array(
       </div>
       <!-- 1일권 (featured) -->
       <div class="relative bg-[#0e0f14] border border-[rgba(0,193,213,0.5)] p-9 flex flex-col items-center text-center shadow-[0_0_11px_rgba(0,193,213,0.1)]">
-        <div class="absolute -top-[13px] left-0 bg-[#00C1D5] text-[#090a0f] text-[14px] font-bold px-[18px] py-[7px]">얼리버드 50% 할인</div>
+        <?php if (ufs_is_earlybird()): ?><div class="absolute -top-[13px] left-0 bg-[#00C1D5] text-[#090a0f] text-[14px] font-bold px-[18px] py-[7px]">얼리버드 50% 할인</div><?php endif; ?>
         <h3 class="text-[38px] text-white mt-[18px] mb-[26px] leading-[46px] font-jamjil font-medium">오프라인 1일권</h3>
-        <div class="mb-1"><span class="text-[18px] text-[#71717a] line-through tracking-tight">₩ 60,000</span></div>
-        <div class="mb-2"><span class="text-[40px] font-bold text-white tracking-tight">₩ 30,000</span></div>
-        <p class="text-[13px] text-[#9adbe8] mb-auto">얼리버드 할인 (~7/13 마감)</p>
+        <?php if (ufs_is_earlybird()): ?><div class="mb-1"><span class="text-[18px] text-[#71717a] line-through tracking-tight">₩ <?= number_format(ufs_ticket_orig('NORMAL_20')) ?></span></div><?php endif; ?>
+        <div class="mb-2"><span class="text-[40px] font-bold text-white tracking-tight">₩ <?= number_format(ufs_ticket_price('NORMAL_20')) ?></span></div>
+        <?php if (ufs_is_earlybird()): ?><p class="text-[13px] text-[#9adbe8] mb-auto">얼리버드 할인 (~7/13 마감)</p><?php else: ?><div class="mb-auto"></div><?php endif; ?>
         <a href="ticket-day.php" class="mt-[35px] w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 transition-colors font-jamjil">
           1일권 등록하기
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>

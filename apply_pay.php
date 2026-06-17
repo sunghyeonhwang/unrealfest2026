@@ -5,6 +5,7 @@
  */
 include_once "../common.php";                 // sql_query/sql_fetch/sql_real_escape_string + 세션
 require_once "../unrealfest2025/inisis_pc/libs/INIStdPayUtil.php";
+require_once __DIR__ . "/_pricing.php";   // 가격 단일 소스(얼리버드/정가 자동 전환)
 
 // ── INICIS 모드 (검증 후 false 로 전환) ──
 $INICIS_TEST = false;
@@ -39,16 +40,15 @@ $apply_event_agree  = (pp('agree_mkt') !== '' ) ? '1' : '0';
 $payment            = pp('payment');   // Card | kakaopay | naverpay | tosspay (결제수단 라디오)
 
 // 상품 화이트리스트 (서버측 금액 재검증 — 위변조 방지)
-// ※ 얼리버드 50% 할인가 적용 (~2026-07-13). 정가: 양일권 120,000 / 1일권 60,000.
-//   얼리버드 종료 후 정가 복귀 시 아래 price 와 ticket-all/day 카드·_ticket_sidebar 표시를 함께 수정.
+// ※ 금액은 _pricing.php(ufs_ticket_price)에서 얼리버드/정가 자동 전환. 가격 변경은 거기 한 곳만.
 $PRODUCTS = array(
-  'NORMAL_ALL' => array('name'=>'언리얼 페스트 서울 2026 양일권(8월 20일~21일)', 'price'=>60000),
-  'NORMAL_20'  => array('name'=>'언리얼 페스트 서울 2026 1일권(8월 20일)',     'price'=>30000),
-  'NORMAL_21'  => array('name'=>'언리얼 페스트 서울 2026 1일권(8월 21일)',     'price'=>30000),
+  'NORMAL_ALL' => array('name'=>'언리얼 페스트 서울 2026 양일권(8월 20일~21일)'),
+  'NORMAL_20'  => array('name'=>'언리얼 페스트 서울 2026 1일권(8월 20일)'),
+  'NORMAL_21'  => array('name'=>'언리얼 페스트 서울 2026 1일권(8월 21일)'),
 );
 if (!isset($PRODUCTS[$apply_product_code])) { exit('잘못된 상품입니다.'); }
 $apply_product_name  = $PRODUCTS[$apply_product_code]['name'];
-$apply_product_price = (string)$PRODUCTS[$apply_product_code]['price'];
+$apply_product_price = (string)ufs_ticket_price($apply_product_code);  // 얼리버드/정가 자동
 
 // ── 검증 ──
 if ($apply_ci === '')          { exit('<script>alert("본인인증을 먼저 진행해주세요.");history.back();</script>'); }

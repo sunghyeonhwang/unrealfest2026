@@ -167,7 +167,7 @@ function ufs_opt($list,$cur){ foreach($list as $o){ echo '<option'.($o===$cur?' 
         <li class="flex gap-2"><span class="text-[#71717a]">•</span><span>등록 정보 확인 후 수정 혹은 등록 취소가 가능합니다.</span></li>
         <li class="flex gap-2"><span class="text-[#71717a]">•</span><span>온라인 등록 후 오프라인 등록을 원하시면 기존 등록 취소 후 티켓 구매/결제 진행을 완료해야 합니다. (중복 불가)</span></li>
         <li class="flex gap-2"><span class="text-[#71717a]">•</span><span>1인당 티켓은 1매만 가능합니다.</span></li>
-        <li class="flex gap-2 text-[#00C1D5]"><span>•</span><span>얼리버드 기간 내 구매한 티켓은 2026년 8월 13일까지만 환불이 가능합니다.</span></li>
+        <li class="flex gap-2 text-[#00C1D5]"><span>•</span><span><?= e(ufs_refund_notice()) ?></span></li>
       </ul>
     </div>
     <?php endif; ?>

@@ -22,6 +22,9 @@ $sess_di   = isset($_SESSION['DI']) ? $_SESSION['DI'] : '';
 $sess_name = isset($_SESSION['RSLT_NAME']) ? $_SESSION['RSLT_NAME'] : '';
 $sess_tel  = isset($_SESSION['TEL_NO']) ? $_SESSION['TEL_NO'] : '';
 
+// 가격/얼리버드/환불 안내 단일 소스
+require_once __DIR__ . '/_pricing.php';
+
 // 트랙 정의 (Day 1 / Day 2 동일 4트랙)
 $UFS_TRACKS = array(
   1 => array('DAY1_TR1'=>'게임: 프로그래밍','DAY1_TR2'=>'게임: 아트','DAY1_TR3'=>'미디어 & 엔터테인먼트','DAY1_TR4'=>'공통'),

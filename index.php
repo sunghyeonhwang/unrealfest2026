@@ -369,7 +369,7 @@ $ov_icons = array(
                 <span data-acc-minus class="<?= $open ? '' : 'hidden' ?>"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M5 12h14"/></svg></span>
               </span>
             </button>
-            <div data-acc-body class="px-8 pb-8 text-[#a1a1aa] leading-relaxed text-[16px] whitespace-pre-line <?= $open ? '' : 'hidden' ?>"><?= e($item['a']) ?></div>
+            <div data-acc-body class="px-8 pb-8 text-[#a1a1aa] leading-relaxed text-[16px] whitespace-pre-line <?= $open ? '' : 'hidden' ?>"><?= ufs_faq_html($item['a']) ?></div>
           </div>
         <?php endforeach; ?>
       </div>

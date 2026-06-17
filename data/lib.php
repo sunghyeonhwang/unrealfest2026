@@ -51,6 +51,17 @@ function ufs_nav_links() {
 function ufs_render_br($text) {
     return str_replace('{br}', '<br class="hidden lg:inline">', htmlspecialchars((string)$text, ENT_QUOTES, 'UTF-8'));
 }
+// FAQ 답변 렌더: 이스케이프 후 등록확인/전화/이메일을 링크화. (\n 줄바꿈은 whitespace-pre-line 으로 유지)
+function ufs_faq_html($a) {
+    $h = htmlspecialchars((string)$a, ENT_QUOTES, 'UTF-8');
+    $lk = 'text-[#00C1D5] hover:underline';
+    $h = str_replace('info@epiclounge.co.kr', '<a href="mailto:info@epiclounge.co.kr" class="'.$lk.'">info@epiclounge.co.kr</a>', $h);
+    $h = str_replace('02-326-3701', '<a href="tel:02-326-3701" class="'.$lk.'">02-326-3701</a>', $h);
+    $h = str_replace('이니시스 고객센터', '<a href="https://www.inicis.com/blog/archives/category/cs" target="_blank" rel="noopener noreferrer" class="'.$lk.'">이니시스 고객센터</a>', $h);
+    // '등록 확인' (작은따옴표는 ENT_QUOTES 로 &#039; 변환됨) → 등록 확인 페이지(myticket)
+    $h = str_replace('&#039;등록 확인&#039;', '<a href="myticket.php" class="'.$lk.'">&#039;등록 확인&#039;</a>', $h);
+    return $h;
+}
 // 키노트 연사 이미지 (id 매핑; index.php 키노트 카드와 동일 에셋). 없으면 ''.
 function ufs_keynote_img($id) {
     $m = array(

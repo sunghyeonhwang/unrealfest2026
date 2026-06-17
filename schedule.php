@@ -141,10 +141,17 @@ function ufs_render_grid_view($daySessions, $day) {
         // 일반 세션 행(4트랙 셀)
         if ($normals) {
             echo '<tr class="border-b border-[#27272a]"><td class="p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#09090b] z-10">'.e($time).'</td>';
-            foreach ($gridTracks as $tr) {
+            $ntrk = count($gridTracks);
+            $gi = 0;
+            while ($gi < $ntrk) {
+                $tr = $gridTracks[$gi];
                 $cells = array();
                 foreach ($normals as $s) { if ($s['track'] === $tr) $cells[] = $s; }
-                echo '<td class="p-2 align-top h-px">';
+                // 통합 세션: cells 중 colspan>1 이면 다음 칸까지 병합(남은 칸 수로 클램프)
+                $span = 1;
+                foreach ($cells as $cc) { if (!empty($cc['colspan']) && $cc['colspan'] > $span) $span = (int)$cc['colspan']; }
+                if ($gi + $span > $ntrk) $span = $ntrk - $gi;
+                echo '<td'.($span > 1 ? ' colspan="'.$span.'"' : '').' class="p-2 align-top h-px">';
                 if ($cells) {
                     echo '<div class="flex flex-col gap-2 h-full">';
                     foreach ($cells as $cell) {
@@ -154,7 +161,7 @@ function ufs_render_grid_view($daySessions, $day) {
                         if (!empty($cell['_hidden'])) {
                             echo '<div class="block bg-[#0e0f14] p-5 flex-grow'.$minh.' flex flex-col gap-2 opacity-70">';
                             echo '<div class="flex items-center gap-2 flex-wrap"><span class="px-1.5 py-1 text-[10px] rounded-[4px] '.ufs_track_badge_home($cell['track']).'">'.e(ufs_grid_track_label($cell['track'], $day)).'</span></div>';
-                            echo '<div class="flex-grow flex items-center justify-center gap-2 text-[#71717a] font-bold text-sm">곧 공개 예정</div>';
+                            echo '<div class="flex-grow flex items-center justify-center gap-2 text-[#71717a] font-bold text-sm"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>곧 공개 예정</div>';
                             echo '</div>';
                             continue;
                         }
@@ -167,9 +174,14 @@ function ufs_render_grid_view($daySessions, $day) {
                     }
                     echo '</div>';
                 } else {
-                    echo '<div class="h-full"></div>';
+                    // 빈 트랙 칸(DB 없음) → "곧 공개 예정"
+                    echo '<div class="block bg-[#0e0f14] p-5 min-h-[240px] flex flex-col gap-2 opacity-70 h-full">';
+                    echo '<div class="flex items-center gap-2 flex-wrap"><span class="px-1.5 py-1 text-[10px] rounded-[4px] '.ufs_track_badge_home($tr).'">'.e(ufs_grid_track_label($tr, $day)).'</span></div>';
+                    echo '<div class="flex-grow flex items-center justify-center gap-2 text-[#71717a] font-bold text-sm"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>곧 공개 예정</div>';
+                    echo '</div>';
                 }
                 echo '</td>';
+                $gi += $span;
             }
             echo '</tr>';
         }

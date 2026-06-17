@@ -99,6 +99,7 @@ function ufs_db_map_row($r) {
         'day'        => $day,
         'date_label' => ufs_day_date($day),
         'track'      => $r['ag_track'],
+        'colspan'    => (isset($r['ag_colspan']) && (int)$r['ag_colspan'] > 1) ? (int)$r['ag_colspan'] : 1,
         'level'      => ($r['ag_level'] !== '' ? $r['ag_level'] : '전체 참가자'),
         'speaker'    => array(
             'name'    => $first['name'],

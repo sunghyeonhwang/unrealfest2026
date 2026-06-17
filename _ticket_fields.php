@@ -58,7 +58,7 @@
 <!-- 티셔츠 -->
 <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
   <h2 class="text-lg font-bold text-white mb-2">티셔츠 사이즈 선택 <span class="text-[#00C1D5]">*</span></h2>
-  <p class="text-xs text-[#71717a] mb-4">오프라인 참가자에게 지급되며 사이즈 교환은 불가합니다.</p>
+  <p class="text-xs text-[#71717a] mb-4">현장 재고 상황에 따라 선택하신 티셔츠 사이즈가 제공되지 않을 수 있습니다.</p>
   <div class="flex flex-wrap gap-3">
     <?php foreach (array('M','L','XL','XXL') as $size): ?>
     <label class="relative cursor-pointer">

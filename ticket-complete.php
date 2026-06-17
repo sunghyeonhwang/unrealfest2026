@@ -39,7 +39,7 @@ $qr_jpg = ($apply_no !== '' && file_exists(__DIR__."/qrdata/".$apply_no.".jpg"))
         <svg class="w-9 h-9 text-[#00C1D5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>
       </div>
       <h1 class="text-3xl md:text-4xl font-bold mb-3">온라인 등록이 완료되었습니다!</h1>
-      <p class="text-[#a1a1aa] mb-10">행사 당일 첫 세션 30분 전, 등록하신 이메일과 카카오톡(또는 문자)으로 <span class="text-white">시청 링크</span>가 발송됩니다.</p>
+      <p class="text-[#a1a1aa] mb-10">행사 당일 첫 세션 30분 전, 등록하신 이메일과 문자로 <span class="text-white">시청 링크</span>가 발송됩니다.<br>링크를 받지 못하신 경우, 행사 홈페이지에서 등록 정보 확인 후 시청하실 수 있습니다.</p>
       <div class="bg-[#0e0f14] border border-[#27272a] p-6 text-left space-y-3 mb-10">
         <div class="flex justify-between"><span class="text-[#a1a1aa]">이름</span><span class="font-bold"><?= e($row['apply_user_name']) ?></span></div>
         <div class="flex justify-between"><span class="text-[#a1a1aa]">이메일</span><span><?= e($row['apply_user_email']) ?></span></div>
@@ -65,8 +65,16 @@ $qr_jpg = ($apply_no !== '' && file_exists(__DIR__."/qrdata/".$apply_no.".jpg"))
       <div class="w-16 h-16 rounded-full bg-[rgba(0,193,213,0.15)] flex items-center justify-center mx-auto mb-6">
         <svg class="w-9 h-9 text-[#00C1D5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>
       </div>
-      <h1 class="text-3xl md:text-4xl font-bold mb-3">등록이 완료되었습니다!</h1>
-      <p class="text-[#a1a1aa] mb-10">행사 당일 아래 QR 코드로 현장 체크인하세요.<br>QR 코드와 등록 정보는 입력하신 연락처로 문자(MMS) 발송됩니다.</p>
+      <h1 class="text-3xl md:text-4xl font-bold mb-6">등록이 완료되었습니다!</h1>
+      <div class="bg-[rgba(0,193,213,0.05)] border border-[rgba(0,193,213,0.2)] p-6 text-left max-w-xl mx-auto mb-10">
+        <h3 class="text-base font-bold text-white mb-3">오프라인 참가 안내</h3>
+        <ul class="text-sm text-[#a1a1aa] space-y-1.5">
+          <li>• 행사 당일 아래 QR 코드로 현장 체크인하세요.</li>
+          <li>• QR 코드와 등록 정보는 입력하신 연락처로 문자(MMS) 발송됩니다.</li>
+          <li>• 오프라인 등록자는 별도의 온라인 등록 없이 생중계 시청이 가능합니다.</li>
+          <li>• 등록한 이름 및 휴대폰 번호로 본인 확인 후 시청할 수 있습니다.</li>
+        </ul>
+      </div>
 
       <?php if ($qr_jpg): ?>
       <div class="bg-white p-5 inline-block mb-3 clip-tr-16">

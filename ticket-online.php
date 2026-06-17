@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
        'N', 10, 'Y', 'Y', now())";
     sql_query($sql);
     $row = sql_query("SELECT LAST_INSERT_ID() as idx")->fetch_array();
-    // 온라인 등록완료 안내 SMS (운영 전환 시 발송)
+    // 온라인 등록완료 안내 SMS
     ufs_send_online_sms($name, $phone);
     header("Location: ticket-complete.php?online=1&k=".rawurlencode(base64_encode($row['idx'])));
     exit;
@@ -79,8 +79,8 @@ $sess_tel = isset($_SESSION['TEL_NO']) ? $_SESSION['TEL_NO'] : '';
 <div class="pt-32 pb-24 min-h-screen bg-[#09090b]">
   <div class="max-w-3xl mx-auto px-6">
     <a href="index.php#register" class="inline-flex items-center gap-2 text-[#71717a] hover:text-white transition-colors mb-8 text-sm"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> 돌아가기</a>
-    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">언리얼 페스트 2026 서울 온라인 등록</h1>
-    <p class="text-[#a1a1aa] mb-10">온라인으로 Unreal Fest Seoul 2026의 주요 세션을 시청할 수 있습니다.</p>
+    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">온라인 등록</h1>
+    <p class="text-[#a1a1aa] mb-10">온라인으로 제공되는 세션을 시청하실 수 있습니다. 등록을 위해 아래 정보를 입력해 주세요.</p>
 
     <div class="space-y-4">
       <!-- 약관 동의 -->
@@ -92,19 +92,20 @@ $sess_tel = isset($_SESSION['TEL_NO']) ? $_SESSION['TEL_NO'] : '';
             <span class="text-sm font-bold text-white">전체 동의</span>
           </label>
           <div class="h-px bg-[#27272a]"></div>
-          <label class="flex items-start gap-3 px-3 py-2 cursor-pointer"><input type="checkbox" name="agree_req" class="agree-item mt-0.5 accent-[#00C1D5]"><span class="text-sm text-[#a1a1aa]">에픽 라운지 이용약관 동의 및 개인정보보호정책 확인<span class="ml-1 text-xs text-[#00C1D5]">(필수)</span></span></label>
-          <label class="flex items-start gap-3 px-3 py-2 cursor-pointer"><input type="checkbox" name="agree_mkt" class="agree-item mt-0.5 accent-[#00C1D5]"><span class="text-sm text-[#a1a1aa]">광고 수신 동의<span class="ml-1 text-xs text-[#71717a]">(선택)</span></span></label>
+          <label class="flex items-start gap-3 px-3 py-2 cursor-pointer"><input type="checkbox" name="agree_req" class="agree-item mt-0.5 accent-[#00C1D5]"><span class="text-sm text-[#a1a1aa]"><button type="button" onclick="event.preventDefault();event.stopPropagation();openLegal('terms');" class="underline text-[#00C1D5] hover:text-white">이용약관</button> 동의 및 <button type="button" onclick="event.preventDefault();event.stopPropagation();openLegal('privacy');" class="underline text-[#00C1D5] hover:text-white">개인정보처리방침</button> 확인<span class="ml-1 text-xs text-[#00C1D5]">(필수)</span></span></label>
+          <label class="flex items-start gap-3 px-3 py-2 cursor-pointer"><input type="checkbox" name="agree_mkt" class="agree-item mt-0.5 accent-[#00C1D5]"><span class="text-sm text-[#a1a1aa]"><button type="button" onclick="event.preventDefault();event.stopPropagation();openLegal('marketing');" class="underline text-[#a1a1aa] hover:text-white">광고 수신 동의</button><span class="ml-1 text-xs text-[#71717a]">(선택)</span></span></label>
         </div>
       </div>
+      <?php include __DIR__ . '/_legal_modal.php'; ?>
 
       <!-- 온라인 시청 안내 (혜택) -->
       <div class="bg-[rgba(0,193,213,0.05)] border border-[rgba(0,193,213,0.2)] p-6">
         <h3 class="text-base font-bold text-white mb-3">온라인 시청 안내</h3>
         <ul class="text-sm text-[#a1a1aa] space-y-1.5">
-          <li>• 키노트 및 주요 세션 실시간 스트리밍</li>
-          <li>• 행사 종료 후 한 달 내 다시보기 제공</li>
-          <li>• 발표자 동의에 따라 일부 세션만 중계될 수 있습니다</li>
-          <li class="text-[#71717a]">• Q&amp;A 참여 및 현장 프로그램은 제공되지 않습니다</li>
+          <li>• 현장 전체 세션이 아닌 일부 세션만 온라인으로 제공됩니다.</li>
+          <li>• Q&amp;A 참여 및 현장 프로그램은 제공되지 않습니다.</li>
+          <li>• 온라인 등록과 오프라인 티켓은 중복 등록할 수 없습니다.</li>
+          <li>• 오프라인 참석을 원하실 경우 온라인 등록을 취소한 후 등록해 주세요.</li>
         </ul>
       </div>
 

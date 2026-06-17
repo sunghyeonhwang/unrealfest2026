@@ -38,9 +38,8 @@ require __DIR__ . '/_ticket_init.php';
 <div class="pt-32 pb-24 min-h-screen bg-[#09090b]">
   <div class="max-w-7xl mx-auto px-6">
     <a href="index.php#register" class="inline-flex items-center gap-2 text-[#71717a] hover:text-white transition-colors mb-8 text-sm"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> 돌아가기</a>
-    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">양일권 등록 (8.20~21)</h1>
-    <p class="text-[#a1a1aa] mb-2">Day 1 · Day 2 전체를 참석하는 양일권입니다. 정보를 입력해 주세요.</p>
-    <p class="text-[#71717a] text-sm mb-10">1일만 참석하시나요? <a href="ticket-day.php" class="text-[#00C1D5] hover:underline">일일권 등록</a> · 온라인은 <a href="ticket-online.php" class="text-[#00C1D5] hover:underline">온라인 무료 등록</a></p>
+    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">양일권 등록</h1>
+    <p class="text-[#a1a1aa] mb-10">8월 20일(목)부터 21일(금)까지 진행되는 전체 프로그램에 참여할 수 있습니다. 등록을 위해 아래 정보를 입력해 주세요.</p>
 
     <div class="grid lg:grid-cols-12 gap-8 items-start">
       <!-- 좌측 폼 -->
@@ -53,22 +52,21 @@ require __DIR__ . '/_ticket_init.php';
           <h2 class="text-lg font-bold text-white mb-5">티켓</h2>
           <div class="grid gap-4 mb-8" id="ticketGroup">
             <label class="ticket-card relative p-5 border transition-all border-[#27272a]"
-                   data-code="ALL" data-price="60000" data-orig="120000" data-sub="양일권" data-pcode="NORMAL_ALL" data-days="1,2">
+                   data-code="ALL" data-price="60000" data-orig="120000" data-sub="양일권 (8월 20일-21일)" data-pcode="NORMAL_ALL" data-days="1,2">
               <input type="radio" name="ticket" value="ALL" class="sr-only" checked>
+              <div class="text-base font-bold text-white mb-3">양일권 - 8월 20일(목)~21일(금)</div>
               <div class="mb-1">
                 <div class="text-base text-[#71717a] line-through">₩120,000</div>
                 <div class="text-xs font-bold text-[#00C1D5] my-0.5">얼리버드 50% 할인</div>
                 <div class="text-2xl font-black text-white">₩60,000</div>
               </div>
-              <div class="text-sm font-bold text-[#a1a1aa] mb-2">양일권 (8.20~21)</div>
-              <div class="text-xs text-[#71717a]">Day 1 + Day 2 전체 참석</div>
               <div class="tk-check absolute top-3 right-3 hidden"><svg class="w-5 h-5 text-[#00C1D5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg></div>
             </label>
           </div>
           <div class="bg-[#111115] p-5 border border-[#27272a]">
             <h4 class="text-sm font-bold text-[#a1a1aa] mb-3">혜택</h4>
             <div class="grid sm:grid-cols-2 gap-2 text-sm text-[#a1a1aa]">
-              <?php foreach (array('전체 세션 참여','한정판 굿즈 제공','Q&A 참여','전시 및 체험존 이용','이벤트 및 경품 참여') as $b): ?>
+              <?php foreach (array('양일간 전체 세션 참여','한정판 굿즈 제공','Q&A 참여','전시 및 체험존 이용','이벤트 및 경품 참여') as $b): ?>
               <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-[#00C1D5]"></span><?= e($b) ?></div>
               <?php endforeach; ?>
             </div>
@@ -81,6 +79,7 @@ require __DIR__ . '/_ticket_init.php';
         <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
           <?php ufs_track_box(1, $UFS_TRACKS[1], $trackRemain); ?>
           <?php ufs_track_box(2, $UFS_TRACKS[2], $trackRemain); ?>
+          <p class="text-xs text-[#71717a] mt-2">※ 현장 혼잡 시 선택한 트랙 참석자가 우선 입장될 수 있습니다.</p>
         </div>
       </div>
 

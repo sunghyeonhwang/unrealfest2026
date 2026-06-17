@@ -32,6 +32,8 @@ function selectTicket(code){
   var orig=parseInt(sel.getAttribute('data-orig'),10)||price;      // 정가
   var disc=orig-price;                                             // 할인액
   var sub=sel.getAttribute('data-sub')||'';
+  var benefit=sel.getAttribute('data-benefit')||'';
+  if(benefit) setText('benefitSession',benefit);  // 일일권: 선택일별 세션 혜택 문구
   var pcode=sel.getAttribute('data-pcode')||'';
   var days=(sel.getAttribute('data-days')||'').split(',');
   setText('sumSub',sub);

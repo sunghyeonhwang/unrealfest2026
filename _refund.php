@@ -22,7 +22,7 @@ if (!defined('UFS_INIAPI_MID'))  define('UFS_INIAPI_MID',  'MOIepiclou');       
  *   array('ok'=>false, 'msg'=>.., 'raw'=>..)
  */
 if (!function_exists('ufs_inicis_refund')) {
-function ufs_inicis_refund($tid, $paymethod, $msg) {
+function ufs_inicis_refund($tid, $paymethod, $msg, $apply_no = 0) {
     if (!UFS_REFUND_LIVE)              { return array('skipped'=>true); }
     $tid = trim((string)$tid);
     if ($tid === '')                   { return array('ok'=>false, 'msg'=>'결제 TID가 없습니다.'); }
@@ -60,12 +60,21 @@ function ufs_inicis_refund($tid, $paymethod, $msg) {
     $send = 'curl_' . 'exec';
     $response = $send($ch);
     $err = curl_errno($ch);
+    $errmsg = curl_error($ch);
     curl_close($ch);
 
-    if ($err) { return array('ok'=>false, 'msg'=>'환불 통신 오류', 'raw'=>''); }
+    // 환불 응답 로깅 (관리자 결제 로그에서 확인 가능) — 성공/실패 모두 기록
+    if (function_exists('sql_query')) {
+        @sql_query("insert into 2025_event_log(log_idx,log_text,rdate) values('".intval($apply_no)."','[REFUND tid=".str_replace("'","`",(string)$tid)." pm=".str_replace("'","`",(string)$paymethod)."] ".str_replace("'","`",($err ? ('CURL_ERR: '.$errmsg) : (string)$response))."',now())");
+    }
+
+    if ($err) { return array('ok'=>false, 'msg'=>'환불 통신 오류'.($errmsg!==''?(': '.$errmsg):''), 'raw'=>''); }
     $rm = json_decode($response, true);
-    $rc = isset($rm['resultCode']) ? $rm['resultCode'] : '';
-    if ($rc === '00') {
+    if (!is_array($rm)) { return array('ok'=>false, 'msg'=>'환불 응답 해석 실패', 'raw'=>$response); }
+    $rc   = isset($rm['resultCode']) ? (string)$rm['resultCode'] : '';
+    $rmsg = isset($rm['resultMsg']) ? $rm['resultMsg'] : '';
+    // INICIS INIAPI 환불: 실패 = resultCode '01' (2025 cancel.php/vRefund.php 동일). 그 외('00' 등) 정상.
+    if ($rc !== '01') {
         return array(
             'ok'         => true,
             'cancelTime' => isset($rm['cancelTime']) ? $rm['cancelTime'] : '',
@@ -73,6 +82,8 @@ function ufs_inicis_refund($tid, $paymethod, $msg) {
             'raw'        => $response,
         );
     }
-    return array('ok'=>false, 'msg'=>(isset($rm['resultMsg'])?$rm['resultMsg']:'환불 실패'), 'raw'=>$response);
+    // 실패. 단, '기 취소거래'(이미 환불 완료된 건) 은 already 플래그 — 호출측에서 등록취소는 진행하도록.
+    $already = (strpos($rmsg, '기 취소') !== false || strpos($rmsg, '기취소') !== false || strpos($rmsg, '이미 취소') !== false);
+    return array('ok'=>false, 'already'=>$already, 'msg'=>($rmsg !== '' ? $rmsg : '환불 실패'), 'raw'=>$response);
 }
 }

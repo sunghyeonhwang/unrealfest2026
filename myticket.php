@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($email === '' || $phone === '') {
         $error = '이메일과 연락처를 모두 입력해주세요.';
     } else {
-        $row = sql_fetch("select * from cb_unreal_2026_event2_apply where apply_user_email = '$em' and REPLACE(REPLACE(apply_user_phone,'-',''),' ','') = '$ph_digits' and apply_temp_yn = 'N' order by apply_no desc limit 1");
+        $row = sql_fetch("select * from cb_unreal_2026_event2_apply where apply_user_email = '$em' and REPLACE(REPLACE(apply_user_phone,'-',''),' ','') = '$ph_digits' and apply_temp_yn = 'N' and apply_pay_status <> 0 order by apply_no desc limit 1");
         if (!$row) {
             $error = '등록 정보를 찾을 수 없습니다. 이메일과 연락처를 확인해주세요.';
         } else {
@@ -45,13 +45,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $paid_cancel = ($row['free_yn']==='N' && $row['apply_product_code']!=='ONLINE' && trim((string)$row['pay_tid'])!=='');
                 if ($paid_cancel) {
                     require_once __DIR__.'/_refund.php';
-                    $rf = ufs_inicis_refund($row['pay_tid'], isset($row['pay_paymethod'])?$row['pay_paymethod']:'', '회원요청 취소');
-                    if (empty($rf['skipped']) && empty($rf['ok'])) {
-                        exit('<script>alert("환불 처리에 실패했습니다. 사무국(02-326-3701)으로 문의해주세요.");history.back();</script>');
+                    $rf = ufs_inicis_refund($row['pay_tid'], isset($row['pay_paymethod'])?$row['pay_paymethod']:'', '회원요청 취소', $row['apply_no']);
+                    // 환불 성공(ok) 또는 이미 환불됨(already=기 취소거래) → 등록 취소 진행. 그 외만 차단.
+                    if (empty($rf['skipped']) && empty($rf['ok']) && empty($rf['already'])) {
+                        $rf_reason = isset($rf['msg']) ? preg_replace('/[\"\\\\\r\n]/', ' ', $rf['msg']) : '';
+                        exit('<script>alert("환불 처리에 실패했습니다.'.($rf_reason!==''?('\n사유: '.$rf_reason):'').'\n사무국(02-326-3701)으로 문의해주세요.");history.back();</script>');
                     }
                 }
                 sql_query("UPDATE cb_unreal_2026_event2_apply SET apply_pay_status = 0, refund_date = now() WHERE apply_no = '".intval($row['apply_no'])."'");
-                $mode = 'cancelled'; $row = null;
+                $mode = 'cancelled'; $cancelled_paid = $is_paid_row; $row = null;
             } else if ($action === 'edit') {
                 $mode = 'edit';
             } else if ($action === 'update') {
@@ -143,16 +145,21 @@ function ufs_opt($list,$cur){ foreach($list as $o){ echo '<option'.($o===$cur?' 
   <?php if ($mode === 'cancelled'): ?>
     <div class="text-center">
       <h1 class="text-3xl font-bold mb-3">등록이 취소되었습니다</h1>
-      <p class="text-[#a1a1aa] mb-10">유료 등록의 환불은 카드사에 따라 영업일 기준 최대 7일 정도의 기간이 소요됩니다.</p>
+      <?php if (!empty($cancelled_paid)): ?>
+      <p class="text-[#a1a1aa] mb-10">유료 등록 건의 환불은 영업일 기준 최대 5일 이내 처리됩니다.</p>
+      <?php else: ?>
+      <p class="text-[#a1a1aa] mb-10">온라인 등록은 별도의 환불 절차가 없습니다. 다시 시청을 원하시면 행사 페이지에서 재등록해 주세요.</p>
+      <?php endif; ?>
       <a href="myticket.php" class="clip-btn inline-block bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] px-8 py-4 font-bold">확인</a>
     </div>
 
   <?php elseif ($mode === 'lookup'): ?>
     <!-- 조회 -->
     <a href="index.php#register" class="inline-flex items-center gap-2 text-[#71717a] hover:text-white transition-colors mb-6 text-sm"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> 돌아가기</a>
-    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">언리얼 페스트 2026 등록 확인</h1>
-    <p class="text-[#a1a1aa] mb-8">등록 정보를 확인 및 수정하실 수 있습니다.</p>
+    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">등록 확인</h1>
+    <p class="text-[#a1a1aa] mb-8">등록 정보를 조회하고 수정 또는 취소할 수 있습니다.</p>
 
+    <?php if (false): // 안내 박스 비표시 (주석처리) ?>
     <!-- 안내 -->
     <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mb-4">
       <h2 class="text-lg font-bold text-white mb-4">안내</h2>
@@ -163,6 +170,7 @@ function ufs_opt($list,$cur){ foreach($list as $o){ echo '<option'.($o===$cur?' 
         <li class="flex gap-2 text-[#00C1D5]"><span>•</span><span>얼리버드 기간 내 구매한 티켓은 2026년 8월 13일까지만 환불이 가능합니다.</span></li>
       </ul>
     </div>
+    <?php endif; ?>
 
     <!-- 조회 폼 -->
     <form method="post" class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
@@ -170,11 +178,11 @@ function ufs_opt($list,$cur){ foreach($list as $o){ echo '<option'.($o===$cur?' 
       <?php if ($error): ?><p class="text-[#ff8674] text-sm mb-4"><?= e($error) ?></p><?php endif; ?>
       <div class="space-y-5">
         <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">이메일 <span class="text-[#00C1D5]">*</span></label><input type="email" name="email" placeholder="등록 시 사용한 이메일" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
-        <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">연락처 <span class="text-[#00C1D5]">*</span></label><input type="tel" name="phone" placeholder="01034567890" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
+        <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">연락처 <span class="text-[#00C1D5]">*</span></label><input type="tel" name="phone" placeholder="01012345678" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
       </div>
       <button type="submit" class="mt-6 w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-3 font-bold flex items-center justify-center gap-2 transition-all">조회하기 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button>
     </form>
-    <a href="index.php#register" class="block w-full text-center text-sm text-[#71717a] hover:text-white py-4 transition-colors">취소</a>
+    <!-- <a href="index.php#register" class="block w-full text-center text-sm text-[#71717a] hover:text-white py-4 transition-colors">취소</a> -->
 
   <?php elseif ($mode === 'edit'): ?>
     <!-- 수정 -->
@@ -226,7 +234,7 @@ function ufs_opt($list,$cur){ foreach($list as $o){ echo '<option'.($o===$cur?' 
         <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" name="agree_mkt" class="accent-[#00C1D5]" <?= $row['apply_user_event_agree']==='1'?'checked':'' ?>><span class="text-sm text-[#a1a1aa]">광고 수신 동의 (선택)</span></label>
       </div>
       <div class="flex gap-3 mt-8">
-        <a href="myticket.php" class="flex-1 text-center border border-[#27272a] text-[#a1a1aa] py-3 font-bold hover:text-white hover:border-white/20 transition-colors">취소</a>
+        <a href="myticket.php" class="flex-1 text-center border border-[#27272a] text-[#a1a1aa] py-3 font-bold hover:text-white hover:border-white/20 transition-colors">수정 취소하기</a>
         <button type="submit" class="flex-1 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-3 font-bold transition-all">저장하기</button>
       </div>
     </form>
@@ -235,7 +243,7 @@ function ufs_opt($list,$cur){ foreach($list as $o){ echo '<option'.($o===$cur?' 
     <!-- 정보 -->
     <a href="myticket.php" class="inline-flex items-center gap-2 text-[#71717a] hover:text-white transition-colors mb-6 text-sm"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> 돌아가기</a>
     <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">등록 정보</h1>
-    <p class="text-[#a1a1aa] mb-10">등록하신 정보를 확인하고 수정·취소할 수 있습니다.</p>
+    <p class="text-[#a1a1aa] mb-10">등록하신 정보를 확인하고 수정 또는 취소할 수 있습니다.</p>
     <?php if ($saved): ?><div class="bg-[rgba(0,193,213,0.08)] border border-[rgba(0,193,213,0.3)] text-[#9adbe8] text-sm px-4 py-3 mb-6">수정 내용이 저장되었습니다.</div><?php endif; ?>
 
     <?php if ($is_paid): ?>
@@ -299,11 +307,11 @@ function ufs_opt($list,$cur){ foreach($list as $o){ echo '<option'.($o===$cur?' 
         <input type="hidden" name="action" value="edit">
         <button type="submit" class="w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-3 font-bold transition-all">수정하기</button>
       </form>
-      <form method="post" class="flex-1" onsubmit="return confirm('정말 등록을 취소하시겠습니까?');">
+      <form method="post" class="flex-1" onsubmit="return confirm('<?= $is_paid ? '등록을 취소하시겠습니까?\n취소 후 재등록 시 오프라인 티켓이 매진되어 구매가 어려울 수 있습니다.' : '등록을 취소하시겠습니까?' ?>');">
         <input type="hidden" name="email" value="<?= e($row['apply_user_email']) ?>">
         <input type="hidden" name="phone" value="<?= e($row['apply_user_phone']) ?>">
         <input type="hidden" name="action" value="cancel">
-        <button type="submit" class="w-full border border-[#27272a] text-[#a1a1aa] py-3 font-bold hover:text-[#ff8674] hover:border-[rgba(250,70,22,0.3)] transition-all">등록 취소</button>
+        <button type="submit" class="w-full border border-[#27272a] text-[#71717a] py-3 font-bold hover:text-[#a1a1aa] hover:border-white/20 transition-all">등록 취소하기</button>
       </form>
     </div>
   <?php endif; ?>

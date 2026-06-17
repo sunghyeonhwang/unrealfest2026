@@ -174,7 +174,7 @@ function ufs_opt($list,$cur){ foreach($list as $o){ echo '<option'.($o===$cur?' 
 
     <!-- 조회 폼 -->
     <form method="post" class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
-      <h2 class="text-lg font-bold text-white mb-5">등록 시 작성한 정보를 입력해 주세요</h2>
+      <h2 class="text-lg font-bold text-white mb-5">등록 시 사용한 이메일과 연락처를 입력해 주세요.</h2>
       <?php if ($error): ?><p class="text-[#ff8674] text-sm mb-4"><?= e($error) ?></p><?php endif; ?>
       <div class="space-y-5">
         <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">이메일 <span class="text-[#00C1D5]">*</span></label><input type="email" name="email" placeholder="등록 시 사용한 이메일" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>

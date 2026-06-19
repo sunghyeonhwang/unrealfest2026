@@ -85,9 +85,10 @@ $qr_jpg = ($apply_no !== '' && file_exists(__DIR__."/qrdata/".$apply_no.".jpg"))
       <div class="mb-8"></div>
       <?php endif; ?>
 
+      <style>@media (min-width:640px){.tkt-br{display:none}}</style>
       <div class="bg-[#0e0f14] border border-[#27272a] p-6 text-left space-y-3 mb-10">
         <div class="flex justify-between"><span class="text-[#a1a1aa]">이름</span><span class="font-bold"><?= e($row['apply_user_name']) ?></span></div>
-        <div class="flex justify-between"><span class="text-[#a1a1aa]">티켓</span><span class="font-bold"><?= e($row['apply_product_name']) ?></span></div>
+        <div class="flex justify-between gap-4"><span class="text-[#a1a1aa]">티켓</span><span class="font-bold text-right"><?= str_replace('2026 ', '2026<br class="tkt-br">', e($row['apply_product_name'])) ?></span></div>
         <div class="flex justify-between"><span class="text-[#a1a1aa]">결제 금액</span><span class="font-bold text-[#00C1D5]">₩<?= e(number_format((int)$row['apply_product_price'])) ?></span></div>
         <div class="flex justify-between"><span class="text-[#a1a1aa]">이메일</span><span><?= e($row['apply_user_email']) ?></span></div>
         <div class="flex justify-between"><span class="text-[#a1a1aa]">연락처</span><span><?= e($row['apply_user_phone']) ?></span></div>

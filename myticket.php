@@ -281,9 +281,10 @@ function ufs_opt($list,$cur){ foreach($list as $o){ echo '<option'.($o===$cur?' 
 
     <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mb-4">
       <h2 class="text-lg font-bold text-white mb-5">등록 정보</h2>
+      <style>@media (min-width:640px){.tkt-br{display:none}}</style>
       <div class="space-y-3 text-sm">
         <div class="flex justify-between gap-4"><span class="text-[#71717a]">등록 유형</span><span class="font-bold text-[#00C1D5]"><?= $is_paid ? '오프라인' : '온라인 무료' ?></span></div>
-        <div class="flex justify-between gap-4"><span class="text-[#71717a]">티켓</span><span class="font-bold text-right"><?= e($row['apply_product_name']) ?></span></div>
+        <div class="flex justify-between gap-4"><span class="text-[#71717a]">티켓</span><span class="font-bold text-right"><?= str_replace('2026 ', '2026<br class="tkt-br">', e($row['apply_product_name'])) ?></span></div>
         <?php if ($is_paid): ?>
         <div class="flex justify-between gap-4 items-start"><span class="text-[#71717a]">결제 금액</span>
           <span class="text-right">

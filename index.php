@@ -10,15 +10,31 @@ include __DIR__ . '/_head.php';
 ?>
 
 <!-- ===== Hero ===== -->
+<style>
+/* 짧은 뷰포트 높이(고배율 디스플레이 등: 예) 3840x2400 @250% → CSS 높이 ~960px)에서
+   히어로 상단 패딩/로고가 커서 CTA 버튼이 화면 밖으로 밀려 안 보이던 문제 대응. */
+@media (max-height: 900px) {
+  #hero .hero-inner { padding-top: 7rem; padding-bottom: 12vh; }
+  #hero .hero-logo  { width: 520px; }
+}
+@media (max-height: 760px) {
+  #hero .hero-inner { padding-top: 5rem; padding-bottom: 8vh; }
+  #hero .hero-logo  { width: 420px; }
+}
+@media (max-height: 620px) {
+  #hero .hero-inner { padding-top: 4rem; padding-bottom: 6vh; }
+  #hero .hero-logo  { width: 340px; }
+}
+</style>
 <section id="hero" class="relative h-screen overflow-hidden">
   <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover object-bottom" style="object-position: calc(50% + 200px) bottom;">
     <source src="https://unrealsummit16.cafe24.com/2026/WEBSITE_USE_ONLY_Fest_ambient_loop_1920x1080_v05.webm" type="video/webm">
     <source src="https://unrealsummit16.cafe24.com/2026/WEBSITE_USE_ONLY_Fest_ambient_loop_1920x1080_v05.mp4" type="video/mp4">
   </video>
   <div class="absolute inset-0 bg-gradient-to-b from-black via-black/60 to-transparent"></div>
-  <div class="relative z-10 max-w-7xl mx-auto px-6 w-full flex flex-col items-start pt-52 md:pt-64 pb-[45vh]">
+  <div class="hero-inner relative z-10 max-w-7xl mx-auto px-6 w-full flex flex-col items-start pt-52 md:pt-64 pb-[45vh]">
     <div class="mb-10">
-      <img src="https://unrealsummit16.cafe24.com/2026/ufs26/hero_new_main_logo.svg" alt="Unreal Fest Seoul 2026" style="width: 700px; max-width: 100%;">
+      <img class="hero-logo" src="https://unrealsummit16.cafe24.com/2026/ufs26/hero_new_main_logo.svg" alt="Unreal Fest Seoul 2026" style="width: 700px; max-width: 100%;">
     </div>
     <div class="flex flex-col sm:flex-row items-start gap-4 mb-10">
       <button type="button" data-scroll="register" class="bg-[#00C1D5] hover:bg-[#004F59] text-white px-8 py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-lg clip-btn">

@@ -64,10 +64,9 @@ function ufs_faq_html($a) {
 }
 // 키노트 연사 이미지 (id 매핑; index.php 키노트 카드와 동일 에셋). 없으면 ''.
 function ufs_keynote_img($id) {
-    return '';  // ⚠️ 임시: 키노트 placeholder 사진 숨김(index/schedule/session). 실제 사진 받으면 이 줄 삭제.
     $m = array(
-        'd1-k1' => 'https://unrealsummit16.cafe24.com/2026/ufs26/epicgames_ceo.png',
-        'd1-k2' => 'https://unrealsummit16.cafe24.com/2026/ufs26/epicgames_cto.png',
+        'd1-k1' => 'https://unrealsummit16.cafe24.com/2026/ufs26/picture/epicgames_ceo.png',
+        'd1-k2' => 'https://unrealsummit16.cafe24.com/2026/ufs26/picture/epicgames_cto.png',
     );
     return isset($m[$id]) ? $m[$id] : '';
 }

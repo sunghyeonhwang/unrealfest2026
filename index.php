@@ -403,7 +403,7 @@ $ov_icons = array(
     <div class="space-y-16">
       <div>
         <h3 class="text-center text-black/60 dark:text-slate-400 font-bold tracking-[0.2em] mb-8 text-sm">Silver</h3>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
           <?php foreach ($sp['silver'] as $s): ?>
             <div class="h-28 md:h-32 bg-white dark:bg-gradient-to-br dark:from-[#16161c] dark:to-[#0d0d11] border border-black/10 dark:border-white/10 hover:border-black/15 dark:hover:border-slate-400/50 rounded-none flex items-center justify-center transition-all group shadow-sm dark:shadow-none">
               <img src="<?= e($s['src']) ?>" alt="<?= e($s['name']) ?>" class="w-[8.8rem] h-[3.3rem] object-contain dark:invert transition-opacity">

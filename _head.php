@@ -29,6 +29,10 @@ $nav        = ufs_nav_links();
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= e(asset_v('assets/style.css')) ?>">
+<style>
+/* 홈 플로팅 헤더가 하단 도킹 상태일 때, 모바일 메뉴를 위로 펼침(아래로 열면 화면 밖) */
+#site-header.hdr-bottom #mobile-nav{ top:auto; bottom:100%; border-bottom:0; border-top:1px solid rgba(255,255,255,.1); }
+</style>
 </head>
 <body class="bg-white dark:bg-black min-h-screen text-black dark:text-white font-sans selection:bg-cyan-500/30 flex flex-col">
 

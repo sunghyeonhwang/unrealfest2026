@@ -29,13 +29,13 @@
       function showLogo(on) { if (!logo) return; logo.classList.toggle('opacity-100', on); logo.classList.toggle('opacity-0', !on); }
       function dock(toTop) {
         if (toTop === docked) return;
-        if (toTop) { rmAll(BOTTOM); addAll(TOPD); h.style.top = '0px'; showLogo(true); }
-        else { rmAll(TOPD); addAll(BOTTOM); h.style.top = bottomTop() + 'px'; showLogo(false); }
+        if (toTop) { rmAll(BOTTOM); addAll(TOPD); h.style.top = '0px'; showLogo(true); h.classList.remove('hdr-bottom'); }
+        else { rmAll(TOPD); addAll(BOTTOM); h.style.top = bottomTop() + 'px'; showLogo(false); h.classList.add('hdr-bottom'); }
         docked = toTop;
       }
       // 초기 배치: 하단 (전환 애니메이션 없이)
       h.style.transition = 'none';
-      addAll(BOTTOM); h.style.top = bottomTop() + 'px';
+      addAll(BOTTOM); h.style.top = bottomTop() + 'px'; h.classList.add('hdr-bottom'); // 하단 도킹: 모바일 메뉴는 위로 열림
       void h.offsetHeight;          // reflow
       h.style.transition = '';      // 클래스 기반 transition(duration-700) 복원
       function upd() { dock(window.scrollY >= threshold()); }

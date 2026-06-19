@@ -85,7 +85,7 @@ $ov_icons = array(
   'zap' => '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>',
   'video' => '<path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/>',
 ); ?>
-<section id="overview" class="py-24 bg-[#09090b] relative border-t border-white/5">
+<section id="overview" class="py-24 bg-[#09090b] relative">
   <div class="max-w-7xl mx-auto px-6 relative z-10">
     <div class="grid lg:grid-cols-[1fr_1.2fr] gap-12 items-start">
       <div>
@@ -142,7 +142,7 @@ $ov_icons = array(
           <?php
           foreach (ufs_db_keynotes() as $ki => $k):
             $img = !empty($k['speaker']['photo']) ? $k['speaker']['photo'] : ufs_keynote_img($k['id']); ?>
-            <a href="session.php?id=<?= e($k['id']) ?>" class="block bg-[#00C1D5] p-6 hover:bg-[#00b0c2] transition-colors relative overflow-hidden min-h-[240px] rounded-[6px]">
+            <div class="block bg-[#00C1D5] p-6 relative overflow-hidden min-h-[240px] rounded-[6px]">
               <div class="relative z-10 max-w-[65%]">
                 <div class="flex items-center gap-2 mb-4">
                   <span class="px-2.5 py-0.5 text-[11px] font-bold bg-black/20 text-white">키노트</span>
@@ -155,11 +155,11 @@ $ov_icons = array(
                 </div>
               </div>
               <?php if ($img): ?>
-                <div class="absolute right-0 bottom-0 top-0 w-[42%] hidden md:flex items-end justify-end pointer-events-none">
+                <div class="absolute right-0 bottom-0 top-0 hidden md:flex items-end justify-end pointer-events-none" style="width:27%">
                   <img src="<?= e($img) ?>" alt="<?= e($k['speaker']['name']) ?>" class="max-h-full w-auto object-contain object-bottom" onerror="this.style.display='none'">
                 </div>
               <?php endif; ?>
-            </a>
+            </div>
           <?php endforeach; ?>
         </div>
       </div>
@@ -177,10 +177,10 @@ $ov_icons = array(
                   <div class="flex items-center gap-2.5 mt-auto">
                     <?php $cs_photo = !empty($s['speaker']['photo']) ? $s['speaker']['photo'] : ''; ?>
                     <?php if ($cs_photo !== ''): ?>
-                      <img src="<?= e($cs_photo) ?>" alt="<?= e($s['speaker']['name']) ?>" class="w-12 h-12 rounded-full object-cover flex-shrink-0" onerror="this.style.display='none'">
+                      <img src="<?= e($cs_photo) ?>" alt="<?= e($s['speaker']['name']) ?>" class="w-8 h-8 rounded-full object-cover flex-shrink-0" onerror="this.style.display='none'">
                     <?php else: ?>
-                    <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 <?= ufs_track_avatar_home($s['track']) ?>">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-black/60"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 <?= ufs_track_avatar_home($s['track']) ?>">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-black/60"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     </div>
                     <?php endif; ?>
                     <div class="min-w-0">

@@ -85,13 +85,16 @@ function ufs_render_track_view($daySessions) {
                 if ($ki !== '') $s['speaker']['photo'] = $ki;
             }
             $topics = implode(' ', ufs_session_topics($s));
-            echo '<a href="session.php?id='.e($s['id']).'" data-sched-card data-track="'.e($s['track']).'" data-level="'.e($s['level']).'" data-topics="'.e($topics).'" class="block p-6 hover:bg-[#0e0f14] transition-colors'.($isKey ? ' bg-[rgba(0,193,213,0.03)]' : '').'">';
+            // 키노트는 상세페이지 링크 없음(div), 일반 세션만 링크(a)
+            $open = $isKey ? '<div' : '<a href="session.php?id='.e($s['id']).'"';
+            $hovcls = $isKey ? ' bg-[rgba(0,193,213,0.03)]' : ' hover:bg-[#0e0f14] transition-colors';
+            echo $open.' data-sched-card data-track="'.e($s['track']).'" data-level="'.e($s['level']).'" data-topics="'.e($topics).'" class="block p-6'.$hovcls.'">';
             echo '<div class="flex items-center gap-2 mb-2"><span class="px-1.5 py-1 text-[10px] rounded-[4px] '.ufs_track_badge_home($isKey ? '키노트' : $s['track']).'">'.e($isKey ? '키노트' : ufs_track_label_day($s['track'], $s['day'])).'</span><span class="px-2 py-0.5 text-[11px] font-semibold bg-[#27272a] text-[#f4f4f5]">'.e(ufs_level_label_short($s['level'])).'</span></div>';
             echo '<h3 class="font-bold text-[#fafafa] mb-2 tracking-tight leading-snug '.($isKey ? 'text-xl' : 'text-base').'">'.e($s['title']).'</h3>';
             if ($s['desc'] !== '') echo '<p class="text-sm text-[#a1a1aa] mb-3 line-clamp-2">'.e($s['desc']).'</p>';
             $sp_sub = ($isKey && $s['speaker']['role'] !== '') ? ($s['speaker']['role'].($s['speaker']['company'] !== '' ? ' · '.$s['speaker']['company'] : '')) : $s['speaker']['company'];
             echo '<div class="flex items-center gap-2">'.ufs_avatar($s, 'w-12 h-12', $c['dot'], 'w-6 h-6 text-black/60').'<span class="text-sm text-[#a1a1aa]">'.e($s['_speakers_label']).'</span><span class="text-xs text-[#71717a]">'.e($sp_sub).'</span></div>';
-            echo '</a>';
+            echo $isKey ? '</div>' : '</a>';
         }
         echo '</div></div>';
     }
@@ -143,12 +146,12 @@ function ufs_render_grid_view($daySessions, $day) {
             }
             $img = $k['speaker']['photo'] !== '' ? $k['speaker']['photo'] : ufs_keynote_img($k['id']);
             echo '<tr class="border-b border-[#27272a]"><td class="p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#09090b] z-10">'.e($k['time']).'</td>';
-            echo '<td colspan="4" class="p-2"><a href="session.php?id='.e($k['id']).'" data-grid-cell data-track="키노트" data-level="'.e($k['level']).'" data-topics="'.e(implode(' ', ufs_session_topics($k))).'" class="block bg-[#00C1D5] hover:bg-[#00b0c2] p-6 rounded-[6px] transition-all relative overflow-hidden">';
+            echo '<td colspan="4" class="p-2"><div data-grid-cell data-track="키노트" data-level="'.e($k['level']).'" data-topics="'.e(implode(' ', ufs_session_topics($k))).'" class="block bg-[#00C1D5] p-6 rounded-[6px] relative overflow-hidden">';
             echo '<div class="relative z-10 max-w-[70%]"><div class="flex items-center gap-2 mb-2"><span class="px-2 py-0.5 text-[11px] font-bold bg-black/20 text-white">키노트</span><span class="px-2 py-0.5 text-[11px] font-semibold bg-black/20 text-white">'.e(ufs_level_label_short($k['level'])).'</span></div>';
             echo '<h3 class="text-lg font-bold text-black mb-3 tracking-tight leading-snug">'.e($k['title']).'</h3>';
             echo '<div><div class="text-sm font-bold text-black">'.e($k['speaker']['name']).'</div><div class="text-xs text-black/60">'.e($k['speaker']['role']).($k['speaker']['role']!==''&&$k['speaker']['company']!=='' ? ' · ' : '').e($k['speaker']['company']).'</div></div></div>';
             if ($img) echo '<div class="absolute right-4 bottom-0 w-[25%] hidden md:flex items-end justify-center"><img src="'.e($img).'" alt="'.e($k['speaker']['name']).'" class="h-32 object-cover object-top" onerror="this.style.display=\'none\'"></div>';
-            echo '</a></td></tr>';
+            echo '</div></td></tr>';
         }
         // 공통 행(풀폭, 클릭 불가)
         foreach ($commons as $cm) {

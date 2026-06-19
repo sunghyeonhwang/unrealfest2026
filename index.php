@@ -155,7 +155,7 @@ $ov_icons = array(
               <?php for ($rep = 0; $rep < 3; $rep++): foreach ($db['sessions'] as $s): ?>
                 <a href="session.php?id=<?= e($s['id']) ?>" class="flex-shrink-0 w-[320px] min-h-[240px] bg-[#131418] rounded-[6px] px-5 py-[22px] flex flex-col gap-2 cursor-pointer hover:bg-[#1a1b20] transition-colors">
                   <div class="flex items-center gap-2 flex-wrap">
-                    <span class="px-1.5 py-1 text-[10px] rounded-[4px] <?= ufs_track_badge_home($s['track']) ?>"><?= e(ufs_track_label_home($s['track'])) ?></span>
+                    <span class="px-1.5 py-1 text-[10px] rounded-[4px] <?= ufs_track_badge_home($s['track']) ?>"><?= e(ufs_track_label_day($s['track'], $s['day'])) ?></span>
                   </div>
                   <h4 class="text-[18px] font-bold text-white leading-[28px] tracking-tight line-clamp-3 flex-grow font-display"><?= e($s['title']) ?></h4>
                   <div class="flex items-center gap-2.5 mt-auto">

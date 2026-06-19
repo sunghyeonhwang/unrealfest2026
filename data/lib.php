@@ -82,7 +82,7 @@ function ufs_footer_legal_links() {
  * React Agenda.tsx / Sessions.tsx / Schedule.tsx 의 맵을 컨텍스트별로 보존. */
 function ufs_tracks() {
     // 필터/스케줄 컬럼 순서 (키노트 제외)
-    return array('게임 - 프로그래밍', '게임 - 아트', '미디어 & 엔터테인먼트', '산업 & 시뮬레이션');
+    return array('게임 - 프로그래밍', '게임 - 아트', '미디어 & 엔터테인먼트', '제조 및 시뮬레이션');
 }
 
 // 홈 Agenda 카드 배지 클래스
@@ -92,7 +92,7 @@ function ufs_track_badge_home($track) {
         '게임 - 프로그래밍' => 'bg-[#307fe2]/50 text-white',
         '게임 - 아트' => 'bg-[#FF8F1C]/50 text-white',
         '미디어 & 엔터테인먼트' => 'bg-[#FA4616]/50 text-white',
-        '산업 & 시뮬레이션' => 'bg-[#DD0AB2]/50 text-white',
+        '제조 및 시뮬레이션' => 'bg-[#DD0AB2]/50 text-white',
     );
     return isset($m[$track]) ? $m[$track] : 'bg-[#00C1D5] text-black';
 }
@@ -103,7 +103,7 @@ function ufs_track_label_home($track) {
         '게임 - 프로그래밍' => '프로그래밍',
         '게임 - 아트' => '아트',
         '미디어 & 엔터테인먼트' => '미디어&엔터테인먼트',
-        '산업 & 시뮬레이션' => '산업&시뮬레이션',
+        '제조 및 시뮬레이션' => '제조&시뮬레이션',
     );
     return isset($m[$track]) ? $m[$track] : $track;
 }
@@ -113,7 +113,7 @@ function ufs_track_avatar_home($track) {
         '게임 - 프로그래밍' => 'bg-[#5a9be6]',
         '게임 - 아트' => 'bg-[#fecb8b]',
         '미디어 & 엔터테인먼트' => 'bg-[#ff8674]',
-        '산업 & 시뮬레이션' => 'bg-[#dd9cdf]',
+        '제조 및 시뮬레이션' => 'bg-[#dd9cdf]',
     );
     return isset($m[$track]) ? $m[$track] : 'bg-[#00C1D5]';
 }
@@ -124,7 +124,7 @@ function ufs_track_badge_list($track) {
         '게임 - 프로그래밍' => 'bg-[rgba(48,127,226,0.1)] text-[#5a9be6] border border-[rgba(48,127,226,0.25)]',
         '게임 - 아트' => 'bg-[rgba(255,143,28,0.1)] text-[#fecb8b] border border-[rgba(255,143,28,0.25)]',
         '미디어 & 엔터테인먼트' => 'bg-[rgba(250,70,22,0.1)] text-[#ff8674] border border-[rgba(250,70,22,0.25)]',
-        '산업 & 시뮬레이션' => 'bg-[rgba(221,10,178,0.1)] text-[#dd9cdf] border border-[rgba(221,10,178,0.25)]',
+        '제조 및 시뮬레이션' => 'bg-[rgba(221,10,178,0.1)] text-[#dd9cdf] border border-[rgba(221,10,178,0.25)]',
     );
     return isset($m[$track]) ? $m[$track] : 'bg-[rgba(0,193,213,0.1)] text-[#00C1D5] border border-[rgba(0,193,213,0.25)]';
 }
@@ -135,9 +135,14 @@ function ufs_track_label_list($track) {
         '게임 - 프로그래밍' => '게임-프로그래밍',
         '게임 - 아트' => '게임-아트',
         '미디어 & 엔터테인먼트' => '미디어&엔터테인먼트',
-        '산업 & 시뮬레이션' => '산업&시뮬레이션',
+        '제조 및 시뮬레이션' => '제조&시뮬레이션',
     );
     return isset($m[$track]) ? $m[$track] : $track;
+}
+// 요일별 트랙 라벨 — 4번 트랙(제조 및 시뮬레이션)은 Day1 '공통' / Day2 '제조&시뮬레이션'
+function ufs_track_label_day($track, $day) {
+    if ($track === '제조 및 시뮬레이션') return ((int)$day === 1) ? '공통' : '제조&시뮬레이션';
+    return ufs_track_label_list($track);
 }
 
 /* ───────── 레벨(난이도) 라벨 (컨텍스트별) ───────── */
@@ -160,7 +165,7 @@ function ufs_track_badge_detail($track) {
         '게임 - 프로그래밍' => 'bg-[rgba(48,127,226,0.1)] text-[#5a9be6] border border-[rgba(48,127,226,0.25)]',
         '게임 - 아트' => 'bg-[rgba(255,143,28,0.1)] text-[#fecb8b] border border-[rgba(255,143,28,0.25)]',
         '미디어 & 엔터테인먼트' => 'bg-[rgba(250,70,22,0.1)] text-[#ff8674] border border-[rgba(250,70,22,0.25)]',
-        '산업 & 시뮬레이션' => 'bg-[rgba(221,10,178,0.1)] text-[#dd9cdf] border border-[rgba(221,10,178,0.25)]',
+        '제조 및 시뮬레이션' => 'bg-[rgba(221,10,178,0.1)] text-[#dd9cdf] border border-[rgba(221,10,178,0.25)]',
     );
     return isset($m[$track]) ? $m[$track] : 'bg-[#00C1D5] text-white';
 }
@@ -181,7 +186,7 @@ function ufs_track_filters() {
         array('key'=>'게임 - 프로그래밍', 'label'=>'게임-프로그래밍'),
         array('key'=>'게임 - 아트', 'label'=>'게임-아트'),
         array('key'=>'미디어 & 엔터테인먼트', 'label'=>'미디어&엔터테인먼트'),
-        array('key'=>'산업 & 시뮬레이션', 'label'=>'산업&시뮬레이션'),
+        array('key'=>'제조 및 시뮬레이션', 'label'=>'제조&시뮬레이션'),
     );
 }
 // 기술분야 카테고리(sessions: '전체' 포함 12 / schedule: 11)

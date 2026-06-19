@@ -37,7 +37,7 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
       </a>
       <!-- 키워드 (강연 제목 상단) — 일정표 세션 배지와 동일 디자인, 크기 유지 -->
       <div class="flex flex-wrap gap-2 mb-5">
-        <span class="px-1.5 py-1 text-xs rounded-[4px] <?= ufs_track_badge_home($session['track']) ?>"><?= e(ufs_track_label_list($session['track'])) ?></span>
+        <span class="px-1.5 py-1 text-xs rounded-[4px] <?= ufs_track_badge_home($session['track']) ?>"><?= e(ufs_track_label_day($session['track'], $session['day'])) ?></span>
         <span class="px-1.5 py-1 text-xs font-semibold rounded-[4px] bg-[#27272a] text-[#f4f4f5]"><?= e(ufs_level_label_detail($session['level'])) ?></span>
         <?php foreach ($cats as $cat): ?>
           <span class="px-1.5 py-1 text-xs text-[#a1a1aa] border border-[#27272a] rounded-[4px]"><?= e($cat) ?></span>
@@ -155,7 +155,7 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
       <?php foreach ($related as $r): ?>
         <a href="session.php?id=<?= e($r['id']) ?>" class="bg-[#0e0f14] p-5 hover:bg-[#111115] transition-colors flex flex-col gap-2">
-          <span class="self-start px-2.5 py-0.5 text-xs font-medium <?= ufs_track_badge_detail($r['track']) ?>"><?= e(ufs_track_label_list($r['track'])) ?></span>
+          <span class="self-start px-2.5 py-0.5 text-xs font-medium <?= ufs_track_badge_detail($r['track']) ?>"><?= e(ufs_track_label_day($r['track'], $r['day'])) ?></span>
           <h3 class="text-base font-bold text-[#fafafa] tracking-tight"><?= e($r['title']) ?></h3>
           <span class="text-xs text-[#71717a]"><?= e($r['time']) ?> · <?= e($r['location']) ?></span>
         </a>

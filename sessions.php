@@ -118,7 +118,7 @@ $list = ufs_sessions_for_list();
              data-cats="<?= e(implode(' ', $cats)) ?>" data-search="<?= e($haystack) ?>"
              class="group bg-[#0e0f14] p-6 cursor-pointer hover:bg-[#111115] transition-all flex flex-col">
             <div class="flex items-center justify-between mb-3">
-              <span class="px-3 py-0.5 text-xs font-medium <?= ufs_track_badge_list($s['track']) ?>"><?= e(ufs_track_label_list($s['track'])) ?></span>
+              <span class="px-3 py-0.5 text-xs font-medium <?= ufs_track_badge_list($s['track']) ?>"><?= e(ufs_track_label_day($s['track'], $s['day'])) ?></span>
               <span class="text-xs text-[#71717a]"><?= e(ufs_level_label_sessions($s['level'])) ?></span>
             </div>
             <div class="flex flex-wrap gap-1.5 mb-3">

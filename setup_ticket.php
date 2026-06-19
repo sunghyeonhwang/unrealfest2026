@@ -17,9 +17,9 @@ sql_query("CREATE TABLE IF NOT EXISTS 2026_event_ticket (
 
 $tracks = array(
   'DAY1_TR1'=>'Day 1 · 게임: 프로그래밍',  'DAY1_TR2'=>'Day 1 · 게임: 아트',
-  'DAY1_TR3'=>'Day 1 · 미디어 & 엔터테인먼트', 'DAY1_TR4'=>'Day 1 · 산업 & 시뮬레이션',
+  'DAY1_TR3'=>'Day 1 · 미디어 & 엔터테인먼트', 'DAY1_TR4'=>'Day 1 · 공통',
   'DAY2_TR1'=>'Day 2 · 게임: 프로그래밍',  'DAY2_TR2'=>'Day 2 · 게임: 아트',
-  'DAY2_TR3'=>'Day 2 · 미디어 & 엔터테인먼트', 'DAY2_TR4'=>'Day 2 · 산업 & 시뮬레이션',
+  'DAY2_TR3'=>'Day 2 · 미디어 & 엔터테인먼트', 'DAY2_TR4'=>'Day 2 · 제조 및 시뮬레이션',
 );
 foreach ($tracks as $name=>$label) {
     $n = sql_real_escape_string($name); $l = sql_real_escape_string($label);

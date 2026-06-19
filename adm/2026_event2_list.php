@@ -95,9 +95,9 @@ $stat = array(
 // 트랙별 인원 (확정 오프라인)
 $trackDefs = array(
   'DAY1_TR1'=>array('게임: 프로그래밍','#307FE2'), 'DAY1_TR2'=>array('게임: 아트','#FF8F1C'),
-  'DAY1_TR3'=>array('미디어 & 엔터','#FA4616'),   'DAY1_TR4'=>array('산업 & 시뮬','#DD0AB2'),
+  'DAY1_TR3'=>array('미디어 & 엔터','#FA4616'),   'DAY1_TR4'=>array('공통','#DD0AB2'),
   'DAY2_TR1'=>array('게임: 프로그래밍','#307FE2'), 'DAY2_TR2'=>array('게임: 아트','#FF8F1C'),
-  'DAY2_TR3'=>array('미디어 & 엔터','#FA4616'),   'DAY2_TR4'=>array('산업 & 시뮬','#DD0AB2'),
+  'DAY2_TR3'=>array('미디어 & 엔터','#FA4616'),   'DAY2_TR4'=>array('제조 및 시뮬','#DD0AB2'),
 );
 $trackCnt = array();
 foreach ($trackDefs as $k=>$d) {

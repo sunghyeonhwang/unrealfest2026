@@ -16,8 +16,8 @@ $sponsors_home = [
   'silver' => [
     ['name'=>'Perforce', 'src'=>'https://unrealsummit16.cafe24.com/2026/ufs26/logo_perforce.svg'],
     ['name'=>'Giant Step', 'src'=>'https://unrealsummit16.cafe24.com/2026/ufs26/logo_giantstep.svg'],
-    ['name'=>'Hospi', 'src'=>'https://unrealsummit16.cafe24.com/2026/ufs26/logo_hospi.svg'],
-    ['name'=>'Audiokinetic', 'src'=>'https://unrealsummit16.cafe24.com/2026/ufs26/logo_audiokinetic.svg'],
+    ['name'=>'Qualisys', 'src'=>'https://unrealsummit16.cafe24.com/2026/ufs26/logo_qualisys.svg'],
+    // ['name'=>'Audiokinetic', 'src'=>'https://unrealsummit16.cafe24.com/2026/ufs26/logo_audiokinetic.svg'], // 4번째 스폰서 임시 비표시(스폰서 3개)
   ],
 ];
 

@@ -155,7 +155,7 @@ $ov_icons = array(
                 </div>
               </div>
               <?php if ($img): ?>
-                <div class="absolute right-0 bottom-0 top-0 hidden md:flex items-end justify-end pointer-events-none" style="width:27%">
+                <div class="absolute right-0 bottom-0 top-0 hidden md:flex items-end justify-end pointer-events-none" style="width:35%">
                   <img src="<?= e($img) ?>" alt="<?= e($k['speaker']['name']) ?>" class="max-h-full w-auto object-contain object-bottom" onerror="this.style.display='none'">
                 </div>
               <?php endif; ?>

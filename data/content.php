@@ -22,7 +22,7 @@ $overview = [
 // ── Venue (행사장 안내) ──
 $venue = [
   'name' => '웨스틴 서울 파르나스',
-  'address' => '서울특별시 강남구 테헤란로 606',
+  'address' => '서울특별시 강남구 봉은사로 524',
   'map_embed' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3165.5!2d127.0574461!3d37.5129292!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x357ca46beba84f0d%3A0xa07ae6d7a2a200e7!2z7Juo7Iqk7YuEIOyEnOyauCDtjIzrpbTrgpjsiqQ!5e0!3m2!1sko!2skr!4v1700000000000!5m2!1sko!2skr&maptype=roadmap',
   'map_link' => 'https://www.google.com/maps/place/%EC%9B%A8%EC%8A%A4%ED%8B%B4+%EC%84%9C%EC%9A%B8+%ED%8C%8C%EB%A5%B4%EB%82%98%EC%8A%A4/data=!4m13!1m2!2m1!1z7Juo7Iqk7Yu07KGw7ISg7ISc7Jq47YyM66W064KY7Iqk!3m9!1s0x357ca46beba84f0d:0xa07ae6d7a2a200e7!5m2!4m1!1i2!8m2!3d37.5129292!4d127.0574461!15sCiHsm6jsiqTti7TsobDshKDshJzsmrjtjIzrpbTrgpjsiqWSAQVob3RlbOABAA!16s%2Fg%2F11yhvkgm6_?entry=ttu',
   'cards' => [

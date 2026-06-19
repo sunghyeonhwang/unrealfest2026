@@ -97,6 +97,18 @@ function ufs_render_track_view($daySessions) {
     }
 }
 
+// 트랙별 룸 위치 (범례용)
+function ufs_track_room($tr) {
+    $m = array(
+        '키노트' => 'Main Stage',
+        '게임 - 프로그래밍' => 'Harmony Ballroom 1',
+        '게임 - 아트' => 'Harmony Ballroom 2',
+        '미디어 & 엔터테인먼트' => 'Harmony Ballroom 3',
+        '산업 & 시뮬레이션' => 'Atlas',
+    );
+    return isset($m[$tr]) ? $m[$tr] : $tr;
+}
+
 // 그리드뷰(타임테이블) 렌더 — 시간 슬롯 순서대로 키노트/공통/세션 행을 통합 렌더
 // 그리드 트랙 표시 라벨 — '산업 & 시뮬레이션'은 Day별로 다름 (Day1=공통, Day2=제조 및 시뮬레이션)
 function ufs_grid_track_label($tr, $day) {
@@ -194,10 +206,10 @@ function ufs_render_grid_view($daySessions, $day) {
     }
     echo '</tbody></table></div>';
     // 범례
-    echo '<div class="flex flex-wrap gap-4 mt-8 pt-6 border-t border-[#27272a]">';
+    echo '<div class="flex flex-wrap gap-4 mt-8">';
     foreach (array('키노트','게임 - 프로그래밍','게임 - 아트','미디어 & 엔터테인먼트','산업 & 시뮬레이션') as $tr) {
         $c = ufs_sched_colors($tr);
-        echo '<div class="flex items-center gap-1.5 text-xs text-[#a1a1aa]"><span class="w-2.5 h-2.5 rounded-full '.$c['dot'].'"></span>'.e(ufs_grid_track_label($tr, $day)).'</div>';
+        echo '<div class="flex items-center gap-1.5 text-xs text-[#a1a1aa]"><span class="w-2.5 h-2.5 rounded-full '.$c['dot'].'"></span>'.e(ufs_track_room($tr)).'</div>';
     }
     echo '</div>';
 }

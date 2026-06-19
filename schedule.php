@@ -91,7 +91,7 @@ function ufs_render_track_view($daySessions) {
             echo $open.' data-sched-card data-track="'.e($s['track']).'" data-level="'.e($s['level']).'" data-topics="'.e($topics).'" class="block p-6'.$hovcls.'">';
             echo '<div class="flex items-center gap-2 mb-2"><span class="px-1.5 py-1 text-[10px] rounded-[4px] '.ufs_track_badge_home($isKey ? '키노트' : $s['track']).'">'.e($isKey ? '키노트' : ufs_track_label_day($s['track'], $s['day'])).'</span><span class="px-2 py-0.5 text-[11px] font-semibold bg-[#27272a] text-[#f4f4f5]">'.e(ufs_level_label_short($s['level'])).'</span></div>';
             echo '<h3 class="font-bold text-[#fafafa] mb-2 tracking-tight leading-snug '.($isKey ? 'text-xl' : 'text-base').'">'.e($s['title']).'</h3>';
-            if ($s['desc'] !== '') echo '<p class="text-sm text-[#a1a1aa] mb-3 line-clamp-2">'.e($s['desc']).'</p>';
+            if (!$isKey && $s['desc'] !== '') echo '<p class="text-sm text-[#a1a1aa] mb-3 line-clamp-2">'.e($s['desc']).'</p>';
             $sp_sub = ($isKey && $s['speaker']['role'] !== '') ? ($s['speaker']['role'].($s['speaker']['company'] !== '' ? ' · '.$s['speaker']['company'] : '')) : $s['speaker']['company'];
             echo '<div class="flex items-center gap-2">'.ufs_avatar($s, 'w-12 h-12', $c['dot'], 'w-6 h-6 text-black/60').'<span class="text-sm text-[#a1a1aa]">'.e($s['_speakers_label']).'</span><span class="text-xs text-[#71717a]">'.e($sp_sub).'</span></div>';
             echo $isKey ? '</div>' : '</a>';

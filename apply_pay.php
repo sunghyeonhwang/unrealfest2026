@@ -144,15 +144,15 @@ if ($payment === 'kakaopay')      { $gopaymethod = "onlykakaopay"; }
 else if ($payment === 'naverpay') { $gopaymethod = "onlynaverpay"; }
 else if ($payment === 'tosspay')  { $gopaymethod = "onlytosspay"; }
 
-// 모바일(mobile.inicis.com/smart/payment) 결제수단 → P_INI_PAYMENT 매핑.
-//   모바일은 PC(gopaymethod)와 규격이 달라 P_INI_PAYMENT 에 결제수단 코드를 직접 넣는다.
-//   값 출처: 본 가맹점(MID MOIepiclou) 2025 INICIS 연동 샘플(application_form_pay.html on_pay()).
-//   카드=CARD / 카카오=KAKAOPAY / 네이버=NAVERPAY / 토스=TOSSPAY.
-//   ⚠️ 운영 전 결제수단별 실결제 1건 검증 필수(코드 표기/계약 여부에 따라 오류 가능 → 1588-4954).
-$mPayment = "CARD";
-if ($payment === 'kakaopay')      { $mPayment = "KAKAOPAY"; }
-else if ($payment === 'naverpay') { $mPayment = "NAVERPAY"; }
-else if ($payment === 'tosspay')  { $mPayment = "TOSSPAY"; }
+// 모바일(mobile.inicis.com/smart/payment) 간편결제 직접호출.
+//   모바일은 P_INI_PAYMENT 가 아니라 P_RESERVED 에 d_XXX=Y 를 추가하는 방식(카드 간편결제 페이지 직접호출).
+//   ref: INICIS_Stdpay#88 (공식가이드/모바일). 구분자는 '&'. P_INI_PAYMENT 는 CARD 유지.
+//   카카오=d_kakaopay=Y / 네이버=d_npay=Y / 토스=d_tosspay=Y.
+//   ⚠️ 운영 MID에 '신용카드 직접호출' 설정 + 각 페이 가맹 필요(PC와 동일 조건, 1588-4954).
+$mReserved = "below1000=Y&vbank_receipt=Y&centerCd=Y";
+if ($payment === 'kakaopay')      { $mReserved = "d_kakaopay=Y&" . $mReserved; }
+else if ($payment === 'naverpay') { $mReserved = "d_npay=Y&" . $mReserved; }
+else if ($payment === 'tosspay')  { $mReserved = "d_tosspay=Y&" . $mReserved; }
 
 // ── 디바이스 분기 ──
 //   PC = INICIS 표준결제(INIStdPay, stdpay.inicis.com)
@@ -177,7 +177,7 @@ function ev($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 <body onload="document.getElementById('SendPayForm_mobile').submit();">
 <div>결제 화면으로 이동 중입니다...</div>
 <form name="SendPayForm_mobile" id="SendPayForm_mobile" method="post" action="https://mobile.inicis.com/smart/payment/" accept-charset="euc-kr" style="display:none">
-  <input type="hidden" name="P_INI_PAYMENT" value="<?= ev($mPayment) ?>">
+  <input type="hidden" name="P_INI_PAYMENT" value="CARD">
   <input type="hidden" name="P_MID" value="<?= ev($mid) ?>">
   <input type="hidden" name="P_OID" value="<?= ev($oid) ?>">
   <input type="hidden" name="P_AMT" value="<?= ev($price) ?>">
@@ -188,7 +188,7 @@ function ev($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
   <input type="hidden" name="P_NEXT_URL" value="<?= ev($mNextUrl) ?>">
   <input type="hidden" name="P_NOTI_URL" value="<?= ev($mNextUrl) ?>">
   <input type="hidden" name="P_CHARSET" value="utf8">
-  <input type="hidden" name="P_RESERVED" value="below1000=Y&vbank_receipt=Y&centerCd=Y">
+  <input type="hidden" name="P_RESERVED" value="<?= ev($mReserved) ?>">
   <input type="hidden" name="merchantData" value="<?= ev($apply_no) ?>">
 </form>
 </body></html>

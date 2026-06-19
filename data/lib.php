@@ -72,7 +72,11 @@ function ufs_keynote_img($id) {
     return isset($m[$id]) ? $m[$id] : '';
 }
 function ufs_footer_epic_links() {
-    return array('새소식', '이벤트', '리소스');
+    return array(
+        '새소식' => 'https://epiclounge.co.kr/contents/v4/news_list.php',
+        '이벤트' => 'https://epiclounge.co.kr/contents/v4/event_list.php',
+        '리소스' => 'https://epiclounge.co.kr/contents/v4/replay_list.php',
+    );
 }
 function ufs_footer_legal_links() {
     return array('이용약관', '개인정보처리방침', '쿠키 정책');

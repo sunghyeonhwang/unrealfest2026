@@ -56,9 +56,9 @@ if (!isset($is_home)) { $is_home = false; }
       <div>
         <h4 class="text-white font-bold mb-6 tracking-widest text-xs uppercase">Epic Lounge</h4>
         <ul class="space-y-4 text-slate-400">
-          <?php foreach (ufs_footer_epic_links() as $label): ?>
+          <?php foreach (ufs_footer_epic_links() as $label => $url): ?>
             <li>
-              <a href="#" class="hover:text-white transition-colors flex items-center gap-1 group">
+              <a href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors flex items-center gap-1 group">
                 <?= e($label) ?>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 opacity-50 group-hover:opacity-100"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
               </a>

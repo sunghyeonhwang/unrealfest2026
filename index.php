@@ -258,10 +258,6 @@ $ov_icons = array(
     <div class="grid lg:grid-cols-2 gap-6">
       <div class="relative overflow-hidden h-[500px] lg:h-auto">
         <iframe src="<?= e($vn['map_embed']) ?>" class="w-full h-full min-h-[500px]" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="웨스틴 서울 파르나스 지도" style="border:0; filter: invert(90%) hue-rotate(180deg) brightness(0.9) contrast(1.1);"></iframe>
-        <a href="<?= e($vn['map_link']) ?>" target="_blank" rel="noopener noreferrer" class="absolute top-4 left-4 text-[#00C1D5] text-sm font-medium flex items-center gap-1 hover:underline z-20">
-          지도에서 열기
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        </a>
         <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent z-10 p-6 pt-16">
           <div class="flex justify-between items-end">
             <div>

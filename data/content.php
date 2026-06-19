@@ -4,7 +4,7 @@
 
 // ── Overview (소개) ──
 $overview = [
-  'image' => './overview_text.svg',
+  'image' => 'https://unrealsummit16.cafe24.com/2026/ufs26/overview_text.svg',
   'image_alt' => 'Unreal Ideas Start Here',
   'paragraphs' => [
     '언리얼 페스트 서울 2026에서 언리얼 엔진과 에픽 에코시스템 전반의 혁신적인 기술과 인사이트를 경험해 보세요.',

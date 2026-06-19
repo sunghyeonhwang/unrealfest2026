@@ -22,7 +22,8 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
     <a href="schedule.php" class="text-[#00C1D5] mt-4 inline-block hover:underline">아젠다로 돌아가기</a>
   </div>
 <?php else:
-  $cats = ufs_session_keywords($session);
+  // ③ 배지: SH리뷰 제품군(ag_product). 비어있으면 자동 키워드로 폴백.
+  $cats = !empty($session['product']) ? $session['product'] : ufs_session_keywords($session);
   $date_iso = ufs_day_iso($session['day']);
   $related = ufs_db_related($session, 2);
 ?>

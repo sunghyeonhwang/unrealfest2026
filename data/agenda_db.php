@@ -77,6 +77,19 @@ function ufs_db_speakers_arr($r) {
     return array(array('name'=>$name, 'role'=>$role, 'company'=>$comp, 'bio'=>'', 'photo'=>$photo));
 }
 
+// 제품군(ag_product) → 배열. 콤마 분리, '기타/Others' 류 제외, 최대 3개.
+function ufs_db_product_arr($r) {
+    $raw = isset($r['ag_product']) ? trim((string)$r['ag_product']) : '';
+    if ($raw === '') return array();
+    $out = array();
+    foreach (explode(',', $raw) as $p) {
+        $p = trim($p);
+        if ($p === '' || $p === '기타/Others' || $p === '기타' || $p === 'Others') continue;
+        $out[] = $p;
+    }
+    return array_slice($out, 0, 3);
+}
+
 // DB 행 1개 → 세션 배열 형태로 매핑
 function ufs_db_map_row($r) {
     $contents = array();
@@ -101,6 +114,8 @@ function ufs_db_map_row($r) {
         'track'      => $r['ag_track'],
         'colspan'    => (isset($r['ag_colspan']) && (int)$r['ag_colspan'] > 1) ? (int)$r['ag_colspan'] : 1,
         'level'      => ($r['ag_level'] !== '' ? $r['ag_level'] : '전체 참가자'),
+        'product'    => ufs_db_product_arr($r), // 제품군(SH리뷰) — 콤마분리 배열
+
         'speaker'    => array(
             'name'    => $first['name'],
             'role'    => $first['role'],

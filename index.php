@@ -124,12 +124,8 @@ $ov_icons = array(
       <div class="max-w-7xl mx-auto px-6 mb-6">
         <div class="grid md:grid-cols-2 gap-6">
           <?php
-          $kn_imgs = array(
-            'https://unrealsummit16.cafe24.com/2026/ufs26/epicgames_ceo.png',  // 1번째 키노트(CEO)
-            'https://unrealsummit16.cafe24.com/2026/ufs26/epicgames_cto.png',  // 2번째 키노트(CTO)
-          );
           foreach (ufs_db_keynotes() as $ki => $k):
-            $img = isset($kn_imgs[$ki]) ? $kn_imgs[$ki] : (!empty($k['speaker']['photo']) ? $k['speaker']['photo'] : ''); ?>
+            $img = !empty($k['speaker']['photo']) ? $k['speaker']['photo'] : ufs_keynote_img($k['id']); ?>
             <a href="session.php?id=<?= e($k['id']) ?>" class="block bg-[#00C1D5] p-6 hover:bg-[#00b0c2] transition-colors relative overflow-hidden min-h-[240px] rounded-[6px]">
               <div class="relative z-10 max-w-[65%]">
                 <div class="flex items-center gap-2 mb-4">

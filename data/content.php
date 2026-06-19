@@ -27,7 +27,7 @@ $venue = [
   'map_link' => 'https://www.google.com/maps/place/%EC%9B%A8%EC%8A%A4%ED%8B%B4+%EC%84%9C%EC%9A%B8+%ED%8C%8C%EB%A5%B4%EB%82%98%EC%8A%A4/data=!4m13!1m2!2m1!1z7Juo7Iqk7Yu07KGw7ISg7ISc7Jq47YyM66W064KY7Iqk!3m9!1s0x357ca46beba84f0d:0xa07ae6d7a2a200e7!5m2!4m1!1i2!8m2!3d37.5129292!4d127.0574461!15sCiHsm6jsiqTti7TsobDshKDshJzsmrjtjIzrpbTrgpjsiqWSAQVob3RlbOABAA!16s%2Fg%2F11yhvkgm6_?entry=ttu',
   'cards' => [
     ['icon'=>'map-pin', 'title'=>'행사장 체크인', 'body'=>'지하 1층 하모니 볼룸 앞 데스크에서 QR 코드 확인 후 명찰을 수령할 수 있습니다. 체크인은 첫날 오전 9시, 둘째 날 오전 9시 30분부터 시작됩니다.'],
-    ['icon'=>'train', 'title'=>'대중교통', 'subway'=>'2호선 삼성역 5번 출구, 9호선 봉은사역 7번 출구', 'bus'=>'봉은사.코엑스 북문 정류장 하차'],
+    ['icon'=>'train', 'title'=>'대중교통', 'subway'=>'2호선 삼성역 5번 출구, 9호선 봉은사역 7번 출구', 'bus'=>'봉은사·코엑스 북문 정류장 하차'],
     ['icon'=>'car', 'title'=>'주차 안내', 'body'=>'행사 참가자에게는 무료 주차권이 제공됩니다만 주차 공간이 제한될 수 있으니 가급적 대중교통 이용을 권장 드립니다. 명찰 수령 후 데스크에서 차량 번호를 등록해 주세요.'],
   ],
 ];

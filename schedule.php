@@ -295,7 +295,7 @@ include __DIR__ . '/_head.php';
               </div>
               <div class="mb-6">
                 <h3 class="text-sm font-bold text-white mb-3">트랙</h3>
-                <div class="grid grid-cols-2 gap-2">
+                <div class="grid gap-1" style="grid-template-columns:repeat(4,minmax(0,1fr))">
                   <?php
                   $tf = array(array('key'=>'all','label'=>'전체'));
                   foreach (array('게임: 아트','게임: 프로그래밍','미디어 & 엔터테인먼트','제조 및 시뮬레이션') as $tr) { $tf[] = array('key'=>$tr,'label'=>ufs_track_label_list($tr)); }
@@ -309,7 +309,7 @@ include __DIR__ . '/_head.php';
               </div>
               <div class="mb-6">
                 <h3 class="text-sm font-bold text-white mb-3">난이도</h3>
-                <div class="grid grid-cols-2 gap-2">
+                <div class="grid gap-1" style="grid-template-columns:repeat(4,minmax(0,1fr))">
                   <?php foreach (array(array('all','전체'),array('초보자용','초급'),array('중급자용','중급'),array('전문가용','고급')) as $l): ?>
                     <label class="flex items-center gap-2.5 cursor-pointer py-1">
                       <input type="checkbox" data-filter-level="<?= e($l[0]) ?>" class="w-4 h-4 rounded text-[#00C1D5] focus:ring-[#00C1D5] bg-transparent border-[#27272a]"<?= $l[0]==='all' ? ' checked' : '' ?>>
@@ -320,7 +320,7 @@ include __DIR__ . '/_head.php';
               </div>
               <div class="mb-6">
                 <h3 class="text-sm font-bold text-white mb-3">주제</h3>
-                <div class="grid grid-cols-2 gap-2">
+                <div class="grid gap-1" style="grid-template-columns:repeat(4,minmax(0,1fr))">
                   <?php foreach (array('공통','프로그래밍','비주얼 아트','디지털 휴먼','AI','버추얼 프로덕션','프로덕션','기획','메타버스','디지털 트윈','XR(VR·AR·MR)') as $tp): ?>
                     <label class="flex items-center gap-2.5 cursor-pointer py-1">
                       <input type="checkbox" data-filter-topic="<?= e($tp) ?>" class="w-4 h-4 rounded text-[#00C1D5] focus:ring-[#00C1D5] bg-transparent border-[#27272a]">
@@ -331,7 +331,7 @@ include __DIR__ . '/_head.php';
               </div>
               <div class="mb-6">
                 <h3 class="text-sm font-bold text-white mb-3">제품</h3>
-                <div class="grid grid-cols-2 gap-2">
+                <div class="grid gap-1" style="grid-template-columns:repeat(4,minmax(0,1fr))">
                   <?php foreach (array('UE4','UE5','UEFN','리얼리티스캔','메타휴먼','에픽게임즈 스토어','에픽 온라인 서비스','팹','퀵셀') as $pd): ?>
                     <label class="flex items-center gap-2.5 cursor-pointer py-1">
                       <input type="checkbox" data-filter-product="<?= e($pd) ?>" class="w-4 h-4 rounded text-[#00C1D5] focus:ring-[#00C1D5] bg-transparent border-[#27272a]">

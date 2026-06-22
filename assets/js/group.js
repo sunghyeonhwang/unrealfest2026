@@ -196,7 +196,7 @@
           refreshTicket(node);
           setSelectByText(node.querySelector("select[data-day=\"1\"]"), c[7]);
           setSelectByText(node.querySelector("select[data-day=\"2\"]"), c[8]);
-          var ts = c[9] ? node.querySelector('[name^="member_tshirt"][value="' + c[9].trim() + '"]') : null; if (ts) ts.checked = true;
+          setSelectByValue(node.querySelector('[data-pick-tshirt]'), (c[9] || '').trim());
           added++;
         }
         while (memberRows().length < window.UFS_MIN_MEMBERS) addMember();
@@ -223,7 +223,7 @@
       var days = op.getAttribute('data-days').split(',');
       if (days.indexOf('1') >= 0 && !cs[i].querySelector("select[data-day=\"1\"]").value) { alert(who + '의 Day1 트랙을 선택해 주세요.'); return false; }
       if (days.indexOf('2') >= 0 && !cs[i].querySelector("select[data-day=\"2\"]").value) { alert(who + '의 Day2 트랙을 선택해 주세요.'); return false; }
-      if (!cs[i].querySelector('[data-pick-tshirt] input:checked')) { alert(who + '의 티셔츠를 선택해 주세요.'); return false; }
+      var tsSel = cs[i].querySelector('[data-pick-tshirt]'); if (tsSel && !tsSel.value) { alert(who + '의 티셔츠를 선택해 주세요.'); return false; }
     }
     var ms = memberRows();
     if (ms.length < window.UFS_MIN_MEMBERS) { alert('대표자 외 최소 ' + window.UFS_MIN_MEMBERS + '인을 입력해 주세요.'); return false; }

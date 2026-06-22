@@ -38,14 +38,11 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
   echo '<select name="'.e($nD2).'" data-day="2" class="'.$SEL_CLS.'"><option value="">Day2 트랙</option>';
   foreach ($TR[2] as $v=>$l) echo '<option value="'.e($v).'">'.e($l).'</option>';
   echo '</select></div>';
-  // 티셔츠
+  // 티셔츠 (드롭박스)
   echo '<div class="space-y-2" data-tshirt-wrap><label class="text-sm font-medium text-[#a1a1aa]">티셔츠 <span class="text-[#00C1D5]">*</span></label>';
-  echo '<div class="flex flex-wrap gap-2" data-pick-tshirt>';
-  foreach (array('M','L','XL','XXL') as $s) {
-    echo '<label class="relative cursor-pointer"><input type="radio" name="'.e($nTshirt).'" value="'.$s.'" class="peer sr-only">';
-    echo '<div class="w-12 h-12 border border-[#27272a] bg-[#0e0f14] flex items-center justify-center text-sm font-bold text-[#71717a] peer-checked:border-[#00C1D5] peer-checked:bg-[rgba(0,79,89,0.2)] peer-checked:text-[#00C1D5] transition-all hover:border-white/20">'.$s.'</div></label>';
-  }
-  echo '</div></div>';
+  echo '<select name="'.e($nTshirt).'" data-pick-tshirt class="'.$SEL_CLS.'"><option value="">선택</option>';
+  foreach (array('M','L','XL','XXL') as $s) echo '<option>'.$s.'</option>';
+  echo '</select></div>';
   echo '</div>';
 }
 ?>

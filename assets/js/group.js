@@ -138,14 +138,16 @@
           var node = addMember(); if (!node) break;
           var q = function (n) { return node.querySelector('[name^="' + n + '"]'); };
           if (q('member_name')) q('member_name').value = (c[0] || '').trim();
-          if (q('member_phone')) q('member_phone').value = (c[1] || '').trim().replace(/[^0-9]/g, '');
-          setSelectByText(q('member_grade'), c[2]);
-          setSelectByText(q('member_ex1'), c[3]);
-          setSelectByValue(ticketSel(node), ticketCodeFromLabel(c[4]));
+          if (q('member_email')) q('member_email').value = (c[1] || '').trim();
+          if (q('member_phone')) q('member_phone').value = (c[2] || '').trim().replace(/[^0-9]/g, '');
+          if (q('member_depart')) q('member_depart').value = (c[3] || '').trim();
+          setSelectByText(q('member_grade'), c[4]);
+          setSelectByText(q('member_ex1'), c[5]);
+          setSelectByValue(ticketSel(node), ticketCodeFromLabel(c[6]));
           refreshTicket(node);
-          setSelectByText(node.querySelector('[data-day="1"]'), c[5]);
-          setSelectByText(node.querySelector('[data-day="2"]'), c[6]);
-          var ts = c[7] ? node.querySelector('[name^="member_tshirt"][value="' + c[7].trim() + '"]') : null; if (ts) ts.checked = true;
+          setSelectByText(node.querySelector('[data-day="1"]'), c[7]);
+          setSelectByText(node.querySelector('[data-day="2"]'), c[8]);
+          var ts = c[9] ? node.querySelector('[name^="member_tshirt"][value="' + c[9].trim() + '"]') : null; if (ts) ts.checked = true;
           added++;
         }
         while (memberRows().length < window.UFS_MIN_MEMBERS) addMember();
@@ -174,8 +176,9 @@
     if (ms.length < window.UFS_MIN_MEMBERS) { alert('대표자 외 최소 ' + window.UFS_MIN_MEMBERS + '인을 입력해 주세요.'); return false; }
     for (var m = 0; m < ms.length; m++) {
       var nm = ms[m].querySelector('[name^="member_name"]').value.trim();
+      var em = ms[m].querySelector('[name^="member_email"]').value.trim();
       var ph = ms[m].querySelector('[name^="member_phone"]').value.trim();
-      if (!nm || !ph) { alert((m + 2) + '번 참석자의 이름/연락처를 입력해 주세요.'); return false; }
+      if (!nm || !em || !ph) { alert((m + 2) + '번 참석자의 이름/이메일/연락처를 입력해 주세요.'); return false; }
     }
     return true;
   };

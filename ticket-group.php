@@ -185,11 +185,15 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
       <span class="text-sm font-bold text-[#00C1D5]" data-gm-no></span>
       <button type="button" class="text-[#71717a] hover:text-[#ff8674] text-xl leading-none" data-gm-del title="삭제">&times;</button>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
       <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">이름 <span class="text-[#00C1D5]">*</span></label>
         <input type="text" name="member_name[__I__]" placeholder="이름" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
+      <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">이메일 <span class="text-[#00C1D5]">*</span></label>
+        <input type="email" name="member_email[__I__]" placeholder="email@example.com" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
       <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">연락처 <span class="text-[#00C1D5]">*</span></label>
         <input type="tel" name="member_phone[__I__]" placeholder="01012345678" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
+      <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">부서 <span class="text-[#00C1D5]">*</span></label>
+        <input type="text" name="member_depart[__I__]" placeholder="개발팀" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
       <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">직무 <span class="text-[#00C1D5]">*</span></label>
         <select name="member_grade[__I__]" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none"><option value="">선택</option><?= ufs_opts($GRADES) ?></select></div>
       <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">관심 분야 <span class="text-[#00C1D5]">*</span></label>

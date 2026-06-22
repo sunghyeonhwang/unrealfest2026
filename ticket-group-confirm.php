@@ -12,7 +12,7 @@ define('UFS_BANK_DAYS', 5); // 입금 기한(일)
 function gp($k){ return isset($_POST[$k]) ? trim($_POST[$k]) : ''; }
 function garr($k){ return (isset($_POST[$k]) && is_array($_POST[$k])) ? $_POST[$k] : array(); }
 
-$PRODNAME = array('NORMAL_ALL'=>'양일권 (8.20~21)','NORMAL_20'=>'1일권 · Day 1','NORMAL_21'=>'1일권 · Day 2');
+$PRODNAME = array('NORMAL_ALL'=>'양일권(8.20~21)','NORMAL_20'=>'1일권(8.20)','NORMAL_21'=>'1일권(8.21)');
 $PRODDAYS = array('NORMAL_ALL'=>array('1','2'),'NORMAL_20'=>array('1'),'NORMAL_21'=>array('2'));
 
 function track_label($code, $UFS_TRACKS){
@@ -168,10 +168,10 @@ if ($err==='' && gp('action')==='register') {
     <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mb-6">
       <h2 class="text-lg font-bold text-white mb-4">무통장 입금 안내</h2>
       <div class="space-y-3 text-sm">
-        <div class="flex justify-between gap-4"><span class="text-[#71717a]">입금 계좌</span><span class="font-bold text-right">국민은행 98983000004185</span></div>
-        <div class="flex justify-between gap-4"><span class="text-[#71717a]">예금주</span><span class="font-bold text-right">(주)그리프</span></div>
-        <div class="flex justify-between gap-4"><span class="text-[#71717a]">입금 금액</span><span class="font-bold text-[#00C1D5] text-right">₩<?= number_format($total) ?></span></div>
-        <div class="flex justify-between gap-4"><span class="text-[#71717a]">입금 기한</span><span class="font-bold text-right"><?= date('Y년 m월 d일', strtotime('+'.UFS_BANK_DAYS.' days')) ?> (<?= UFS_BANK_DAYS ?>일 이내)</span></div>
+        <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">입금 계좌</span><span class="font-bold text-right">국민은행 98983000004185</span></div>
+        <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">예금주</span><span class="font-bold text-right">(주)그리프</span></div>
+        <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">입금 금액</span><span class="font-bold text-[#00C1D5] text-right">₩<?= number_format($total) ?></span></div>
+        <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">입금 기한</span><span class="font-bold text-right"><?= date('Y년 m월 d일', strtotime('+'.UFS_BANK_DAYS.' days')) ?> (<?= UFS_BANK_DAYS ?>일 이내)</span></div>
       </div>
       <p class="text-xs text-[#71717a] mt-4 leading-relaxed">위 계좌로 기한 내 입금해 주세요. 입금 안내는 대표자 연락처로도 발송되었습니다. 기한 내 미입금 시 자동 취소될 수 있습니다. 통장 사본·사업자등록증은 별도 안내됩니다. 입금이 확인되면 등록자분들께 안내 문자가 발송됩니다.</p>
     </div>
@@ -185,11 +185,11 @@ if ($err==='' && gp('action')==='register') {
     <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mb-4">
       <h2 class="text-lg font-bold text-white mb-4">대표자</h2>
       <div class="grid sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
-        <div class="flex justify-between gap-4"><span class="text-[#71717a]">이름</span><span><?= e($rep['name']) ?></span></div>
-        <div class="flex justify-between gap-4"><span class="text-[#71717a]">연락처</span><span><?= e($rep['phone']) ?></span></div>
-        <div class="flex justify-between gap-4"><span class="text-[#71717a]">이메일</span><span><?= e($rep['email']) ?></span></div>
-        <div class="flex justify-between gap-4"><span class="text-[#71717a]">회사/소속</span><span><?= e($rep['company']) ?></span></div>
-        <div class="flex justify-between gap-4"><span class="text-[#71717a]">참석 여부</span><span><?= $rep_attend==='Y' ? '참석' : '결제만 (비참석)' ?></span></div>
+        <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">이름</span><span><?= e($rep['name']) ?></span></div>
+        <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">연락처</span><span><?= e($rep['phone']) ?></span></div>
+        <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">이메일</span><span><?= e($rep['email']) ?></span></div>
+        <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">회사/소속</span><span><?= e($rep['company']) ?></span></div>
+        <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">참석 여부</span><span><?= $rep_attend==='Y' ? '참석' : '결제만 (비참석)' ?></span></div>
       </div>
     </div>
 
@@ -217,9 +217,9 @@ if ($err==='' && gp('action')==='register') {
 
     <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mb-6">
       <div class="space-y-2 text-sm">
-        <div class="flex justify-between gap-4"><span class="text-[#71717a]">정상가 합계</span><span class="text-[#a1a1aa]">₩<?= number_format($sumOrig) ?></span></div>
-        <?php if ($eff>0): ?><div class="flex justify-between gap-4"><span class="text-[#71717a]">적용 할인 (<?= $disc_src==='coupon'?'쿠폰':'단체' ?> <?= (int)$eff ?>%<?= $disc_src==='coupon'?' · '.e($coupon_code):'' ?>)</span><span class="text-[#00C1D5]">-₩<?= number_format($sumOrig-$total) ?></span></div><?php endif; ?>
-        <div class="flex justify-between gap-4"><span class="text-[#71717a]">결제 수단</span><span><?= $paymethod==='card'?'신용카드':'무통장 입금' ?></span></div>
+        <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">정상가 합계</span><span class="text-[#a1a1aa]">₩<?= number_format($sumOrig) ?></span></div>
+        <?php if ($eff>0): ?><div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">적용 할인 (<?= $disc_src==='coupon'?'쿠폰':'단체' ?> <?= (int)$eff ?>%<?= $disc_src==='coupon'?' · '.e($coupon_code):'' ?>)</span><span class="text-[#00C1D5]">-₩<?= number_format($sumOrig-$total) ?></span></div><?php endif; ?>
+        <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">결제 수단</span><span><?= $paymethod==='card'?'신용카드':'무통장 입금' ?></span></div>
       </div>
       <div class="border-t border-[#27272a] mt-4 pt-4 flex justify-between items-end"><span class="text-[#71717a]">총 결제 금액</span><span class="text-3xl font-black text-[#00C1D5]">₩<?= number_format($total) ?></span></div>
     </div>
@@ -228,12 +228,12 @@ if ($err==='' && gp('action')==='register') {
     <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mb-6">
       <h2 class="text-lg font-bold text-white mb-4">세금계산서 발행 정보</h2>
       <div class="grid sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
-        <div class="flex justify-between gap-4"><span class="text-[#71717a]">상호</span><span><?= e($rep['company']) ?></span></div>
-        <div class="flex justify-between gap-4"><span class="text-[#71717a]">사업자등록번호</span><span><?= e($rep['biznum']) ?></span></div>
-        <div class="flex justify-between gap-4"><span class="text-[#71717a]">대표자명</span><span><?= e($tax['ceo']) ?></span></div>
-        <div class="flex justify-between gap-4"><span class="text-[#71717a]">사업장 주소</span><span class="text-right"><?= e($tax['addr']) ?></span></div>
-        <div class="flex justify-between gap-4"><span class="text-[#71717a]">업태</span><span><?= e($tax['biztype']) ?></span></div>
-        <div class="flex justify-between gap-4"><span class="text-[#71717a]">종목</span><span><?= e($tax['bizitem']) ?></span></div>
+        <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">상호</span><span><?= e($rep['company']) ?></span></div>
+        <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">사업자등록번호</span><span><?= e($rep['biznum']) ?></span></div>
+        <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">대표자명</span><span><?= e($tax['ceo']) ?></span></div>
+        <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">사업장 주소</span><span class="text-right"><?= e($tax['addr']) ?></span></div>
+        <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">업태</span><span><?= e($tax['biztype']) ?></span></div>
+        <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">종목</span><span><?= e($tax['bizitem']) ?></span></div>
       </div>
     </div>
     <?php endif; ?>

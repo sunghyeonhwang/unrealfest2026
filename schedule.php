@@ -20,8 +20,8 @@ function ufs_s_sched_slots($sessions) {
 function ufs_sched_colors($track) {
     $m = array(
         '키노트' => array('bg'=>'bg-[rgba(0,193,213,0.1)]','text'=>'text-[#00C1D5]','border'=>'border-[rgba(0,193,213,0.3)]','dot'=>'bg-[#00C1D5]'),
-        '게임 - 프로그래밍' => array('bg'=>'bg-[rgba(48,127,226,0.1)]','text'=>'text-[#5a9be6]','border'=>'border-[rgba(48,127,226,0.25)]','dot'=>'bg-[#5a9be6]'),
-        '게임 - 아트' => array('bg'=>'bg-[rgba(255,143,28,0.1)]','text'=>'text-[#fecb8b]','border'=>'border-[rgba(255,143,28,0.25)]','dot'=>'bg-[#fecb8b]'),
+        '게임: 프로그래밍' => array('bg'=>'bg-[rgba(48,127,226,0.1)]','text'=>'text-[#5a9be6]','border'=>'border-[rgba(48,127,226,0.25)]','dot'=>'bg-[#5a9be6]'),
+        '게임: 아트' => array('bg'=>'bg-[rgba(255,143,28,0.1)]','text'=>'text-[#fecb8b]','border'=>'border-[rgba(255,143,28,0.25)]','dot'=>'bg-[#fecb8b]'),
         '미디어 & 엔터테인먼트' => array('bg'=>'bg-[rgba(250,70,22,0.1)]','text'=>'text-[#ff8674]','border'=>'border-[rgba(250,70,22,0.25)]','dot'=>'bg-[#ff8674]'),
         '제조 및 시뮬레이션' => array('bg'=>'bg-[rgba(221,10,178,0.1)]','text'=>'text-[#dd9cdf]','border'=>'border-[rgba(221,10,178,0.25)]','dot'=>'bg-[#dd9cdf]'),
     );
@@ -104,8 +104,8 @@ function ufs_render_track_view($daySessions) {
 function ufs_track_room($tr) {
     $m = array(
         '키노트' => 'Main Stage',
-        '게임 - 프로그래밍' => 'Harmony Ballroom 1',
-        '게임 - 아트' => 'Harmony Ballroom 2',
+        '게임: 아트' => 'Harmony Ballroom 1',
+        '게임: 프로그래밍' => 'Harmony Ballroom 2',
         '미디어 & 엔터테인먼트' => 'Harmony Ballroom 3',
         '제조 및 시뮬레이션' => 'Atlas',
     );
@@ -118,7 +118,7 @@ function ufs_grid_track_label($tr, $day) {
     return ufs_track_label_day($tr, $day);
 }
 function ufs_render_grid_view($daySessions, $day) {
-    $gridTracks = array('게임 - 프로그래밍', '게임 - 아트', '미디어 & 엔터테인먼트', '제조 및 시뮬레이션');
+    $gridTracks = array('게임: 아트', '게임: 프로그래밍', '미디어 & 엔터테인먼트', '제조 및 시뮬레이션');
     echo '<div class="overflow-x-auto"><table class="w-full min-w-[900px] border-collapse"><thead><tr>';
     echo '<th class="w-[100px] p-3 text-center text-xs font-bold text-[#71717a] uppercase border-b border-[#27272a] sticky left-0 bg-[#09090b] z-10">시간</th>';
     foreach ($gridTracks as $tr) {
@@ -209,7 +209,7 @@ function ufs_render_grid_view($daySessions, $day) {
     echo '</tbody></table></div>';
     // 범례
     echo '<div class="flex flex-wrap gap-4 mt-8">';
-    foreach (array('키노트','게임 - 프로그래밍','게임 - 아트','미디어 & 엔터테인먼트','제조 및 시뮬레이션') as $tr) {
+    foreach (array('키노트','게임: 아트','게임: 프로그래밍','미디어 & 엔터테인먼트','제조 및 시뮬레이션') as $tr) {
         $c = ufs_sched_colors($tr);
         echo '<div class="flex items-center gap-1.5 text-xs text-[#a1a1aa]"><span class="w-2.5 h-2.5 rounded-full '.$c['dot'].'"></span>'.e(ufs_track_room($tr)).'</div>';
     }
@@ -279,7 +279,7 @@ include __DIR__ . '/_head.php';
                 <div class="grid grid-cols-2 gap-2">
                   <?php
                   $tf = array(array('key'=>'all','label'=>'전체'));
-                  foreach (array('키노트','게임 - 프로그래밍','게임 - 아트','미디어 & 엔터테인먼트','제조 및 시뮬레이션') as $tr) { $tf[] = array('key'=>$tr,'label'=>ufs_track_label_list($tr)); }
+                  foreach (array('키노트','게임: 아트','게임: 프로그래밍','미디어 & 엔터테인먼트','제조 및 시뮬레이션') as $tr) { $tf[] = array('key'=>$tr,'label'=>ufs_track_label_list($tr)); }
                   foreach ($tf as $t): ?>
                     <label class="flex items-center gap-2.5 cursor-pointer py-1">
                       <input type="checkbox" data-filter-track="<?= e($t['key']) ?>" class="w-4 h-4 rounded text-[#00C1D5] focus:ring-[#00C1D5] bg-transparent border-[#27272a]"<?= $t['key']==='all' ? ' checked' : '' ?>>

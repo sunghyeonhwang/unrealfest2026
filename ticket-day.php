@@ -17,6 +17,7 @@ $d = (isset($_GET['d']) && $_GET['d'] === '2') ? 'DAY2' : 'DAY1';
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= asset_v('assets/style.css') ?>">
 <style>*{word-break:keep-all}</style>
+<?php include __DIR__.'/_wcs.php'; ?>
 </head>
 <body class="bg-[#09090b] text-white" style="font-family:system-ui,'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
 

@@ -10,6 +10,14 @@ $is_vbank = isset($_GET['vbank']);
 $is_online = isset($_GET['online']);
 $row = $apply_no !== '' ? sql_fetch("select * from cb_unreal_2026_event2_apply where apply_no = '".intval($apply_no)."'") : null;
 $qr_jpg = ($apply_no !== '' && file_exists(__DIR__."/qrdata/".$apply_no.".jpg")) ? "qrdata/".$apply_no.".jpg" : '';
+
+/* 네이버 전환(purchase) — 등록 완료건에 대해 결제금액으로 전송. 무통장(가상계좌)은 발급 금액 기준. */
+if ($row) {
+  $conv_amt = $is_vbank
+    ? (int)(isset($_SESSION['VBANK_AMOUNT']) && $_SESSION['VBANK_AMOUNT'] !== '' ? $_SESSION['VBANK_AMOUNT'] : $row['apply_product_price'])
+    : (int)$row['apply_product_price'];
+  $ufs_conv = array('value' => $conv_amt, 'id' => $apply_no);
+}
 ?>
 <!DOCTYPE html>
 <html lang="ko" class="dark"><head>
@@ -20,6 +28,7 @@ $qr_jpg = ($apply_no !== '' && file_exists(__DIR__."/qrdata/".$apply_no.".jpg"))
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= asset_v('assets/style.css') ?>">
 <style>*{word-break:keep-all}</style>
+<?php include __DIR__.'/_wcs.php'; ?>
 </head>
 <body class="bg-[#09090b] text-white" style="font-family:system-ui,'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
 <header class="fixed top-0 inset-x-0 z-50 bg-[#09090b]/95 backdrop-blur border-b border-[#27272a]">

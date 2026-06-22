@@ -172,6 +172,7 @@ function ev($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 <script language="javascript" type="text/javascript" src="<?= $jsUrl ?>" charset="UTF-8"></script>
 <?php endif; ?>
 <style>body{background:#09090b;color:#fff;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}</style>
+<?php include __DIR__.'/_wcs.php'; ?>
 </head>
 <?php if ($is_mobile): ?>
 <body onload="document.getElementById('SendPayForm_mobile').submit();">

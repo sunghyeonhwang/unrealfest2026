@@ -36,14 +36,20 @@
 
   function wireCard(card) {
     var t = ticketSel(card);
-    if (t) t.addEventListener('change', function () { refreshTicket(card); recalc(); });
+    if (t) t.addEventListener('change', function () { refreshTicket(card); renumber(); });
     refreshTicket(card);
   }
 
   function renumber() {
+    var rep = document.querySelector('[data-rep]');
+    var repOp = rep ? selOpt(ticketSel(rep)) : null;
+    var repAttend = !!(repOp && repOp.value && repOp.value !== 'NONE');
+    var repHead = document.getElementById('repHead');
+    if (repHead) repHead.textContent = repAttend ? '1. 대표자 참석 선택' : '대표자 참석 선택 (결제만 · 인원 제외)';
+    var base = repAttend ? 2 : 1;
     var rs = memberRows();
     for (var i = 0; i < rs.length; i++) {
-      var no = rs[i].querySelector('[data-gm-no]'); if (no) no.textContent = (i + 2) + '. 참석자';
+      var no = rs[i].querySelector('[data-gm-no]'); if (no) no.textContent = (i + base) + '. 참석자';
     }
     var cnt = document.getElementById('gMemCount'); if (cnt) cnt.textContent = '(' + rs.length + '명)';
     recalc();

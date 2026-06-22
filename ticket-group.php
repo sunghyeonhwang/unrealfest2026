@@ -128,7 +128,7 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
 
       <!-- 참석자: 대표자 본인 선택 -->
       <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8" data-card data-rep>
-        <div class="text-sm font-bold text-[#00C1D5] mb-4">1. 대표자 참석 선택</div>
+        <div id="repHead" class="text-sm font-bold text-[#00C1D5] mb-4">1. 대표자 참석 선택</div>
         <?php ufs_attend_row('rep_ticket','rep_day1','rep_day2','rep_tshirt',$TKT,$UFS_TRACKS,true); ?>
       </div>
 

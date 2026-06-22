@@ -10,7 +10,7 @@ require __DIR__ . '/_ticket_init.php';
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow, noarchive">
+<!-- robots: 공개 오픈 — 검색 색인 허용 -->
 <title>양일권 등록 — Unreal Fest Seoul 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&display=swap" rel="stylesheet">

@@ -58,7 +58,7 @@ $sess_tel = isset($_SESSION['TEL_NO']) ? $_SESSION['TEL_NO'] : '';
 <!DOCTYPE html>
 <html lang="ko" class="dark"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow, noarchive">
+<!-- robots: 공개 오픈 — 검색 색인 허용 -->
 <title>온라인 등록 — Unreal Fest Seoul 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= asset_v('assets/style.css') ?>">

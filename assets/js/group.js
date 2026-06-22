@@ -8,6 +8,7 @@
   if (!membersEl || !tpl) return;
   var addBtn = document.getElementById('gAddBtn');
   var gIdx = 0;
+  var couponPct = 0;
 
   function won(n) { return '₩' + (n || 0).toLocaleString('en-US'); }
   function cards() { return document.querySelectorAll('[data-card]'); }
@@ -71,18 +72,26 @@
   }
 
   function recalc() {
-    var cs = cards(), total = 0, people = 0, nAll = 0, nDay = 0;
+    var cs = cards(), people = 0, nAll = 0, nDay = 0, sumOrig = 0, total = 0;
+    var gd = window.GROUP_DISCOUNT || 0;
+    var eff = Math.max(gd, couponPct || 0);
     for (var i = 0; i < cs.length; i++) {
       var op = selOpt(ticketSel(cs[i]));
       if (!op || !op.value || op.value === 'NONE') continue;
       people++;
-      total += parseInt(op.getAttribute('data-price'), 10) || 0;
+      var orig = parseInt(op.getAttribute('data-orig'), 10) || 0;
+      sumOrig += orig;
+      total += Math.round(orig * (100 - eff) / 100 / 100) * 100;
       if (op.value === 'NORMAL_ALL') nAll++; else nDay++;
     }
+    var disc = sumOrig - total;
     var set = function (id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
     set('sumPeople', people + '명');
     set('sumAll', nAll + '명');
     set('sumDay', nDay + '명');
+    set('sumOrig', won(sumOrig));
+    set('sumDisc', '-' + won(disc));
+    set('sumDiscPct', eff > 0 ? ('(' + (couponPct > gd ? '쿠폰 ' : '단체 ') + eff + '%)') : '');
     set('sumTotal', won(total));
   }
 
@@ -101,6 +110,34 @@
         document.getElementById('group_paymethod').value = this.getAttribute('data-pay');
       });
     }
+  })();
+
+  // 쿠폰 적용
+  (function bindCoupon() {
+    var btn = document.getElementById('couponBtn'); if (!btn) return;
+    var inp = document.getElementById('couponCode');
+    var msg = document.getElementById('couponMsg');
+    function setMsg(t, color) { msg.textContent = t; msg.style.color = color; }
+    btn.addEventListener('click', function () {
+      var code = (inp.value || '').trim().toUpperCase();
+      if (!code) { setMsg('쿠폰 코드를 입력해 주세요.', '#ff8674'); return; }
+      btn.disabled = true; setMsg('확인 중...', '#71717a');
+      fetch('group-coupon-check.php?code=' + encodeURIComponent(code)).then(function (r) { return r.json(); }).then(function (j) {
+        btn.disabled = false;
+        if (j && j.ok) {
+          couponPct = parseInt(j.percent, 10) || 0;
+          document.getElementById('couponApplied').value = j.code;
+          document.getElementById('couponPercent').value = couponPct;
+          var gd = window.GROUP_DISCOUNT || 0;
+          if (gd >= couponPct) setMsg('쿠폰(' + couponPct + '%)보다 단체 할인(' + gd + '%)이 커서 단체 할인이 적용됩니다.', '#a1a1aa');
+          else setMsg(j.msg, '#00C1D5');
+        } else {
+          couponPct = 0; document.getElementById('couponApplied').value = ''; document.getElementById('couponPercent').value = 0;
+          setMsg((j && j.msg) || '쿠폰 확인에 실패했습니다.', '#ff8674');
+        }
+        recalc();
+      }).catch(function () { btn.disabled = false; setMsg('쿠폰 확인 중 오류가 발생했습니다.', '#ff8674'); });
+    });
   })();
 
   // CSV: 이름,연락처,직무,관심분야,티켓,Day1 트랙,Day2 트랙,티셔츠

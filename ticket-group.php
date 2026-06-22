@@ -7,9 +7,9 @@ require __DIR__ . '/_ticket_init.php';
 
 $GDISC = ufs_group_discount(); // 단체 할인율(%)
 $TKT = array(
-  array('code'=>'NORMAL_ALL','label'=>'양일권 (8.20~21)','price'=>ufs_group_price('NORMAL_ALL'),'days'=>'1,2'),
-  array('code'=>'NORMAL_20', 'label'=>'1일권 · Day 1',   'price'=>ufs_group_price('NORMAL_20'), 'days'=>'1'),
-  array('code'=>'NORMAL_21', 'label'=>'1일권 · Day 2',   'price'=>ufs_group_price('NORMAL_21'), 'days'=>'2'),
+  array('code'=>'NORMAL_ALL','label'=>'양일권 (8.20~21)','price'=>ufs_group_price('NORMAL_ALL'),'orig'=>ufs_ticket_orig('NORMAL_ALL'),'days'=>'1,2'),
+  array('code'=>'NORMAL_20', 'label'=>'1일권 · Day 1',   'price'=>ufs_group_price('NORMAL_20'), 'orig'=>ufs_ticket_orig('NORMAL_20'), 'days'=>'1'),
+  array('code'=>'NORMAL_21', 'label'=>'1일권 · Day 2',   'price'=>ufs_group_price('NORMAL_21'), 'orig'=>ufs_ticket_orig('NORMAL_21'), 'days'=>'2'),
 );
 $JOBS  = array('직장인','학생','교육자/교육기관','인디 개발자','프리랜서');
 $GRADES= array('비주얼 아트','프로그래밍','프로덕션','엔지니어링','설계','기획','R&D','IT','감독/PD','비즈니스/마케팅','C-level','기타');
@@ -25,7 +25,7 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
   // 티켓
   echo '<div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">티켓 <span class="text-[#00C1D5]">*</span></label>';
   echo '<select name="'.e($nTicket).'" data-pick-ticket class="'.$SEL_CLS.'"><option value="">티켓 선택</option>';
-  foreach ($TKT as $t) echo '<option value="'.e($t['code']).'" data-price="'.(int)$t['price'].'" data-days="'.e($t['days']).'">'.e($t['label']).' (₩'.number_format($t['price']).')</option>';
+  foreach ($TKT as $t) echo '<option value="'.e($t['code']).'" data-price="'.(int)$t['price'].'" data-orig="'.(int)$t['orig'].'" data-days="'.e($t['days']).'">'.e($t['label']).' (₩'.number_format($t['orig']).')</option>';
   if ($allowNone) echo '<option value="NONE" data-price="0" data-days="">결제만 (비참석 · 등록 인원 제외)</option>';
   echo '</select></div>';
   // Day1
@@ -168,7 +168,22 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
           <div class="flex justify-between items-center gap-4"><span class="text-[#71717a]">양일권</span><span id="sumAll" class="font-bold text-right">0명</span></div>
           <div class="flex justify-between items-center gap-4"><span class="text-[#71717a]">1일권 (합계)</span><span id="sumDay" class="font-bold text-right">0명</span></div>
         </div>
-        <div class="border-t border-[#27272a] mt-4 pt-4 flex justify-between gap-4 items-end"><span class="text-[#71717a]">총 결제 금액</span><span id="sumTotal" class="text-3xl font-black text-[#00C1D5]">₩0</span></div>
+        <!-- 쿠폰 -->
+        <div class="mt-4">
+          <div class="text-sm font-medium text-[#a1a1aa] mb-2">쿠폰 코드</div>
+          <div class="flex gap-2">
+            <input type="text" id="couponCode" placeholder="쿠폰 코드 입력" class="flex-grow bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm uppercase">
+            <button type="button" id="couponBtn" class="px-4 py-3 bg-[#27272a] hover:bg-[#3f3f46] text-white text-sm font-bold transition-colors whitespace-nowrap">적용</button>
+          </div>
+          <input type="hidden" name="coupon_code" id="couponApplied" value="">
+          <input type="hidden" name="coupon_percent" id="couponPercent" value="0">
+          <p id="couponMsg" class="text-xs mt-2"></p>
+        </div>
+        <div class="space-y-2 text-sm mt-4 pt-4 border-t border-[#27272a]">
+          <div class="flex justify-between items-center gap-4"><span class="text-[#71717a]">정상가 합계</span><span id="sumOrig" class="text-right text-[#a1a1aa]">₩0</span></div>
+          <div class="flex justify-between items-center gap-4"><span class="text-[#71717a]">적용 할인 <span id="sumDiscPct"></span></span><span id="sumDisc" class="text-right text-[#00C1D5]">-₩0</span></div>
+        </div>
+        <div class="mt-3 flex justify-between gap-4 items-end"><span class="text-[#71717a]">총 결제 금액</span><span id="sumTotal" class="text-3xl font-black text-[#00C1D5]">₩0</span></div>
         <button type="submit" class="mt-6 w-full py-4 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#090a0f] font-extrabold transition-colors">등록 정보 확인</button>
         <p class="text-xs text-[#71717a] mt-3 leading-relaxed">대표자 본인 인증 후 진행됩니다. 무통장 입금 선택 시 대표자 연락처로 계좌·금액·입금 기한이 안내됩니다.</p>
       </div>
@@ -216,6 +231,7 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
 <script>
 window.UFS_MIN_MEMBERS = 4;
 window.UFS_MAX_TOTAL   = 30;
+window.GROUP_DISCOUNT  = <?= (int)$GDISC ?>; // 단체 할인율(%)
 </script>
 <script src="<?= asset_v('assets/js/ticket.js') ?>"></script>
 <script src="<?= asset_v('assets/js/group.js') ?>"></script>

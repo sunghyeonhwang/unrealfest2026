@@ -17,28 +17,27 @@ function ufs_opts($arr){ $s=''; foreach($arr as $o){ $s.='<option>'.htmlspecialc
 
 $SEL_CLS = 'w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none';
 
-/* 티켓 셀렉트 (라벨 포함 단일 필드) */
-function ufs_ticket_field($name, $TKT) {
+/* 참석 선택 한 줄: 티켓 · Day1트랙 · Day2트랙 · 티셔츠 (4컬럼) */
+function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR) {
   global $SEL_CLS;
+  echo '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-start">';
+  // 티켓
   echo '<div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">티켓 <span class="text-[#00C1D5]">*</span></label>';
-  echo '<select name="'.e($name).'" data-pick-ticket class="'.$SEL_CLS.'"><option value="">티켓 선택</option>';
+  echo '<select name="'.e($nTicket).'" data-pick-ticket class="'.$SEL_CLS.'"><option value="">티켓 선택</option>';
   foreach ($TKT as $t) echo '<option value="'.e($t['code']).'" data-price="'.(int)$t['price'].'" data-days="'.e($t['days']).'">'.e($t['label']).' (₩'.number_format($t['price']).')</option>';
   echo '</select></div>';
-}
-
-/* 트랙(요일별) + 티셔츠 — 한 줄(Day1 · Day2 · 티셔츠) */
-function ufs_tracks_tshirt($nD1, $nD2, $nTshirt, $TR) {
-  global $SEL_CLS;
-  echo '<div class="grid grid-cols-1 lg:grid-cols-3 gap-3 items-start">';
-  echo '<div data-track-wrap data-day="1"><div class="text-sm font-medium text-[#a1a1aa] mb-2">Day1 트랙 <span class="text-[#00C1D5]">*</span></div>';
+  // Day1
+  echo '<div class="space-y-2" data-track-wrap data-day="1"><label class="text-sm font-medium text-[#a1a1aa]">Day1 트랙 <span class="text-[#00C1D5]">*</span></label>';
   echo '<select name="'.e($nD1).'" data-day="1" class="'.$SEL_CLS.'"><option value="">Day1 트랙</option>';
   foreach ($TR[1] as $v=>$l) echo '<option value="'.e($v).'">'.e($l).'</option>';
   echo '</select></div>';
-  echo '<div data-track-wrap data-day="2"><div class="text-sm font-medium text-[#a1a1aa] mb-2">Day2 트랙 <span class="text-[#00C1D5]">*</span></div>';
+  // Day2
+  echo '<div class="space-y-2" data-track-wrap data-day="2"><label class="text-sm font-medium text-[#a1a1aa]">Day2 트랙 <span class="text-[#00C1D5]">*</span></label>';
   echo '<select name="'.e($nD2).'" data-day="2" class="'.$SEL_CLS.'"><option value="">Day2 트랙</option>';
   foreach ($TR[2] as $v=>$l) echo '<option value="'.e($v).'">'.e($l).'</option>';
   echo '</select></div>';
-  echo '<div><div class="text-sm font-medium text-[#a1a1aa] mb-2">티셔츠 <span class="text-[#00C1D5]">*</span></div>';
+  // 티셔츠
+  echo '<div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">티셔츠 <span class="text-[#00C1D5]">*</span></label>';
   echo '<div class="flex flex-wrap gap-2" data-pick-tshirt>';
   foreach (array('M','L','XL','XXL') as $s) {
     echo '<label class="relative cursor-pointer"><input type="radio" name="'.e($nTshirt).'" value="'.$s.'" class="peer sr-only">';
@@ -128,8 +127,7 @@ function ufs_tracks_tshirt($nD1, $nD2, $nTshirt, $TR) {
       <!-- 참석자: 대표자 본인 선택 -->
       <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8" data-card data-rep>
         <div class="text-sm font-bold text-[#00C1D5] mb-4">1. 대표자 참석 선택</div>
-        <div class="sm:max-w-xs mb-4"><?php ufs_ticket_field('rep_ticket',$TKT); ?></div>
-        <?php ufs_tracks_tshirt('rep_day1','rep_day2','rep_tshirt',$UFS_TRACKS); ?>
+        <?php ufs_attend_row('rep_ticket','rep_day1','rep_day2','rep_tshirt',$TKT,$UFS_TRACKS); ?>
       </div>
 
       <!-- 멤버 명단 -->
@@ -181,7 +179,7 @@ function ufs_tracks_tshirt($nD1, $nD2, $nTshirt, $TR) {
       <span class="text-sm font-bold text-[#00C1D5]" data-gm-no></span>
       <button type="button" class="text-[#71717a] hover:text-[#ff8674] text-xl leading-none" data-gm-del title="삭제">&times;</button>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gcols5 gap-3 mb-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
       <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">이름 <span class="text-[#00C1D5]">*</span></label>
         <input type="text" name="member_name[__I__]" placeholder="이름" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
       <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">연락처 <span class="text-[#00C1D5]">*</span></label>
@@ -190,9 +188,8 @@ function ufs_tracks_tshirt($nD1, $nD2, $nTshirt, $TR) {
         <select name="member_grade[__I__]" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none"><option value="">선택</option><?= ufs_opts($GRADES) ?></select></div>
       <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">관심 분야 <span class="text-[#00C1D5]">*</span></label>
         <select name="member_ex1[__I__]" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none"><option value="">선택</option><?= ufs_opts($EX1S) ?></select></div>
-      <?php ufs_ticket_field('member_ticket[__I__]',$TKT); ?>
     </div>
-    <?php ufs_tracks_tshirt('member_day1[__I__]','member_day2[__I__]','member_tshirt[__I__]',$UFS_TRACKS); ?>
+    <?php ufs_attend_row('member_ticket[__I__]','member_day1[__I__]','member_day2[__I__]','member_tshirt[__I__]',$TKT,$UFS_TRACKS); ?>
   </div>
 </template>
 

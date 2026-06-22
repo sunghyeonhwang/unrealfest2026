@@ -197,6 +197,10 @@ $ov_icons = array(
     </div>
   <?php endforeach; ?>
 
+  <div class="max-w-7xl mx-auto px-6">
+    <p class="text-sm text-[#71717a] mt-8 text-right tracking-tight">※ 세션 내용, 발표자 및 일정은 사정에 따라 변경될 수 있습니다.</p>
+  </div>
+
   <!-- CTA -->
   <div class="text-center mt-4">
     <a href="schedule.php" class="inline-flex items-center gap-2 px-10 py-3.5 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#090a0f] font-extrabold transition-colors clip-btn">
@@ -204,7 +208,6 @@ $ov_icons = array(
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
     </a>
   </div>
-  <p class="text-center text-xs text-[#71717a] mt-8">※ 세션 내용, 발표자 및 일정은 사정에 따라 변경될 수 있습니다.</p>
 </section>
 
 <!-- ===== Register (티켓) ===== -->

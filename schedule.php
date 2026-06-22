@@ -282,7 +282,7 @@ include __DIR__ . '/_head.php';
             <span class="w-1.5 h-1.5 rounded-full bg-[#00C1D5] hidden" data-filter-dot></span>
           </button>
           <!-- 드롭다운 -->
-          <div class="absolute right-0 top-full mt-2 w-[420px] bg-[#111115]/80 backdrop-blur-xl border border-white/10 shadow-2xl z-50 hidden" data-filter-panel>
+          <div class="absolute right-0 top-full mt-2 w-[420px] bg-[#111115]/80 backdrop-blur-xl border border-white/10 shadow-2xl z-50 hidden" data-filter-panel style="max-width:calc(100vw - 2rem);max-height:calc(100vh - 120px);overflow-y:auto">
             <div class="p-6">
               <div class="flex items-center justify-between mb-6">
                 <h2 class="text-base font-bold text-white">Filter</h2>

@@ -7,6 +7,9 @@ require_once __DIR__ . '/data/agenda_db.php';
 
 $id = isset($_GET['id']) ? (string)$_GET['id'] : '';
 $session = $id !== '' ? ufs_db_session($id) : null;
+// 상세페이지 전용 시간 표기 override (스케줄은 슬롯 시간 11:30~12:20 유지) — Atlas 25분 분할 세션
+$ufs_detail_time = array('d2-t4-s2a' => '11:30~11:55', 'd2-t4-s2b' => '11:55~12:20');
+if ($session && isset($ufs_detail_time[$session['id']])) $session['time'] = $ufs_detail_time[$session['id']];
 
 $page_title = $session ? ($session['title'] . ' — Unreal Fest Seoul 2026') : '세션을 찾을 수 없습니다 — Unreal Fest Seoul 2026';
 $page_desc  = $session ? $session['desc'] : 'Unreal Fest Seoul 2026 세션 정보.';

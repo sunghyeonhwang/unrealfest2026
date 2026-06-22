@@ -397,6 +397,9 @@ include __DIR__ . '/_head.php';
   // 초기화 버튼: app.js 상단 Reset 로직 실행 + 그리드 리셋
   var gr = document.querySelector('[data-grid-reset]');
   if (gr) gr.addEventListener('click', function(){ var tr = document.querySelector('[data-filter-reset]'); if (tr) tr.click(); setTimeout(applyGrid, 0); });
+  // 상단 'Reset' 링크: app.js가 체크박스만 초기화(프로그램적 변경은 change 미발생) → 그리드 흐림도 재적용
+  var frl = document.querySelector('[data-filter-reset]');
+  if (frl) frl.addEventListener('click', function(){ setTimeout(applyGrid, 0); });
   applyGrid();
 })();
 </script>

@@ -17,6 +17,12 @@ function ufs_s_sched_slots($sessions) {
     }
     return $slots;
 }
+// 시간 표기 3줄(시작 / ~ / 끝). HTML(<br>) 반환 — e() 재적용 금지.
+function ufs_time_3line($t) {
+    $p = preg_split('/\s*~\s*/u', trim((string)$t), 2);
+    if (count($p) === 2 && $p[1] !== '') return e($p[0]).'<br>~<br>'.e($p[1]);
+    return e($t);
+}
 function ufs_sched_colors($track) {
     $m = array(
         '키노트' => array('bg'=>'bg-[rgba(0,193,213,0.1)]','text'=>'text-[#00C1D5]','border'=>'border-[rgba(0,193,213,0.3)]','dot'=>'bg-[#00C1D5]'),
@@ -50,7 +56,7 @@ function ufs_render_track_view($daySessions) {
         foreach ($inSlot as $s) { if (empty($s['_slot_type']) || !ufs_slot_is_common($s['_slot_type'])) { $only_common = false; break; } }
         if ($only_common) {
             echo '<div class="flex border-b border-[#27272a] min-h-[64px]" data-slot-row>';
-            echo '<div class="ufs-time flex items-center justify-center"><div class="ufs-time-t font-bold text-white tracking-tight text-center">'.e($time).'</div></div>';
+            echo '<div class="ufs-time flex items-center justify-center"><div class="ufs-time-t font-bold text-white tracking-tight text-center">'.ufs_time_3line($time).'</div></div>';
             echo '<div class="flex-grow border-l border-[#27272a]">';
             foreach ($inSlot as $s) {
                 if (!empty($s['_slot_type']) && $s['_slot_type'] === 'welcome') {
@@ -66,7 +72,7 @@ function ufs_render_track_view($daySessions) {
             continue;
         }
         echo '<div class="flex border-b border-[#27272a]" data-slot-row>';
-        echo '<div class="ufs-time py-6"><div class="ufs-time-t font-bold text-white tracking-tight sticky top-[140px] text-center pt-2.5">'.e($time).'</div></div>';
+        echo '<div class="ufs-time py-6"><div class="ufs-time-t font-bold text-white tracking-tight sticky top-[140px] text-center pt-2.5">'.ufs_time_3line($time).'</div></div>';
         echo '<div class="flex-grow border-l border-[#27272a] divide-y divide-[#27272a]">';
         foreach ($inSlot as $s) {
             // 공통행(휴식/점심/등록확인/환영사/경품추첨) — 클릭 불가 풀폭 라벨
@@ -152,12 +158,12 @@ function ufs_render_grid_view($daySessions, $day) {
         // 키노트 행(풀폭)
         foreach ($keys as $k) {
             if (!empty($k['_hidden'])) {
-                echo '<tr class="border-b border-[#27272a]"><td class="ufs-gtime p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#09090b] z-10">'.e($k['time']).'</td>';
+                echo '<tr class="border-b border-[#27272a]"><td class="ufs-gtime p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#09090b] z-10">'.ufs_time_3line($k['time']).'</td>';
                 echo '<td colspan="4" class="p-2"><div class="block bg-[#0e0f14] p-6 rounded-[6px] text-center text-[#71717a] font-bold">곧 공개 예정</div></td></tr>';
                 continue;
             }
             $img = $k['speaker']['photo'] !== '' ? $k['speaker']['photo'] : ufs_keynote_img($k['id']);
-            echo '<tr class="border-b border-[#27272a]"><td class="ufs-gtime p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#09090b] z-10">'.e($k['time']).'</td>';
+            echo '<tr class="border-b border-[#27272a]"><td class="ufs-gtime p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#09090b] z-10">'.ufs_time_3line($k['time']).'</td>';
             echo '<td colspan="4" class="p-2"><div data-grid-cell data-track="키노트" data-level="'.e($k['level']).'" data-topics="'.e(implode(' ', ufs_session_topics($k))).'" class="block bg-[#00C1D5] p-6 rounded-[6px] relative overflow-hidden">';
             echo '<div class="relative z-10 max-w-[70%]"><div class="flex items-center gap-2 mb-2"><span class="px-2 py-0.5 text-[11px] font-bold bg-black/20 text-white">키노트</span><span class="px-2 py-0.5 text-[11px] font-semibold bg-black/20 text-white">'.e(ufs_level_label_short($k['level'])).'</span></div>';
             echo '<h3 class="text-lg font-bold text-black mb-3 tracking-tight leading-snug">'.e($k['title']).'</h3>';
@@ -171,18 +177,18 @@ function ufs_render_grid_view($daySessions, $day) {
             if (!empty($cm['_slot_type']) && $cm['_slot_type'] === 'welcome') {
                 $wsp = $cm['speaker'];
                 $wline = trim($wsp['company'].' '.$wsp['name'].' '.$wsp['role']);
-                echo '<tr class="border-b border-[#27272a] bg-[#0b0c10]"><td class="ufs-gtime p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#0b0c10] z-10">'.e($cm['time']).'</td>';
+                echo '<tr class="border-b border-[#27272a] bg-[#0b0c10]"><td class="ufs-gtime p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#0b0c10] z-10">'.ufs_time_3line($cm['time']).'</td>';
                 echo '<td colspan="4" class="p-3 text-center text-base font-semibold text-white">'.e(ufs_slot_common_label($cm));
                 if ($wline !== '') echo '<div class="text-xs font-normal text-[#71717a] mt-1">'.e($wline).'</div>';
                 echo '</td></tr>';
                 continue;
             }
-            echo '<tr class="border-b border-[#27272a] bg-[#0b0c10]"><td class="ufs-gtime p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#0b0c10] z-10">'.e($cm['time']).'</td>';
+            echo '<tr class="border-b border-[#27272a] bg-[#0b0c10]"><td class="ufs-gtime p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#0b0c10] z-10">'.ufs_time_3line($cm['time']).'</td>';
             echo '<td colspan="4" class="p-3 text-center text-sm font-semibold text-[#71717a]">'.e(ufs_slot_common_label($cm)).'</td></tr>';
         }
         // 일반 세션 행(4트랙 셀)
         if ($normals) {
-            echo '<tr class="border-b border-[#27272a]"><td class="ufs-gtime p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#09090b] z-10">'.e($time).'</td>';
+            echo '<tr class="border-b border-[#27272a]"><td class="ufs-gtime p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#09090b] z-10">'.ufs_time_3line($time).'</td>';
             $ntrk = count($gridTracks);
             $gi = 0;
             while ($gi < $ntrk) {

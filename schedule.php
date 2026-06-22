@@ -17,10 +17,10 @@ function ufs_s_sched_slots($sessions) {
     }
     return $slots;
 }
-// 시간 표기 3줄(시작 / ~ / 끝). HTML(<br>) 반환 — e() 재적용 금지.
+// 시간 표기 — PC는 1줄(11:30~12:20), 모바일은 3줄(span을 CSS로 block 전환). HTML 반환.
 function ufs_time_3line($t) {
     $p = preg_split('/\s*~\s*/u', trim((string)$t), 2);
-    if (count($p) === 2 && $p[1] !== '') return e($p[0]).'<br>~<br>'.e($p[1]);
+    if (count($p) === 2 && $p[1] !== '') return '<span class="ufs-tt">'.e($p[0]).'</span><span class="ufs-tt">~</span><span class="ufs-tt">'.e($p[1]).'</span>';
     return e($t);
 }
 function ufs_sched_colors($track) {
@@ -66,7 +66,7 @@ function ufs_render_track_view($daySessions) {
                     echo '</div>';
                     continue;
                 }
-                echo '<div data-sched-common class="h-full flex items-center justify-center px-6 text-center text-sm font-semibold text-[#71717a] bg-[#0b0c10]">'.e(ufs_slot_common_label($s)).'</div>';
+                echo '<div data-sched-common class="h-full flex items-center justify-center px-6 text-center text-sm font-semibold '.($s['_slot_type']==='raffle'?'text-white':'text-[#71717a]').' bg-[#0b0c10]">'.e(ufs_slot_common_label($s)).'</div>';
             }
             echo '</div></div>';
             continue;
@@ -184,7 +184,7 @@ function ufs_render_grid_view($daySessions, $day) {
                 continue;
             }
             echo '<tr class="border-b border-[#27272a] bg-[#0b0c10]"><td class="ufs-gtime p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#0b0c10] z-10">'.ufs_time_3line($cm['time']).'</td>';
-            echo '<td colspan="4" class="p-3 text-center text-sm font-semibold text-[#71717a]">'.e(ufs_slot_common_label($cm)).'</td></tr>';
+            echo '<td colspan="4" class="p-3 text-center text-sm font-semibold '.($cm['_slot_type']==='raffle'?'text-white':'text-[#71717a]').'">'.e(ufs_slot_common_label($cm)).'</td></tr>';
         }
         // 일반 세션 행(4트랙 셀)
         if ($normals) {
@@ -281,6 +281,8 @@ include __DIR__ . '/_head.php';
       /* 그리드뷰 시간 셀 축소 */
       .ufs-gtime{padding:.4rem .2rem!important;font-size:.7rem!important}
       th.ufs-gtime{width:44px!important}
+      /* 시간: 모바일에서만 3줄(시작/~/끝) */
+      .ufs-tt{display:block}
     }
   </style>
   <!-- 컨트롤 바 -->

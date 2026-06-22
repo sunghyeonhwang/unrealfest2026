@@ -335,7 +335,7 @@ include __DIR__ . '/_head.php';
                   <?php foreach (array('UE4','UE5','UEFN','리얼리티스캔','메타휴먼','에픽게임즈 스토어','에픽 온라인 서비스','팹','퀵셀') as $pd): ?>
                     <label class="flex items-center gap-2.5 cursor-pointer py-1">
                       <input type="checkbox" data-filter-product="<?= e($pd) ?>" class="w-4 h-4 rounded text-[#00C1D5] focus:ring-[#00C1D5] bg-transparent border-[#27272a]">
-                      <span class="text-sm text-[#a1a1aa]"><?= e($pd) ?><?php if ($pd==='에픽게임즈 스토어'): ?> <span class="text-[10px] text-[#71717a]">(곧 추가)</span><?php endif; ?></span>
+                      <span class="text-sm text-[#a1a1aa]"><?= e($pd) ?></span>
                     </label>
                   <?php endforeach; ?>
                 </div>

@@ -139,7 +139,10 @@ if ($err==='' && gp('action')==='register') {
         // 카드: INICIS 일괄 결제 페이지로 이동
         header('Location: ticket-group-pay.php?g='.(int)$grp_no.'&t='.rawurlencode($grp_code)); exit;
     } else {
-        // 무통장: 대표자에게 입금 안내 LMS
+        // 무통장: 좌석 홀드(②안) — 멤버를 입금대기로 apply에 반영해 정원 임시 점유
+        require_once __DIR__ . '/_group_apply.php';
+        @ufs_group_hold($grp_no);
+        // 대표자에게 입금 안내 LMS
         $deadline = date('Y년 m월 d일', strtotime('+'.UFS_BANK_DAYS.' days'));
         $lms = "[언리얼 페스트 서울 2026] 단체 등록 입금 안내\n".
                "접수번호: ".$grp_code."\n".
@@ -177,6 +180,7 @@ if ($err==='' && gp('action')==='register') {
     <a href="javascript:history.back()" class="inline-block px-6 py-3 bg-[#27272a] hover:bg-[#3f3f46] text-white font-bold">← 돌아가서 수정</a>
 
   <?php elseif ($done): ?>
+    <script>try{localStorage.removeItem('ufs_group_form')}catch(e){}</script>
     <h1 class="text-2xl md:text-3xl font-bold mb-2">단체 등록이 접수되었습니다</h1>
     <p class="text-[#a1a1aa] mb-8">접수번호 <b class="text-[#00C1D5]"><?= e($grp_code) ?></b> · 총 <?= count($attendees) ?>명 · 결제 금액 ₩<?= number_format($total) ?></p>
     <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mb-6">

@@ -14,6 +14,7 @@ $paid = ($g['pay_status'] === 'paid');
 <meta name="robots" content="noindex, nofollow"><title>단체 등록 완료 — Unreal Fest Seoul 2026</title>
 <link rel="stylesheet" href="<?= asset_v('assets/style.css') ?>"><style>*{word-break:keep-all}</style></head>
 <body class="bg-[#09090b] text-white" style="font-family:system-ui,'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+<script>try{localStorage.removeItem('ufs_group_form')}catch(e){}</script>
 <div class="max-w-xl mx-auto px-6 py-32 text-center">
   <svg class="w-16 h-16 mx-auto mb-6 text-[#00C1D5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>
   <h1 class="text-2xl md:text-3xl font-bold mb-2"><?= $paid ? '단체 등록 결제가 완료되었습니다' : '단체 등록이 접수되었습니다' ?></h1>

@@ -113,13 +113,11 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
           <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">연락처 <span class="text-[#00C1D5]">*</span></label>
             <input type="tel" name="apply_user_phone" value="<?= e($sess_tel) ?>" placeholder="01034567890" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
         </div>
-        <div class="grid md:grid-cols-3 gap-6 mb-6">
+        <div class="grid md:grid-cols-2 gap-6 mb-6">
           <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">직업 <span class="text-[#00C1D5]">*</span></label>
             <select name="apply_user_job" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none"><option value="">선택해 주세요</option><?= ufs_opts($JOBS) ?></select></div>
           <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">회사명/소속 <span class="text-[#00C1D5]">*</span></label>
             <input type="text" name="apply_user_company" placeholder="에픽게임즈" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
-          <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">사업자등록번호 <span class="text-[#00C1D5]">*</span></label>
-            <input type="text" name="apply_user_biznum" placeholder="000-00-00000" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
         </div>
         <div class="grid md:grid-cols-3 gap-6">
           <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">부서 <span class="text-[#00C1D5]">*</span></label>
@@ -170,6 +168,8 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
         </label>
         <p class="text-xs text-[#71717a] mt-2">상호·사업자등록번호는 대표자 정보를 사용합니다. 신청 시 아래 추가 정보를 입력해 주세요.</p>
         <div id="taxFields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+          <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">사업자등록번호</label>
+            <input type="text" name="apply_user_biznum" placeholder="000-00-00000" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
           <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">사업장 주소</label>
             <input type="text" name="tax_addr" placeholder="서울특별시 ..." class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
           <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">(법인) 대표자명</label>

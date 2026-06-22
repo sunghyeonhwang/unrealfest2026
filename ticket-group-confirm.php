@@ -69,7 +69,7 @@ $member_count = 0; foreach ($attendees as $a){ if ($a['role']==='member') $membe
 // ── 검증
 $err = '';
 if ($rep['ci']==='') $err = '대표자 본인 인증이 필요합니다.';
-elseif ($rep['name']==='' || $rep['email']==='' || $rep['phone']==='' || $rep['company']==='' || $rep['depart']==='' || $rep['job']==='' || $rep['grade']==='' || $rep['ex1']==='' || $rep['biznum']==='') $err = '대표자 정보(사업자등록번호 포함)를 모두 입력해 주세요.';
+elseif ($rep['name']==='' || $rep['email']==='' || $rep['phone']==='' || $rep['company']==='' || $rep['depart']==='' || $rep['job']==='' || $rep['grade']==='' || $rep['ex1']==='') $err = '대표자 정보를 모두 입력해 주세요.';
 elseif ($member_count < 4) $err = '대표자 외 최소 4인을 입력해 주세요.';
 elseif (count($attendees) < 1) $err = '참석 인원이 없습니다.';
 if ($err==='') {
@@ -81,6 +81,9 @@ if ($err==='') {
         if (!in_array($a['tshirt'],array('M','L','XL','XXL'),true)) { $err='참석자 티셔츠 선택을 확인해 주세요.'; break; }
         if ($a['role']==='member' && ($a['email']==='' || $a['phone']==='')) { $err=$i.'번 참석자의 이메일/연락처를 입력해 주세요.'; break; }
     }
+}
+if ($err==='' && $tax['req']==='Y') {
+    if ($rep['biznum']==='' || $tax['ceo']==='' || $tax['addr']==='' || $tax['biztype']==='' || $tax['bizitem']==='') $err = '세금계산서 발행 정보(사업자등록번호·주소·대표자명·업태·종목)를 모두 입력해 주세요.';
 }
 
 // ── 금액(서버 재계산): 유효할인 = max(단체할인, 쿠폰) — 중복 안 됨
@@ -186,7 +189,6 @@ if ($err==='' && gp('action')==='register') {
         <div class="flex justify-between gap-4"><span class="text-[#71717a]">연락처</span><span><?= e($rep['phone']) ?></span></div>
         <div class="flex justify-between gap-4"><span class="text-[#71717a]">이메일</span><span><?= e($rep['email']) ?></span></div>
         <div class="flex justify-between gap-4"><span class="text-[#71717a]">회사/소속</span><span><?= e($rep['company']) ?></span></div>
-        <div class="flex justify-between gap-4"><span class="text-[#71717a]">사업자등록번호</span><span><?= e($rep['biznum']) ?></span></div>
         <div class="flex justify-between gap-4"><span class="text-[#71717a]">참석 여부</span><span><?= $rep_attend==='Y' ? '참석' : '결제만 (비참석)' ?></span></div>
       </div>
     </div>

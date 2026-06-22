@@ -4,6 +4,7 @@
 $ufs_page   = 'sponsors';
 $page_title = '스폰서 — Unreal Fest Seoul 2026';
 $page_desc  = '언리얼 페스트 서울 2026은 차세대 3D 생태계를 이끌어가는 최고의 파트너들과 함께합니다.';
+include_once __DIR__ . '/../common.php';        // 라운지 전역 SEO(v3_seo_config) 연동에 필요(Gnuboard)
 require_once __DIR__ . '/data/lib.php';
 include __DIR__ . '/_head.php';
 

@@ -2,6 +2,7 @@
 // Unreal Fest Seoul 2026 — 홈 (React Home.tsx 1:1: Hero/Overview/Agenda/Register/Venue/Sponsors/EventBenefits/FAQ)
 // 순수 PHP/HTML/CSS/JS. 데이터는 data/lib.php 접근자. 디자인 기준 = 라이브 React 렌더 캡처.
 $ufs_page = 'home';
+$ufs_el_gnb = true;                              // 에픽라운지 공통 GNB(다크) 노출 — 홈에서만
 include_once __DIR__ . '/../common.php';        // DB (sql_query)
 require_once __DIR__ . '/data/lib.php';
 require_once __DIR__ . '/data/agenda_db.php';

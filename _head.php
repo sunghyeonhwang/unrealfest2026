@@ -15,15 +15,21 @@ $nav        = ufs_nav_links();
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- robots: 공개 오픈 — 검색 색인 허용 -->
-<title><?= e($page_title) ?></title>
-<meta name="description" content="<?= e($page_desc) ?>">
-<meta property="og:title" content="<?= e($page_title) ?>">
-<meta property="og:description" content="<?= e($page_desc) ?>">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="Unreal Fest Seoul 2026">
-<meta property="og:image" content="ufs26_seoul_main_logo.svg">
+<?php
+/* 라운지 전역 SEO/마케팅(v3_seo_config 'default') 연동 — description/keywords/og/GA4/Meta/Kakao.
+ * marketing_head는 Gnuboard 전제(_GNUBOARD_ 미정의 시 exit)이므로 가드. 미로드 페이지는 자체 폴백 메타. */
+if (defined('_GNUBOARD_')) {
+  include __DIR__ . '/../inc/marketing_head.php';
+} else {
+  echo '<meta name="description" content="'.e($page_desc).'">'."\n";
+  echo '<meta property="og:title" content="'.e($page_title).'">'."\n";
+  echo '<meta property="og:description" content="'.e($page_desc).'">'."\n";
+  echo '<meta property="og:type" content="website">'."\n";
+}
+?>
+<title><?= e(!empty($seo_title) ? $seo_title : $page_title) ?></title>
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="white_logo.svg" type="image/svg+xml">
+<?php include __DIR__ . '/_favicon.php'; ?>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -36,6 +42,8 @@ $nav        = ufs_nav_links();
 <?php include __DIR__ . '/_wcs.php'; ?>
 </head>
 <body class="bg-white dark:bg-black min-h-screen text-black dark:text-white font-sans selection:bg-cyan-500/30 flex flex-col">
+
+<?php if (!empty($ufs_el_gnb)) include __DIR__ . '/_el_gnb.php'; /* 에픽라운지 GNB는 플래그 페이지에만 */ ?>
 
 <!-- ===== Header (fixed GNB) — 홈은 하단에서 시작해 스크롤 시 상단으로 슬라이드(2025식, data-floatnav) ===== -->
 <header id="site-header" class="fixed left-0 right-0 z-50 transition-all border-b bg-[#09090b]/70 backdrop-blur-sm border-transparent <?= $is_home ? 'py-3 duration-700' : 'py-6 top-0 duration-300' ?>"<?php if ($is_home): ?> data-floatnav style="top: calc(100dvh - 3.5rem)"<?php endif; ?>>

@@ -25,7 +25,7 @@
       rmAll(TOP); // 마크업 기본(py-6 등) 잔재 제거
       var docked = false; // false=하단, true=상단
       function bottomTop() { return Math.max(0, window.innerHeight - h.offsetHeight); }
-      function threshold() { return (hero ? hero.offsetHeight : window.innerHeight) - 64; }
+      function threshold() { return 10; } /* 스크롤 시작하면 바로 상단 도킹(기존: hero 통과 후) */
       function showLogo(on) { if (!logo) return; logo.classList.toggle('opacity-100', on); logo.classList.toggle('opacity-0', !on); }
       function dock(toTop) {
         if (toTop === docked) return;

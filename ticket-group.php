@@ -157,10 +157,10 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR) {
       <!-- 등록 요약 (최하단) -->
       <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mt-4">
         <h2 class="text-lg font-bold text-white mb-5">등록 요약</h2>
-        <div class="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-          <div class="flex justify-between gap-4"><span class="text-[#71717a]">총 인원 (대표자 포함)</span><span id="sumPeople" class="font-bold text-right">1명</span></div>
-          <div class="flex justify-between gap-4"><span class="text-[#71717a]">양일권</span><span id="sumAll" class="font-bold text-right">0명</span></div>
-          <div class="flex justify-between gap-4"><span class="text-[#71717a]">1일권 (합계)</span><span id="sumDay" class="font-bold text-right">0명</span></div>
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between items-center gap-4"><span class="text-[#71717a]">총 인원 (대표자 포함)</span><span id="sumPeople" class="font-bold text-right">1명</span></div>
+          <div class="flex justify-between items-center gap-4"><span class="text-[#71717a]">양일권</span><span id="sumAll" class="font-bold text-right">0명</span></div>
+          <div class="flex justify-between items-center gap-4"><span class="text-[#71717a]">1일권 (합계)</span><span id="sumDay" class="font-bold text-right">0명</span></div>
         </div>
         <div class="border-t border-[#27272a] mt-4 pt-4 flex justify-between gap-4 items-end"><span class="text-[#71717a]">총 결제 금액</span><span id="sumTotal" class="text-3xl font-black text-[#00C1D5]">₩0</span></div>
         <button type="submit" class="mt-6 w-full py-4 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#090a0f] font-extrabold transition-colors">등록 정보 확인</button>

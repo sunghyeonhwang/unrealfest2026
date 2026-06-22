@@ -248,9 +248,10 @@ function ufs_render_grid_view($daySessions, $day) {
 
 $day1 = ufs_db_day_all(1);
 $day2 = ufs_db_day_all(2);
-// 환영사(welcome) 외 공통슬롯(등록확인/휴식/점심/경품추첨 등)은 일정표에서 숨김
+// 등록확인/휴식/점심 등 공통슬롯은 일정표에서 숨김 (환영사·경품추첨은 노출)
 $ufs_sched_keep = function ($s) {
-    return empty($s['_slot_type']) || !ufs_slot_is_common($s['_slot_type']) || $s['_slot_type'] === 'welcome';
+    return empty($s['_slot_type']) || !ufs_slot_is_common($s['_slot_type'])
+        || $s['_slot_type'] === 'welcome' || $s['_slot_type'] === 'raffle';
 };
 $day1 = array_values(array_filter($day1, $ufs_sched_keep));
 $day2 = array_values(array_filter($day2, $ufs_sched_keep));

@@ -112,6 +112,16 @@ unset($a);
 // ── 등록 처리
 $done = false; $grp_code = '';
 if ($err==='' && gp('action')==='register') {
+    // 같은 세션의 직전 미결제 단체건 자동 취소(좌석 반환) — 무통장→카드 전환 등 중복 등록 방지
+    if (!empty($_SESSION['ufs_group_pending_no'])) {
+        $prev_no = (int)$_SESSION['ufs_group_pending_no'];
+        $prev_g = sql_fetch("SELECT pay_status FROM cb_unreal_2026_group WHERE grp_no=".$prev_no);
+        if ($prev_g && $prev_g['pay_status'] !== 'paid' && $prev_g['pay_status'] !== 'cancel') {
+            require_once __DIR__ . '/_group_apply.php';
+            @ufs_group_release($prev_no);
+            sql_query("UPDATE cb_unreal_2026_group SET pay_status='cancel' WHERE grp_no=".$prev_no);
+        }
+    }
     sql_query("CREATE TABLE IF NOT EXISTS cb_unreal_2026_group (grp_no INT UNSIGNED NOT NULL AUTO_INCREMENT, grp_code VARCHAR(40) NOT NULL DEFAULT '', rep_name VARCHAR(60), rep_email VARCHAR(120), rep_phone VARCHAR(30), rep_job VARCHAR(60), rep_company VARCHAR(120), rep_biznum VARCHAR(30), rep_depart VARCHAR(80), rep_grade VARCHAR(60), rep_ex1 VARCHAR(80), rep_ci VARCHAR(120), rep_di VARCHAR(120), rep_attend CHAR(1) DEFAULT 'Y', paymethod VARCHAR(10), coupon_code VARCHAR(40), discount_pct INT DEFAULT 0, total_amount INT DEFAULT 0, headcount INT DEFAULT 0, pay_status VARCHAR(20) DEFAULT 'pending', pay_tid VARCHAR(60) DEFAULT '', pay_applnum VARCHAR(40) DEFAULT '', paid_at DATETIME DEFAULT NULL, reg DATETIME, PRIMARY KEY(grp_no), KEY k_code(grp_code)) DEFAULT CHARSET=utf8");
     @sql_query("ALTER TABLE cb_unreal_2026_group ADD COLUMN rep_biznum VARCHAR(30)");
     @sql_query("ALTER TABLE cb_unreal_2026_group ADD COLUMN pay_tid VARCHAR(60) DEFAULT ''");
@@ -129,6 +139,7 @@ if ($err==='' && gp('action')==='register') {
     sql_query("INSERT INTO cb_unreal_2026_group (grp_code,rep_name,rep_email,rep_phone,rep_job,rep_company,rep_biznum,rep_depart,rep_grade,rep_ex1,rep_ci,rep_di,rep_attend,paymethod,coupon_code,discount_pct,total_amount,headcount,pay_status,tax_request,tax_addr,tax_ceo,tax_biztype,tax_bizitem,reg) VALUES (".
         $f($grp_code).",".$f($rep['name']).",".$f($rep['email']).",".$f($rep['phone']).",".$f($rep['job']).",".$f($rep['company']).",".$f($rep['biznum']).",".$f($rep['depart']).",".$f($rep['grade']).",".$f($rep['ex1']).",".$f($rep['ci']).",".$f($rep['di']).",".$f($rep_attend).",".$f($paymethod).",".$f($coupon_code).",".(int)$eff.",".(int)$total.",".(int)count($attendees).",'pending',".$f($tax['req']).",".$f($tax['addr']).",".$f($tax['ceo']).",".$f($tax['biztype']).",".$f($tax['bizitem']).",now())");
     $grp_no = (int)sql_insert_id();
+    $_SESSION['ufs_group_pending_no'] = $grp_no; // 이후 재제출 시 이 건을 자동취소 대상으로
     foreach ($attendees as $a) {
         sql_query("INSERT INTO cb_unreal_2026_group_member (grp_no,role,name,email,phone,job,company,depart,grade,ex1,ticket,day1,day2,tshirt,price) VALUES (".
             (int)$grp_no.",".$f($a['role']).",".$f($a['name']).",".$f($a['email']).",".$f($a['phone']).",".$f($a['job']).",".$f($a['company']).",".$f($a['depart']).",".$f($a['grade']).",".$f($a['ex1']).",".$f($a['ticket']).",".$f($a['day1']).",".$f($a['day2']).",".$f($a['tshirt']).",".(int)$a['price'].")");
@@ -284,6 +295,7 @@ if ($err==='' && gp('action')==='register') {
       <input type="hidden" name="action" value="register">
       <button type="submit" class="w-full py-4 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#090a0f] font-extrabold transition-colors">등록하고 결제 진행</button>
     </form>
+    <a href="javascript:history.back()" class="block w-full text-center py-4 mt-3 border border-[#27272a] text-[#a1a1aa] hover:text-white hover:border-white/20 font-bold transition-colors">수정하러 가기</a>
   <?php endif; ?>
 
   </div>

@@ -5,10 +5,11 @@
  */
 require __DIR__ . '/_ticket_init.php';
 
+$GDISC = ufs_group_discount(); // 단체 할인율(%)
 $TKT = array(
-  array('code'=>'NORMAL_ALL','label'=>'양일권 (8.20~21)','price'=>ufs_ticket_price('NORMAL_ALL'),'days'=>'1,2'),
-  array('code'=>'NORMAL_20', 'label'=>'1일권 · Day 1',   'price'=>ufs_ticket_price('NORMAL_20'), 'days'=>'1'),
-  array('code'=>'NORMAL_21', 'label'=>'1일권 · Day 2',   'price'=>ufs_ticket_price('NORMAL_21'), 'days'=>'2'),
+  array('code'=>'NORMAL_ALL','label'=>'양일권 (8.20~21)','price'=>ufs_group_price('NORMAL_ALL'),'days'=>'1,2'),
+  array('code'=>'NORMAL_20', 'label'=>'1일권 · Day 1',   'price'=>ufs_group_price('NORMAL_20'), 'days'=>'1'),
+  array('code'=>'NORMAL_21', 'label'=>'1일권 · Day 2',   'price'=>ufs_group_price('NORMAL_21'), 'days'=>'2'),
 );
 $JOBS  = array('직장인','학생','교육자/교육기관','인디 개발자','프리랜서');
 $GRADES= array('비주얼 아트','프로그래밍','프로덕션','엔지니어링','설계','기획','R&D','IT','감독/PD','비즈니스/마케팅','C-level','기타');
@@ -82,7 +83,10 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
   <div class="max-w-5xl mx-auto px-6">
     <a href="index.php#register" class="inline-flex items-center gap-2 text-[#71717a] hover:text-white transition-colors mb-8 text-sm"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> 돌아가기</a>
     <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">단체 등록</h1>
-    <p class="text-[#a1a1aa] mb-10">5인 이상 단체로 등록하실 수 있습니다. 대표자 1인은 본인 인증 후 정보를 입력하고, 함께 참석하실 인원(최소 4인, 최대 29인 추가)을 작성해 주세요. 티켓·트랙·티셔츠는 인원별로 각각 선택합니다.</p>
+    <p class="text-[#a1a1aa] mb-4">5인 이상 단체로 등록하실 수 있습니다. 대표자 1인은 본인 인증 후 정보를 입력하고, 함께 참석하실 인원(최소 4인, 최대 29인 추가)을 작성해 주세요. 티켓·트랙·티셔츠는 인원별로 각각 선택합니다.</p>
+    <?php if ($GDISC > 0): ?>
+    <div class="inline-flex items-center gap-2 mb-10 px-4 py-2 bg-[rgba(0,79,89,0.2)] border border-[#00C1D5]/40 text-[#00C1D5] text-sm font-bold">단체 할인 <?= (int)$GDISC ?>% 적용 (정상가 기준)</div>
+    <?php else: ?><div class="mb-10"></div><?php endif; ?>
 
     <div class="space-y-4">
 

@@ -36,3 +36,22 @@ function ufs_refund_notice() {
         : '2026년 8월 18일 23:59까지 취소 및 환불이 가능합니다.';
 }
 }
+/* ───────── 단체 할인 (관리자 설정, 정상가 기준 %) ───────── */
+if (!function_exists('ufs_group_discount')) {
+function ufs_group_discount() {            // 단체 할인율(%). 미설정 0, 0~50 클램프.
+    $v = 0;
+    if (function_exists('sql_fetch')) {
+        $r = @sql_fetch("SELECT cfg_val FROM cb_unreal_2026_config WHERE cfg_key='group_discount'");
+        if ($r && isset($r['cfg_val']) && $r['cfg_val'] !== '') $v = (int)$r['cfg_val'];
+    }
+    if ($v < 0) $v = 0; if ($v > 50) $v = 50;
+    return $v;
+}
+}
+if (!function_exists('ufs_group_price')) {
+function ufs_group_price($code) {          // 단체가 = 정상가 × (1 - 할인율), 100원 단위 반올림
+    $base = ufs_ticket_orig($code);
+    $d = ufs_group_discount();
+    return (int)(round(($base * (100 - $d) / 100) / 100) * 100);
+}
+}

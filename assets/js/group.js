@@ -18,6 +18,8 @@
   // 티켓 선택 → 트랙 요일 표시 토글
   function refreshTicket(card) {
     var op = selOpt(ticketSel(card));
+    var val = op ? op.value : '';
+    var isNone = (val === 'NONE');
     var days = (op && op.getAttribute('data-days')) ? op.getAttribute('data-days').split(',') : [];
     var wraps = card.querySelectorAll('[data-track-wrap]');
     for (var i = 0; i < wraps.length; i++) {
@@ -27,6 +29,8 @@
       var s = wraps[i].querySelector('select');
       if (s) { s.disabled = !on; if (!on) s.value = ''; }
     }
+    var tw = card.querySelector('[data-tshirt-wrap]');
+    if (tw) tw.style.display = isNone ? 'none' : '';
   }
 
   function wireCard(card) {
@@ -69,9 +73,9 @@
   function recalc() {
     var cs = cards(), total = 0, people = 0, nAll = 0, nDay = 0;
     for (var i = 0; i < cs.length; i++) {
-      people++;
       var op = selOpt(ticketSel(cs[i]));
-      if (!op || !op.value) continue;
+      if (!op || !op.value || op.value === 'NONE') continue;
+      people++;
       total += parseInt(op.getAttribute('data-price'), 10) || 0;
       if (op.value === 'NORMAL_ALL') nAll++; else nDay++;
     }
@@ -160,6 +164,7 @@
       var who = (i === 0) ? '대표자' : ((i + 1) + '번 참석자');
       var op = selOpt(ticketSel(cs[i]));
       if (!op || !op.value) { alert(who + '의 티켓을 선택해 주세요.'); return false; }
+      if (op.value === 'NONE') continue;
       var days = op.getAttribute('data-days').split(',');
       if (days.indexOf('1') >= 0 && !cs[i].querySelector('[data-day="1"]').value) { alert(who + '의 Day1 트랙을 선택해 주세요.'); return false; }
       if (days.indexOf('2') >= 0 && !cs[i].querySelector('[data-day="2"]').value) { alert(who + '의 Day2 트랙을 선택해 주세요.'); return false; }

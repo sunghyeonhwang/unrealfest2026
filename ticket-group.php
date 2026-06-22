@@ -17,14 +17,15 @@ function ufs_opts($arr){ $s=''; foreach($arr as $o){ $s.='<option>'.htmlspecialc
 
 $SEL_CLS = 'w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none';
 
-/* 참석 선택 한 줄: 티켓 · Day1트랙 · Day2트랙 · 티셔츠 (4컬럼) */
-function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR) {
+/* 참석 선택 한 줄: 티켓 · Day1트랙 · Day2트랙 · 티셔츠 (4컬럼). $allowNone=대표자 '미참가' 옵션 */
+function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = false) {
   global $SEL_CLS;
   echo '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-start">';
   // 티켓
   echo '<div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">티켓 <span class="text-[#00C1D5]">*</span></label>';
   echo '<select name="'.e($nTicket).'" data-pick-ticket class="'.$SEL_CLS.'"><option value="">티켓 선택</option>';
   foreach ($TKT as $t) echo '<option value="'.e($t['code']).'" data-price="'.(int)$t['price'].'" data-days="'.e($t['days']).'">'.e($t['label']).' (₩'.number_format($t['price']).')</option>';
+  if ($allowNone) echo '<option value="NONE" data-price="0" data-days="">미참가 (등록만, 비참석)</option>';
   echo '</select></div>';
   // Day1
   echo '<div class="space-y-2" data-track-wrap data-day="1"><label class="text-sm font-medium text-[#a1a1aa]">Day1 트랙 <span class="text-[#00C1D5]">*</span></label>';
@@ -37,7 +38,7 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR) {
   foreach ($TR[2] as $v=>$l) echo '<option value="'.e($v).'">'.e($l).'</option>';
   echo '</select></div>';
   // 티셔츠
-  echo '<div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">티셔츠 <span class="text-[#00C1D5]">*</span></label>';
+  echo '<div class="space-y-2" data-tshirt-wrap><label class="text-sm font-medium text-[#a1a1aa]">티셔츠 <span class="text-[#00C1D5]">*</span></label>';
   echo '<div class="flex flex-wrap gap-2" data-pick-tshirt>';
   foreach (array('M','L','XL','XXL') as $s) {
     echo '<label class="relative cursor-pointer"><input type="radio" name="'.e($nTshirt).'" value="'.$s.'" class="peer sr-only">';
@@ -127,7 +128,7 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR) {
       <!-- 참석자: 대표자 본인 선택 -->
       <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8" data-card data-rep>
         <div class="text-sm font-bold text-[#00C1D5] mb-4">1. 대표자 참석 선택</div>
-        <?php ufs_attend_row('rep_ticket','rep_day1','rep_day2','rep_tshirt',$TKT,$UFS_TRACKS); ?>
+        <?php ufs_attend_row('rep_ticket','rep_day1','rep_day2','rep_tshirt',$TKT,$UFS_TRACKS,true); ?>
       </div>
 
       <!-- 멤버 명단 -->

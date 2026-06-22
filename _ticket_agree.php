@@ -19,7 +19,7 @@
     <?php if (!empty($ufs_group_agree)): ?>
     <label class="flex items-start gap-3 px-3 py-2 cursor-pointer">
       <input type="checkbox" name="agree_group" class="agree-item mt-0.5 accent-[#00C1D5]">
-      <span class="text-sm text-[#a1a1aa]">단체 참가 인원의 개인정보 수집·이용 및 제3자(주최/대행사) 제공에 동의하며, <b class="text-[#cbd5e1]">각 인원으로부터 사전 동의를 받았음</b>을 확인합니다.<span class="ml-1 text-xs text-[#00C1D5]">(필수)</span></span>
+      <span class="text-sm text-[#a1a1aa]">참가 인원의 개인정보 수집·이용 및 제3자(주최/대행사) 제공에 동의하며, <b class="text-[#cbd5e1]">각 인원으로부터 사전 동의를 받았음</b>을 확인합니다.<span class="ml-1 text-xs text-[#00C1D5]">(필수)</span></span>
     </label>
     <?php endif; ?>
     <label class="flex items-start gap-3 px-3 py-2 cursor-pointer">

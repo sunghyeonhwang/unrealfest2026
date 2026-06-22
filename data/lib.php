@@ -105,8 +105,8 @@ function ufs_track_label_home($track) {
         '키노트' => '키노트',
         '게임: 프로그래밍' => '프로그래밍',
         '게임: 아트' => '아트',
-        '미디어 & 엔터테인먼트' => '미디어&엔터테인먼트',
-        '제조 및 시뮬레이션' => '제조&시뮬레이션',
+        '미디어 & 엔터테인먼트' => '미디어 & 엔터테인먼트',
+        '제조 및 시뮬레이션' => '제조 및 시뮬레이션',
     );
     return isset($m[$track]) ? $m[$track] : $track;
 }
@@ -186,10 +186,10 @@ function ufs_difficulty_filters() {
 function ufs_track_filters() {
     return array(
         array('key'=>'all', 'label'=>'전체 트랙'),
-        array('key'=>'게임: 프로그래밍', 'label'=>'게임:프로그래밍'),
-        array('key'=>'게임: 아트', 'label'=>'게임:아트'),
-        array('key'=>'미디어 & 엔터테인먼트', 'label'=>'미디어&엔터테인먼트'),
-        array('key'=>'제조 및 시뮬레이션', 'label'=>'제조&시뮬레이션'),
+        array('key'=>'게임: 프로그래밍', 'label'=>'게임: 프로그래밍'),
+        array('key'=>'게임: 아트', 'label'=>'게임: 아트'),
+        array('key'=>'미디어 & 엔터테인먼트', 'label'=>'미디어 & 엔터테인먼트'),
+        array('key'=>'제조 및 시뮬레이션', 'label'=>'제조 및 시뮬레이션'),
     );
 }
 // 기술분야 카테고리(sessions: '전체' 포함 12 / schedule: 11)

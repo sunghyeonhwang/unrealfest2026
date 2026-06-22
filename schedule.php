@@ -50,7 +50,7 @@ function ufs_render_track_view($daySessions) {
         foreach ($inSlot as $s) { if (empty($s['_slot_type']) || !ufs_slot_is_common($s['_slot_type'])) { $only_common = false; break; } }
         if ($only_common) {
             echo '<div class="flex border-b border-[#27272a] min-h-[64px]" data-slot-row>';
-            echo '<div class="w-[120px] md:w-[160px] flex-shrink-0 flex items-center justify-center"><div class="text-base font-bold text-white tracking-tight text-center">'.e($time).'</div></div>';
+            echo '<div class="ufs-time flex items-center justify-center"><div class="ufs-time-t font-bold text-white tracking-tight text-center">'.e($time).'</div></div>';
             echo '<div class="flex-grow border-l border-[#27272a]">';
             foreach ($inSlot as $s) {
                 if (!empty($s['_slot_type']) && $s['_slot_type'] === 'welcome') {
@@ -66,7 +66,7 @@ function ufs_render_track_view($daySessions) {
             continue;
         }
         echo '<div class="flex border-b border-[#27272a]" data-slot-row>';
-        echo '<div class="w-[120px] md:w-[160px] flex-shrink-0 py-6"><div class="text-base font-bold text-white tracking-tight sticky top-[140px] text-center pt-2.5">'.e($time).'</div></div>';
+        echo '<div class="ufs-time py-6"><div class="ufs-time-t font-bold text-white tracking-tight sticky top-[140px] text-center pt-2.5">'.e($time).'</div></div>';
         echo '<div class="flex-grow border-l border-[#27272a] divide-y divide-[#27272a]">';
         foreach ($inSlot as $s) {
             // 공통행(휴식/점심/등록확인/환영사/경품추첨) — 클릭 불가 풀폭 라벨
@@ -132,7 +132,7 @@ function ufs_grid_track_label($tr, $day) {
 function ufs_render_grid_view($daySessions, $day) {
     $gridTracks = array('게임: 아트', '게임: 프로그래밍', '미디어 & 엔터테인먼트', '제조 및 시뮬레이션');
     echo '<div class="overflow-x-auto"><table class="w-full min-w-[900px] border-collapse"><thead><tr>';
-    echo '<th class="w-[100px] p-3 text-center text-xs font-bold text-[#71717a] uppercase border-b border-[#27272a] sticky left-0 bg-[#09090b] z-10">시간</th>';
+    echo '<th class="ufs-gtime w-[100px] p-3 text-center text-xs font-bold text-[#71717a] uppercase border-b border-[#27272a] sticky left-0 bg-[#09090b] z-10">시간</th>';
     foreach ($gridTracks as $tr) {
         $c = ufs_sched_colors($tr);
         echo '<th class="p-3 text-center text-xs font-bold border-b border-[#27272a]"><span class="'.$c['text'].'">'.e(ufs_grid_track_label($tr, $day)).'</span></th>';
@@ -152,12 +152,12 @@ function ufs_render_grid_view($daySessions, $day) {
         // 키노트 행(풀폭)
         foreach ($keys as $k) {
             if (!empty($k['_hidden'])) {
-                echo '<tr class="border-b border-[#27272a]"><td class="p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#09090b] z-10">'.e($k['time']).'</td>';
+                echo '<tr class="border-b border-[#27272a]"><td class="ufs-gtime p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#09090b] z-10">'.e($k['time']).'</td>';
                 echo '<td colspan="4" class="p-2"><div class="block bg-[#0e0f14] p-6 rounded-[6px] text-center text-[#71717a] font-bold">곧 공개 예정</div></td></tr>';
                 continue;
             }
             $img = $k['speaker']['photo'] !== '' ? $k['speaker']['photo'] : ufs_keynote_img($k['id']);
-            echo '<tr class="border-b border-[#27272a]"><td class="p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#09090b] z-10">'.e($k['time']).'</td>';
+            echo '<tr class="border-b border-[#27272a]"><td class="ufs-gtime p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#09090b] z-10">'.e($k['time']).'</td>';
             echo '<td colspan="4" class="p-2"><div data-grid-cell data-track="키노트" data-level="'.e($k['level']).'" data-topics="'.e(implode(' ', ufs_session_topics($k))).'" class="block bg-[#00C1D5] p-6 rounded-[6px] relative overflow-hidden">';
             echo '<div class="relative z-10 max-w-[70%]"><div class="flex items-center gap-2 mb-2"><span class="px-2 py-0.5 text-[11px] font-bold bg-black/20 text-white">키노트</span><span class="px-2 py-0.5 text-[11px] font-semibold bg-black/20 text-white">'.e(ufs_level_label_short($k['level'])).'</span></div>';
             echo '<h3 class="text-lg font-bold text-black mb-3 tracking-tight leading-snug">'.e($k['title']).'</h3>';
@@ -171,18 +171,18 @@ function ufs_render_grid_view($daySessions, $day) {
             if (!empty($cm['_slot_type']) && $cm['_slot_type'] === 'welcome') {
                 $wsp = $cm['speaker'];
                 $wline = trim($wsp['company'].' '.$wsp['name'].' '.$wsp['role']);
-                echo '<tr class="border-b border-[#27272a] bg-[#0b0c10]"><td class="p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#0b0c10] z-10">'.e($cm['time']).'</td>';
+                echo '<tr class="border-b border-[#27272a] bg-[#0b0c10]"><td class="ufs-gtime p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#0b0c10] z-10">'.e($cm['time']).'</td>';
                 echo '<td colspan="4" class="p-3 text-center text-base font-semibold text-white">'.e(ufs_slot_common_label($cm));
                 if ($wline !== '') echo '<div class="text-xs font-normal text-[#71717a] mt-1">'.e($wline).'</div>';
                 echo '</td></tr>';
                 continue;
             }
-            echo '<tr class="border-b border-[#27272a] bg-[#0b0c10]"><td class="p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#0b0c10] z-10">'.e($cm['time']).'</td>';
+            echo '<tr class="border-b border-[#27272a] bg-[#0b0c10]"><td class="ufs-gtime p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#0b0c10] z-10">'.e($cm['time']).'</td>';
             echo '<td colspan="4" class="p-3 text-center text-sm font-semibold text-[#71717a]">'.e(ufs_slot_common_label($cm)).'</td></tr>';
         }
         // 일반 세션 행(4트랙 셀)
         if ($normals) {
-            echo '<tr class="border-b border-[#27272a]"><td class="p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#09090b] z-10">'.e($time).'</td>';
+            echo '<tr class="border-b border-[#27272a]"><td class="ufs-gtime p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#09090b] z-10">'.e($time).'</td>';
             $ntrk = count($gridTracks);
             $gi = 0;
             while ($gi < $ntrk) {
@@ -264,6 +264,17 @@ include __DIR__ . '/_head.php';
     /* 필터 옵션: 저해상도 4열(높이 절감), 고해상도(≥1536px) 3열(가독성) */
     .ufs-fgrid{display:grid;gap:.25rem;grid-template-columns:repeat(4,minmax(0,1fr));}
     @media (min-width:1536px){.ufs-fgrid{grid-template-columns:repeat(3,minmax(0,1fr));}}
+    /* 시간 컬럼: 트랙뷰 좌측 폭/폰트 */
+    .ufs-time{width:120px;flex-shrink:0}
+    .ufs-time-t{font-size:1rem}
+    @media (min-width:768px){.ufs-time{width:160px}}
+    @media (max-width:639px){
+      .ufs-time{width:54px}
+      .ufs-time-t{font-size:.72rem;line-height:1.15}
+      /* 그리드뷰 시간 셀 축소 */
+      .ufs-gtime{padding:.4rem .2rem!important;font-size:.7rem!important}
+      th.ufs-gtime{width:44px!important}
+    }
   </style>
   <!-- 컨트롤 바 -->
   <div class="sticky top-[73px] z-40 bg-[#111115] border-b border-[#27272a]">

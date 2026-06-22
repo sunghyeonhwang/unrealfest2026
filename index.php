@@ -35,7 +35,7 @@ include __DIR__ . '/_head.php';
   <div class="absolute inset-0 bg-gradient-to-b from-black via-black/60 to-transparent"></div>
   <div class="hero-inner relative z-10 max-w-7xl mx-auto px-6 w-full flex flex-col items-start pt-52 md:pt-64 pb-[45vh]">
     <div class="mb-10">
-      <img class="hero-logo" src="https://unrealsummit16.cafe24.com/2026/ufs26/hero_new_main_logo.svg" alt="Unreal Fest Seoul 2026" style="width: 700px; max-width: 100%;">
+      <img class="hero-logo" src="https://unrealsummit16.cafe24.com/2026/ufs26/hero_new_main_logo2.svg" alt="Unreal Fest Seoul 2026" style="width: 700px; max-width: 100%;">
     </div>
     <div class="flex flex-col sm:flex-row items-start gap-4 mb-10">
       <button type="button" data-scroll="register" class="bg-[#00C1D5] hover:bg-[#004F59] text-white px-8 py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-lg clip-btn">

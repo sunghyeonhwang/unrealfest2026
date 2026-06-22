@@ -131,20 +131,20 @@ function ufs_track_badge_list($track) {
     );
     return isset($m[$track]) ? $m[$track] : 'bg-[rgba(0,193,213,0.1)] text-[#00C1D5] border border-[rgba(0,193,213,0.25)]';
 }
-// 세션목록/스케줄 라벨(하이픈형)
+// 세션목록/스케줄/배지 라벨 (띄어쓰기 정식 표기)
 function ufs_track_label_list($track) {
     $m = array(
         '키노트' => '키노트',
-        '게임: 프로그래밍' => '게임:프로그래밍',
-        '게임: 아트' => '게임:아트',
-        '미디어 & 엔터테인먼트' => '미디어&엔터테인먼트',
-        '제조 및 시뮬레이션' => '제조&시뮬레이션',
+        '게임: 프로그래밍' => '게임: 프로그래밍',
+        '게임: 아트' => '게임: 아트',
+        '미디어 & 엔터테인먼트' => '미디어 & 엔터테인먼트',
+        '제조 및 시뮬레이션' => '제조 및 시뮬레이션',
     );
     return isset($m[$track]) ? $m[$track] : $track;
 }
-// 요일별 트랙 라벨 — 4번 트랙(제조 및 시뮬레이션)은 Day1 '공통' / Day2 '제조&시뮬레이션'
+// 요일별 트랙 라벨 — 4번 트랙(제조 및 시뮬레이션)은 Day1 '공통' / Day2 '제조 및 시뮬레이션'
 function ufs_track_label_day($track, $day) {
-    if ($track === '제조 및 시뮬레이션') return ((int)$day === 1) ? '공통' : '제조&시뮬레이션';
+    if ($track === '제조 및 시뮬레이션') return ((int)$day === 1) ? '공통' : '제조 및 시뮬레이션';
     return ufs_track_label_list($track);
 }
 

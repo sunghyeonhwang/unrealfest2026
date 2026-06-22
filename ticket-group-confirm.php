@@ -191,7 +191,16 @@ if ($err==='' && gp('action')==='register') {
         <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">입금 금액</span><span class="font-bold text-[#00C1D5] text-right">₩<?= number_format($total) ?></span></div>
         <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">입금 기한</span><span class="font-bold text-right"><?= date('Y년 m월 d일', strtotime('+'.UFS_BANK_DAYS.' days')) ?> (<?= UFS_BANK_DAYS ?>일 이내)</span></div>
       </div>
-      <p class="text-xs text-[#71717a] mt-4 leading-relaxed">위 계좌로 기한 내 입금해 주세요. 입금 안내는 대표자 연락처로도 발송되었습니다. 기한 내 미입금 시 자동 취소될 수 있습니다. 통장 사본·사업자등록증은 별도 안내됩니다. 입금이 확인되면 등록자분들께 안내 문자가 발송됩니다.</p>
+      <div class="mt-6 pt-5 border-t border-[#27272a]">
+        <h3 class="text-base font-bold text-white mb-3">안내사항</h3>
+        <ul class="space-y-2 text-sm text-[#a1a1aa] leading-relaxed">
+          <li class="flex items-baseline gap-2"><span class="text-[#00C1D5] flex-shrink-0">•</span><span>위 계좌로 기한 내 입금해 주세요.</span></li>
+          <li class="flex items-baseline gap-2"><span class="text-[#00C1D5] flex-shrink-0">•</span><span>입금 안내는 대표자 연락처로도 발송되었습니다.</span></li>
+          <li class="flex items-baseline gap-2"><span class="text-[#00C1D5] flex-shrink-0">•</span><span>기한 내 미입금 시 자동 취소될 수 있습니다.</span></li>
+          <li class="flex items-baseline gap-2"><span class="text-[#00C1D5] flex-shrink-0">•</span><span>통장 사본·사업자등록증은 별도 안내됩니다.</span></li>
+          <li class="flex items-baseline gap-2"><span class="text-[#00C1D5] flex-shrink-0">•</span><span>입금이 확인되면 등록자분들께 안내 문자가 발송됩니다.</span></li>
+        </ul>
+      </div>
     </div>
     <a href="index.php" class="inline-block px-6 py-3 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#090a0f] font-extrabold">홈으로</a>
 

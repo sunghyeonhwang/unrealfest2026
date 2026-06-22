@@ -182,8 +182,8 @@
           setSelectByText(q('member_ex1'), c[5]);
           setSelectByValue(ticketSel(node), ticketCodeFromLabel(c[6]));
           refreshTicket(node);
-          setSelectByText(node.querySelector('[data-day="1"]'), c[7]);
-          setSelectByText(node.querySelector('[data-day="2"]'), c[8]);
+          setSelectByText(node.querySelector("select[data-day=\"1\"]"), c[7]);
+          setSelectByText(node.querySelector("select[data-day=\"2\"]"), c[8]);
           var ts = c[9] ? node.querySelector('[name^="member_tshirt"][value="' + c[9].trim() + '"]') : null; if (ts) ts.checked = true;
           added++;
         }
@@ -205,8 +205,8 @@
       if (!op || !op.value) { alert(who + '의 티켓을 선택해 주세요.'); return false; }
       if (op.value === 'NONE') continue;
       var days = op.getAttribute('data-days').split(',');
-      if (days.indexOf('1') >= 0 && !cs[i].querySelector('[data-day="1"]').value) { alert(who + '의 Day1 트랙을 선택해 주세요.'); return false; }
-      if (days.indexOf('2') >= 0 && !cs[i].querySelector('[data-day="2"]').value) { alert(who + '의 Day2 트랙을 선택해 주세요.'); return false; }
+      if (days.indexOf('1') >= 0 && !cs[i].querySelector("select[data-day=\"1\"]").value) { alert(who + '의 Day1 트랙을 선택해 주세요.'); return false; }
+      if (days.indexOf('2') >= 0 && !cs[i].querySelector("select[data-day=\"2\"]").value) { alert(who + '의 Day2 트랙을 선택해 주세요.'); return false; }
       if (!cs[i].querySelector('[data-pick-tshirt] input:checked')) { alert(who + '의 티셔츠를 선택해 주세요.'); return false; }
     }
     var ms = memberRows();

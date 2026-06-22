@@ -271,6 +271,9 @@ include __DIR__ . '/_head.php';
     /* 필터 옵션: 저해상도 4열(높이 절감), 고해상도(≥1536px) 3열(가독성) */
     .ufs-fgrid{display:grid;gap:.25rem;grid-template-columns:repeat(4,minmax(0,1fr));}
     @media (min-width:1536px){.ufs-fgrid{grid-template-columns:repeat(3,minmax(0,1fr));}}
+    /* 필터 옵션: 체크박스–라벨 간격 축소 + 폰트 한 단계 작게 */
+    .ufs-fgrid label{gap:.3rem!important}
+    .ufs-fgrid label span{font-size:11px;line-height:1.25}
     /* 시간 컬럼: 트랙뷰 좌측 폭/폰트 */
     .ufs-time{width:120px;flex-shrink:0}
     .ufs-time-t{font-size:1rem}

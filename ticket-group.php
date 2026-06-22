@@ -26,10 +26,10 @@ function ufs_ticket_field($name, $TKT) {
   echo '</select></div>';
 }
 
-/* 트랙(요일별) + 티셔츠 블록 */
+/* 트랙(요일별) + 티셔츠 — 한 줄(Day1 · Day2 · 티셔츠) */
 function ufs_tracks_tshirt($nD1, $nD2, $nTshirt, $TR) {
   global $SEL_CLS;
-  echo '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">';
+  echo '<div class="grid grid-cols-1 lg:grid-cols-3 gap-3 items-start">';
   echo '<div data-track-wrap data-day="1"><div class="text-sm font-medium text-[#a1a1aa] mb-2">Day1 트랙 <span class="text-[#00C1D5]">*</span></div>';
   echo '<select name="'.e($nD1).'" data-day="1" class="'.$SEL_CLS.'"><option value="">Day1 트랙</option>';
   foreach ($TR[1] as $v=>$l) echo '<option value="'.e($v).'">'.e($l).'</option>';
@@ -38,14 +38,14 @@ function ufs_tracks_tshirt($nD1, $nD2, $nTshirt, $TR) {
   echo '<select name="'.e($nD2).'" data-day="2" class="'.$SEL_CLS.'"><option value="">Day2 트랙</option>';
   foreach ($TR[2] as $v=>$l) echo '<option value="'.e($v).'">'.e($l).'</option>';
   echo '</select></div>';
-  echo '</div>';
-  echo '<div class="mt-4"><div class="text-sm font-medium text-[#a1a1aa] mb-2">티셔츠 <span class="text-[#00C1D5]">*</span></div>';
-  echo '<div class="flex flex-wrap gap-3" data-pick-tshirt>';
+  echo '<div><div class="text-sm font-medium text-[#a1a1aa] mb-2">티셔츠 <span class="text-[#00C1D5]">*</span></div>';
+  echo '<div class="flex flex-wrap gap-2" data-pick-tshirt>';
   foreach (array('M','L','XL','XXL') as $s) {
     echo '<label class="relative cursor-pointer"><input type="radio" name="'.e($nTshirt).'" value="'.$s.'" class="peer sr-only">';
-    echo '<div class="w-14 h-14 border border-[#27272a] bg-[#0e0f14] flex items-center justify-center text-sm font-bold text-[#71717a] peer-checked:border-[#00C1D5] peer-checked:bg-[rgba(0,79,89,0.2)] peer-checked:text-[#00C1D5] transition-all hover:border-white/20">'.$s.'</div></label>';
+    echo '<div class="w-12 h-12 border border-[#27272a] bg-[#0e0f14] flex items-center justify-center text-sm font-bold text-[#71717a] peer-checked:border-[#00C1D5] peer-checked:bg-[rgba(0,79,89,0.2)] peer-checked:text-[#00C1D5] transition-all hover:border-white/20">'.$s.'</div></label>';
   }
   echo '</div></div>';
+  echo '</div>';
 }
 ?>
 <!DOCTYPE html>

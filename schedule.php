@@ -319,7 +319,7 @@ include __DIR__ . '/_head.php';
                 <div class="ufs-fgrid">
                   <?php
                   $tf = array(array('key'=>'all','label'=>'전체'));
-                  foreach (array('게임: 아트','게임: 프로그래밍','미디어 & 엔터테인먼트','제조 및 시뮬레이션') as $tr) { $tf[] = array('key'=>$tr,'label'=>ufs_track_label_list($tr)); }
+                  foreach (array('게임: 아트','게임: 프로그래밍','미디어 & 엔터테인먼트','제조 및 시뮬레이션') as $tr) { $tf[] = array('key'=>$tr,'label'=>$tr); }
                   foreach ($tf as $t): ?>
                     <label class="flex items-center gap-2.5 cursor-pointer py-1">
                       <input type="checkbox" data-filter-track="<?= e($t['key']) ?>" class="w-4 h-4 rounded text-[#00C1D5] focus:ring-[#00C1D5] bg-transparent border-[#27272a]"<?= $t['key']==='all' ? ' checked' : '' ?>>

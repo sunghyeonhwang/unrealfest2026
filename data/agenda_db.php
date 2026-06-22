@@ -90,6 +90,15 @@ function ufs_db_product_arr($r) {
     return array_slice($out, 0, 3);
 }
 
+// 주제(ag_topic) → 배열. 콤마 분리.
+function ufs_db_topic_arr($r) {
+    $raw = isset($r['ag_topic']) ? trim((string)$r['ag_topic']) : '';
+    if ($raw === '') return array();
+    $out = array();
+    foreach (explode(',', $raw) as $p) { $p = trim($p); if ($p !== '') $out[] = $p; }
+    return $out;
+}
+
 // DB 행 1개 → 세션 배열 형태로 매핑
 function ufs_db_map_row($r) {
     $contents = array();
@@ -115,6 +124,7 @@ function ufs_db_map_row($r) {
         'colspan'    => (isset($r['ag_colspan']) && (int)$r['ag_colspan'] > 1) ? (int)$r['ag_colspan'] : 1,
         'level'      => ($r['ag_level'] !== '' ? $r['ag_level'] : '전체 참가자'),
         'product'    => ufs_db_product_arr($r), // 제품군(SH리뷰) — 콤마분리 배열
+        'topic'      => ufs_db_topic_arr($r),   // 주제(필터용) — 콤마분리 배열
 
         'speaker'    => array(
             'name'    => $first['name'],

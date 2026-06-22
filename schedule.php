@@ -91,11 +91,12 @@ function ufs_render_track_view($daySessions) {
                 $ki = ufs_keynote_img($s['id']);
                 if ($ki !== '') $s['speaker']['photo'] = $ki;
             }
-            $topics = implode(' ', ufs_session_topics($s));
+            $topics = implode('|', isset($s['topic']) ? $s['topic'] : array());
+            $prods  = implode('|', isset($s['product']) ? $s['product'] : array());
             // 키노트는 상세페이지 링크 없음(div), 일반 세션만 링크(a)
             $open = $isKey ? '<div' : '<a href="session.php?id='.e($s['id']).'"';
             $hovcls = $isKey ? ' bg-[rgba(0,193,213,0.03)]' : ' hover:bg-[#0e0f14] transition-colors';
-            echo $open.' data-sched-card data-track="'.e($s['track']).'" data-level="'.e($s['level']).'" data-topics="'.e($topics).'" class="block p-6'.$hovcls.'">';
+            echo $open.' data-sched-card data-track="'.e($s['track']).'" data-level="'.e($s['level']).'" data-topics="'.e($topics).'" data-products="'.e($prods).'" class="block p-6'.$hovcls.'">';
             echo '<div class="flex items-center gap-2 mb-2"><span class="px-1.5 py-1 text-[10px] rounded-[4px] '.ufs_track_badge_home($isKey ? '키노트' : $s['track']).'">'.e($isKey ? '키노트' : ufs_track_label_day($s['track'], $s['day'])).'</span><span class="px-2 py-0.5 text-[11px] font-semibold bg-[#27272a] text-[#f4f4f5]">'.e(ufs_level_label_short($s['level'])).'</span></div>';
             echo '<h3 class="font-bold text-[#fafafa] mb-2 tracking-tight leading-snug '.($isKey ? 'text-xl' : 'text-base').'">'.e($s['title']).'</h3>';
             if (!$isKey && $s['desc'] !== '') echo '<p class="text-sm text-[#a1a1aa] mb-3 line-clamp-2">'.e($s['desc']).'</p>';
@@ -202,8 +203,9 @@ function ufs_render_grid_view($daySessions, $day) {
                             echo '</div>';
                             continue;
                         }
-                        $gtopics = implode(' ', ufs_session_topics($cell));
-                        echo '<a href="session.php?id='.e($cell['id']).'" data-grid-cell data-track="'.e($cell['track']).'" data-level="'.e($cell['level']).'" data-topics="'.e($gtopics).'" class="block bg-[#0e0f14] p-5 hover:bg-[#111115] transition-colors transition-opacity flex-grow'.$minh.' flex flex-col gap-2">';
+                        $gtopics = implode('|', isset($cell['topic']) ? $cell['topic'] : array());
+                        $gprods  = implode('|', isset($cell['product']) ? $cell['product'] : array());
+                        echo '<a href="session.php?id='.e($cell['id']).'" data-grid-cell data-track="'.e($cell['track']).'" data-level="'.e($cell['level']).'" data-topics="'.e($gtopics).'" data-products="'.e($gprods).'" class="block bg-[#0e0f14] p-5 hover:bg-[#111115] transition-colors transition-opacity flex-grow'.$minh.' flex flex-col gap-2">';
                         echo '<div class="flex items-center gap-2 flex-wrap"><span class="px-1.5 py-1 text-[10px] rounded-[4px] '.ufs_track_badge_home($cell['track']).'">'.e(ufs_grid_track_label($cell['track'], $day)).'</span><span class="px-2 py-0.5 text-[11px] font-semibold bg-[#27272a] text-[#f4f4f5]">'.e(ufs_level_label_short($cell['level'])).'</span></div>';
                         echo '<h4 class="text-[15px] font-bold text-[#fafafa] leading-snug tracking-tight line-clamp-3 flex-grow">'.e($cell['title']).'</h4>';
                         echo '<div class="flex items-center gap-2.5 mt-auto">'.ufs_avatar($cell, 'w-12 h-12', $c['dot'], 'w-6 h-6 text-black/60').'<div class="min-w-0"><div class="text-sm font-medium text-[#fafafa] truncate">'.e($cell['_speakers_label']).'</div><div class="text-xs text-[#71717a] truncate">'.e($cell['speaker']['company']).'</div></div></div>';
@@ -296,7 +298,7 @@ include __DIR__ . '/_head.php';
                 <div class="grid grid-cols-2 gap-2">
                   <?php
                   $tf = array(array('key'=>'all','label'=>'전체'));
-                  foreach (array('키노트','게임: 아트','게임: 프로그래밍','미디어 & 엔터테인먼트','제조 및 시뮬레이션') as $tr) { $tf[] = array('key'=>$tr,'label'=>ufs_track_label_list($tr)); }
+                  foreach (array('게임: 아트','게임: 프로그래밍','미디어 & 엔터테인먼트','제조 및 시뮬레이션') as $tr) { $tf[] = array('key'=>$tr,'label'=>ufs_track_label_list($tr)); }
                   foreach ($tf as $t): ?>
                     <label class="flex items-center gap-2.5 cursor-pointer py-1">
                       <input type="checkbox" data-filter-track="<?= e($t['key']) ?>" class="w-4 h-4 rounded text-[#00C1D5] focus:ring-[#00C1D5] bg-transparent border-[#27272a]"<?= $t['key']==='all' ? ' checked' : '' ?>>
@@ -308,21 +310,32 @@ include __DIR__ . '/_head.php';
               <div class="mb-6">
                 <h3 class="text-sm font-bold text-white mb-3">난이도</h3>
                 <div class="grid grid-cols-2 gap-2">
-                  <?php foreach (ufs_difficulty_filters() as $l): ?>
+                  <?php foreach (array(array('all','전체'),array('초보자용','초급'),array('중급자용','중급'),array('전문가용','고급')) as $l): ?>
                     <label class="flex items-center gap-2.5 cursor-pointer py-1">
-                      <input type="checkbox" data-filter-level="<?= e($l['key']) ?>" class="w-4 h-4 rounded text-[#00C1D5] focus:ring-[#00C1D5] bg-transparent border-[#27272a]"<?= $l['key']==='all' ? ' checked' : '' ?>>
-                      <span class="text-sm text-[#a1a1aa]"><?= e($l['label']) ?></span>
+                      <input type="checkbox" data-filter-level="<?= e($l[0]) ?>" class="w-4 h-4 rounded text-[#00C1D5] focus:ring-[#00C1D5] bg-transparent border-[#27272a]"<?= $l[0]==='all' ? ' checked' : '' ?>>
+                      <span class="text-sm text-[#a1a1aa]"><?= e($l[1]) ?></span>
                     </label>
                   <?php endforeach; ?>
                 </div>
               </div>
               <div class="mb-6">
-                <h3 class="text-sm font-bold text-white mb-3">토픽</h3>
+                <h3 class="text-sm font-bold text-white mb-3">주제</h3>
                 <div class="grid grid-cols-2 gap-2">
-                  <?php foreach (ufs_topics() as $tp): ?>
+                  <?php foreach (array('공통','프로그래밍','비주얼 아트','디지털 휴먼','AI','버추얼 프로덕션','프로덕션','기획','메타버스','디지털 트윈','XR(VR·AR·MR)') as $tp): ?>
                     <label class="flex items-center gap-2.5 cursor-pointer py-1">
                       <input type="checkbox" data-filter-topic="<?= e($tp) ?>" class="w-4 h-4 rounded text-[#00C1D5] focus:ring-[#00C1D5] bg-transparent border-[#27272a]">
                       <span class="text-sm text-[#a1a1aa]"><?= e($tp) ?></span>
+                    </label>
+                  <?php endforeach; ?>
+                </div>
+              </div>
+              <div class="mb-6">
+                <h3 class="text-sm font-bold text-white mb-3">제품</h3>
+                <div class="grid grid-cols-2 gap-2">
+                  <?php foreach (array('UE4','UE5','UEFN','리얼리티스캔','메타휴먼','에픽게임즈 스토어','에픽 온라인 서비스','팹','퀵셀') as $pd): ?>
+                    <label class="flex items-center gap-2.5 cursor-pointer py-1">
+                      <input type="checkbox" data-filter-product="<?= e($pd) ?>" class="w-4 h-4 rounded text-[#00C1D5] focus:ring-[#00C1D5] bg-transparent border-[#27272a]">
+                      <span class="text-sm text-[#a1a1aa]"><?= e($pd) ?><?php if ($pd==='에픽게임즈 스토어'): ?> <span class="text-[10px] text-[#71717a]">(곧 추가)</span><?php endif; ?></span>
                     </label>
                   <?php endforeach; ?>
                 </div>
@@ -361,24 +374,25 @@ include __DIR__ . '/_head.php';
     }
     return { list: list, all: all };
   }
+  function picked(attr){ var ck=document.querySelectorAll('['+attr+']'), out=[]; for(var i=0;i<ck.length;i++){ if(ck[i].checked) out.push(ck[i].getAttribute(attr)); } return out; }
+  function anyMatch(listAttr, picks){ if(picks.length===0) return true; var arr=(listAttr||'').split('|'); for(var k=0;k<picks.length;k++){ if(arr.indexOf(picks[k])>=0) return true; } return false; }
   function applyGrid(){
     var tr = checked('data-filter-track'), lv = checked('data-filter-level');
-    var tpCk = document.querySelectorAll('[data-filter-topic]'), topics = [];
-    for (var i = 0; i < tpCk.length; i++) { if (tpCk[i].checked) topics.push(tpCk[i].getAttribute('data-filter-topic')); }
+    var topics = picked('data-filter-topic'), prods = picked('data-filter-product');
     var cells = document.querySelectorAll('[data-grid-cell]');
     for (var j = 0; j < cells.length; j++) {
       var c = cells[j];
       var t = c.getAttribute('data-track'), l = c.getAttribute('data-level');
-      var tp = (c.getAttribute('data-topics') || '').split(' ');
+      if (t === '키노트') { c.style.opacity = '1'; continue; } // 키노트는 필터 무관 항상 표시
       var okT = tr.all || tr.list.length === 0 || tr.list.indexOf(t) >= 0;
       var okL = lv.all || lv.list.length === 0 || lv.list.indexOf(l) >= 0;
-      var okP = topics.length === 0;
-      if (!okP) { for (var k = 0; k < topics.length; k++) { if (tp.indexOf(topics[k]) >= 0) { okP = true; break; } } }
-      c.style.opacity = (okT && okL && okP) ? '1' : '0.5';
+      var okTopic = anyMatch(c.getAttribute('data-topics'), topics);
+      var okProd  = anyMatch(c.getAttribute('data-products'), prods);
+      c.style.opacity = (okT && okL && okTopic && okProd) ? '1' : '0.5';
     }
   }
   // 체크박스 변경 시 즉시 적용
-  var fcbs = document.querySelectorAll('[data-filter-track],[data-filter-level],[data-filter-topic]');
+  var fcbs = document.querySelectorAll('[data-filter-track],[data-filter-level],[data-filter-topic],[data-filter-product]');
   for (var i = 0; i < fcbs.length; i++) fcbs[i].addEventListener('change', applyGrid);
   // 초기화 버튼: app.js 상단 Reset 로직 실행 + 그리드 리셋
   var gr = document.querySelector('[data-grid-reset]');

@@ -249,11 +249,14 @@
   function initSchedule() {
     var sc = $('[data-schedule]');
     if (!sc) return;
-    var day = 'day1', view = 'track', fTrack = 'all', fLevel = 'all', fTopics = {};
+    var day = 'day1', view = 'track', fTrack = 'all', fLevel = 'all', fTopics = {}, fProducts = {};
     var fbtn = sc.querySelector('[data-filter-btn]'), fpanel = sc.querySelector('[data-filter-panel]'), fdot = sc.querySelector('[data-filter-dot]');
 
-    function topicCount() { var n = 0; for (var k in fTopics) { if (fTopics[k]) n++; } return n; }
-    function hasFilter() { return fTrack !== 'all' || fLevel !== 'all' || topicCount() > 0; }
+    function pickedKeys(obj) { var a = []; for (var k in obj) { if (obj[k]) a.push(k); } return a; }
+    function topicCount() { return pickedKeys(fTopics).length; }
+    function productCount() { return pickedKeys(fProducts).length; }
+    function anyMatch(attrVal, picks) { if (picks.length === 0) return true; var arr = (attrVal || '').split('|'); for (var i = 0; i < picks.length; i++) { if (arr.indexOf(picks[i]) >= 0) return true; } return false; }
+    function hasFilter() { return fTrack !== 'all' || fLevel !== 'all' || topicCount() > 0 || productCount() > 0; }
 
     function showView(v) {
       view = v;
@@ -285,15 +288,14 @@
       }
       var active = sc.querySelector('[data-day-content="' + day + '"]'); if (!active) return;
       var tv = active.querySelector('[data-view-content="track"]'); if (!tv) return;
+      var tps = pickedKeys(fTopics), pds = pickedKeys(fProducts);
       $all('[data-sched-card]', tv).forEach(function (card) {
+        if (card.getAttribute('data-track') === '키노트') { card.classList.remove('hidden'); return; } // 키노트 항상 표시
         var okT = fTrack === 'all' || card.getAttribute('data-track') === fTrack;
         var okL = fLevel === 'all' || card.getAttribute('data-level') === fLevel;
-        var okTop = true;
-        if (topicCount() > 0) {
-          var ct = (card.getAttribute('data-topics') || '').split(' ');
-          for (var k in fTopics) { if (fTopics[k] && ct.indexOf(k) === -1) { okTop = false; break; } }
-        }
-        card.classList.toggle('hidden', !(okT && okL && okTop));
+        var okTop = anyMatch(card.getAttribute('data-topics'), tps);
+        var okProd = anyMatch(card.getAttribute('data-products'), pds);
+        card.classList.toggle('hidden', !(okT && okL && okTop && okProd));
       });
       $all('[data-slot-row]', tv).forEach(function (row) {
         // 공통 슬롯(환영사/휴식/점심 등)은 트랙 필터와 무관하게 항상 표시
@@ -328,12 +330,16 @@
     $all('[data-filter-topic]', sc).forEach(function (cb) {
       cb.addEventListener('change', function () { fTopics[cb.getAttribute('data-filter-topic')] = cb.checked; applyFilter(); });
     });
+    $all('[data-filter-product]', sc).forEach(function (cb) {
+      cb.addEventListener('change', function () { fProducts[cb.getAttribute('data-filter-product')] = cb.checked; applyFilter(); });
+    });
     var freset = sc.querySelector('[data-filter-reset]');
     if (freset) freset.addEventListener('click', function () {
-      fTrack = 'all'; fLevel = 'all'; fTopics = {};
+      fTrack = 'all'; fLevel = 'all'; fTopics = {}; fProducts = {};
       $all('[data-filter-track]', sc).forEach(function (o) { o.checked = (o.getAttribute('data-filter-track') === 'all'); });
       $all('[data-filter-level]', sc).forEach(function (o) { o.checked = (o.getAttribute('data-filter-level') === 'all'); });
       $all('[data-filter-topic]', sc).forEach(function (o) { o.checked = false; });
+      $all('[data-filter-product]', sc).forEach(function (o) { o.checked = false; });
       applyFilter();
     });
 

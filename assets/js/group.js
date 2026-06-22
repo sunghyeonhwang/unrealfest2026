@@ -1,4 +1,4 @@
-/* Unreal Fest Seoul 2026 — 단체 등록(ticket-group.php) 클라이언트 로직 (개개인별 선택)
+/* Unreal Fest Seoul 2026 — 단체 등록(ticket-group.php) 클라이언트 로직 (개개인별 선택, 티켓=셀렉트)
  * 멤버 카드(템플릿 복제, 최소4·최대29) / 인원별 티켓·트랙·티셔츠 / 금액 합산 / CSV 업로드 / 검증.
  * 의존: <template id="memTpl">, UFS_MIN_MEMBERS, UFS_MAX_TOTAL. ES5 호환. (innerHTML 미사용)
  */
@@ -12,32 +12,26 @@
   function won(n) { return '₩' + (n || 0).toLocaleString('en-US'); }
   function cards() { return document.querySelectorAll('[data-card]'); }
   function memberRows() { return membersEl.querySelectorAll('[data-gm-row]'); }
+  function ticketSel(card) { return card.querySelector('[data-pick-ticket]'); }
+  function selOpt(sel) { return (sel && sel.selectedIndex >= 0) ? sel.options[sel.selectedIndex] : null; }
 
-  // 카드 내 티켓 선택 반영(하이라이트 + 트랙 요일 토글)
+  // 티켓 선택 → 트랙 요일 표시 토글
   function refreshTicket(card) {
-    var sel = card.querySelector('[data-pick-ticket] input:checked');
-    var btns = card.querySelectorAll('[data-pick-ticket] .tkbtn');
-    for (var i = 0; i < btns.length; i++) {
-      var on = btns[i].querySelector('input').checked;
-      btns[i].classList.toggle('border-[#00C1D5]', on);
-      btns[i].classList.toggle('bg-[rgba(0,79,89,0.2)]', on);
-      btns[i].classList.toggle('text-white', on);
-      btns[i].classList.toggle('border-[#27272a]', !on);
-      btns[i].classList.toggle('text-[#71717a]', !on);
+    var op = selOpt(ticketSel(card));
+    var days = (op && op.getAttribute('data-days')) ? op.getAttribute('data-days').split(',') : [];
+    var wraps = card.querySelectorAll('[data-track-wrap]');
+    for (var i = 0; i < wraps.length; i++) {
+      var d = wraps[i].getAttribute('data-day');
+      var on = days.indexOf(d) >= 0;
+      wraps[i].style.display = on ? '' : 'none';
+      var s = wraps[i].querySelector('select');
+      if (s) { s.disabled = !on; if (!on) s.value = ''; }
     }
-    var days = sel ? sel.getAttribute('data-days').split(',') : [];
-    var d1 = days.indexOf('1') >= 0, d2 = days.indexOf('2') >= 0;
-    var s1 = card.querySelector('[data-pick-track] [data-day="1"]');
-    var s2 = card.querySelector('[data-pick-track] [data-day="2"]');
-    if (s1) { s1.style.display = d1 ? '' : 'none'; s1.disabled = !d1; if (!d1) s1.value = ''; }
-    if (s2) { s2.style.display = d2 ? '' : 'none'; s2.disabled = !d2; if (!d2) s2.value = ''; }
   }
 
   function wireCard(card) {
-    var tks = card.querySelectorAll('[data-pick-ticket] input');
-    for (var i = 0; i < tks.length; i++) {
-      tks[i].addEventListener('change', function () { refreshTicket(card); recalc(); });
-    }
+    var t = ticketSel(card);
+    if (t) t.addEventListener('change', function () { refreshTicket(card); recalc(); });
     refreshTicket(card);
   }
 
@@ -56,11 +50,10 @@
       return null;
     }
     var frag = tpl.content.cloneNode(true);
-    // __I__ 토큰을 고유 인덱스로 치환
     var idx = gIdx++;
-    var inputs = frag.querySelectorAll('[name]');
-    for (var i = 0; i < inputs.length; i++) {
-      inputs[i].setAttribute('name', inputs[i].getAttribute('name').replace('__I__', idx));
+    var named = frag.querySelectorAll('[name]');
+    for (var i = 0; i < named.length; i++) {
+      named[i].setAttribute('name', named[i].getAttribute('name').replace('__I__', idx));
     }
     var node = frag.querySelector('[data-gm-row]');
     membersEl.appendChild(frag);
@@ -77,10 +70,10 @@
     var cs = cards(), total = 0, people = 0, nAll = 0, nDay = 0;
     for (var i = 0; i < cs.length; i++) {
       people++;
-      var sel = cs[i].querySelector('[data-pick-ticket] input:checked');
-      if (!sel) continue;
-      total += parseInt(sel.getAttribute('data-price'), 10) || 0;
-      if (sel.value === 'NORMAL_ALL') nAll++; else nDay++;
+      var op = selOpt(ticketSel(cs[i]));
+      if (!op || !op.value) continue;
+      total += parseInt(op.getAttribute('data-price'), 10) || 0;
+      if (op.value === 'NORMAL_ALL') nAll++; else nDay++;
     }
     var set = function (id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
     set('sumPeople', people + '명');
@@ -89,7 +82,6 @@
     set('sumTotal', won(total));
   }
 
-  // 결제수단
   (function bindPay() {
     var box = document.getElementById('gPay'); if (!box) return;
     var labs = box.querySelectorAll('.gpay');
@@ -107,19 +99,23 @@
     }
   })();
 
-  // CSV 업로드: 이름,연락처,직무,관심분야,티켓,Day1 트랙,Day2 트랙,티셔츠
+  // CSV: 이름,연락처,직무,관심분야,티켓,Day1 트랙,Day2 트랙,티셔츠
   function ticketCodeFromLabel(s) {
     s = (s || '').toLowerCase();
     if (s.indexOf('양일') >= 0) return 'NORMAL_ALL';
     if (s.indexOf('day 1') >= 0 || s.indexOf('20') >= 0) return 'NORMAL_20';
     if (s.indexOf('day 2') >= 0 || s.indexOf('21') >= 0) return 'NORMAL_21';
-    return '';
+    return s.toUpperCase().indexOf('NORMAL') === 0 ? (s.toUpperCase()) : '';
   }
   function setSelectByText(sel, text) {
     if (!sel) return; text = (text || '').trim(); if (!text) return;
     for (var i = 0; i < sel.options.length; i++) {
       if (sel.options[i].text.trim() === text || sel.options[i].value === text) { sel.selectedIndex = i; return; }
     }
+  }
+  function setSelectByValue(sel, val) {
+    if (!sel || !val) return;
+    for (var i = 0; i < sel.options.length; i++) { if (sel.options[i].value === val) { sel.selectedIndex = i; return; } }
   }
   (function bindUpload() {
     var inp = document.getElementById('gUpload'); if (!inp) return;
@@ -141,8 +137,8 @@
           if (q('member_phone')) q('member_phone').value = (c[1] || '').trim().replace(/[^0-9]/g, '');
           setSelectByText(q('member_grade'), c[2]);
           setSelectByText(q('member_ex1'), c[3]);
-          var tcode = ticketCodeFromLabel(c[4]);
-          if (tcode) { var tr = node.querySelector('[data-pick-ticket] input[value="' + tcode + '"]'); if (tr) { tr.checked = true; refreshTicket(node); } }
+          setSelectByValue(ticketSel(node), ticketCodeFromLabel(c[4]));
+          refreshTicket(node);
           setSelectByText(node.querySelector('[data-day="1"]'), c[5]);
           setSelectByText(node.querySelector('[data-day="2"]'), c[6]);
           var ts = c[7] ? node.querySelector('[name^="member_tshirt"][value="' + c[7].trim() + '"]') : null; if (ts) ts.checked = true;
@@ -157,15 +153,14 @@
     });
   })();
 
-  // 검증
   window.gValidate = function () {
     if (!document.getElementById('apply_ci').value) { alert('대표자 본인 인증을 먼저 진행해 주세요.'); return false; }
     var cs = cards();
     for (var i = 0; i < cs.length; i++) {
       var who = (i === 0) ? '대표자' : ((i + 1) + '번 참석자');
-      var sel = cs[i].querySelector('[data-pick-ticket] input:checked');
-      if (!sel) { alert(who + '의 티켓을 선택해 주세요.'); return false; }
-      var days = sel.getAttribute('data-days').split(',');
+      var op = selOpt(ticketSel(cs[i]));
+      if (!op || !op.value) { alert(who + '의 티켓을 선택해 주세요.'); return false; }
+      var days = op.getAttribute('data-days').split(',');
       if (days.indexOf('1') >= 0 && !cs[i].querySelector('[data-day="1"]').value) { alert(who + '의 Day1 트랙을 선택해 주세요.'); return false; }
       if (days.indexOf('2') >= 0 && !cs[i].querySelector('[data-day="2"]').value) { alert(who + '의 Day2 트랙을 선택해 주세요.'); return false; }
       if (!cs[i].querySelector('[data-pick-tshirt] input:checked')) { alert(who + '의 티셔츠를 선택해 주세요.'); return false; }
@@ -180,7 +175,6 @@
     return true;
   };
 
-  // 초기화: 대표자 카드 와이어 + 멤버 최소 인원
   var rep = document.querySelector('[data-rep]'); if (rep) wireCard(rep);
   for (var i = 0; i < window.UFS_MIN_MEMBERS; i++) addMember();
   if (addBtn) addBtn.addEventListener('click', addMember);

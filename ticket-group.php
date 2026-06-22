@@ -15,29 +15,28 @@ $GRADES= array('비주얼 아트','프로그래밍','프로덕션','엔지니어
 $EX1S  = array('게임','영화 & TV','방송 & 라이브 이벤트','애니메이션','건축','자동차','제조/시뮬레이션','소프트웨어 & 툴 개발','VR·AR','교육','기타');
 function ufs_opts($arr){ $s=''; foreach($arr as $o){ $s.='<option>'.htmlspecialchars($o,ENT_QUOTES,'UTF-8').'</option>'; } return $s; }
 
-/* 인원별 선택 블록(티켓 3개 가로 + 트랙 + 티셔츠). */
+/* 인원별 선택 블록(티켓 셀렉트 + 트랙 + 티셔츠). */
 function ufs_pick_block($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR) {
   $selCls = 'w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none';
-  echo '<div class="space-y-4" data-pick">';
+  echo '<div class="space-y-4" data-pick>';
+  echo '<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">';
+  // 티켓 셀렉트
   echo '<div><div class="text-sm font-medium text-[#a1a1aa] mb-2">티켓 <span class="text-[#00C1D5]">*</span></div>';
-  echo '<div class="grid grid-cols-3 gap-3" data-pick-ticket>';
-  foreach ($TKT as $t) {
-    echo '<label class="tkbtn block p-4 border text-center cursor-pointer transition-all border-[#27272a] text-[#71717a] hover:border-white/20">';
-    echo '<input type="radio" name="'.e($nTicket).'" value="'.e($t['code']).'" class="sr-only" data-price="'.(int)$t['price'].'" data-days="'.e($t['days']).'">';
-    echo '<div class="text-sm font-bold leading-tight">'.e($t['label']).'</div>';
-    echo '<div class="text-xs mt-1">₩'.number_format($t['price']).'</div>';
-    echo '</label>';
-  }
-  echo '</div></div>';
-  echo '<div><div class="text-sm font-medium text-[#a1a1aa] mb-2">참석 트랙 <span class="text-[#00C1D5]">*</span></div>';
-  echo '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3" data-pick-track>';
-  echo '<select name="'.e($nD1).'" data-day="1" class="'.$selCls.'"><option value="">Day1 트랙 선택</option>';
+  echo '<select name="'.e($nTicket).'" data-pick-ticket class="'.$selCls.'"><option value="">티켓 선택</option>';
+  foreach ($TKT as $t) echo '<option value="'.e($t['code']).'" data-price="'.(int)$t['price'].'" data-days="'.e($t['days']).'">'.e($t['label']).' (₩'.number_format($t['price']).')</option>';
+  echo '</select></div>';
+  // Day1 트랙
+  echo '<div data-track-wrap data-day="1"><div class="text-sm font-medium text-[#a1a1aa] mb-2">Day1 트랙 <span class="text-[#00C1D5]">*</span></div>';
+  echo '<select name="'.e($nD1).'" data-day="1" class="'.$selCls.'"><option value="">Day1 트랙</option>';
   foreach ($TR[1] as $v=>$l) echo '<option value="'.e($v).'">'.e($l).'</option>';
-  echo '</select>';
-  echo '<select name="'.e($nD2).'" data-day="2" class="'.$selCls.'"><option value="">Day2 트랙 선택</option>';
+  echo '</select></div>';
+  // Day2 트랙
+  echo '<div data-track-wrap data-day="2"><div class="text-sm font-medium text-[#a1a1aa] mb-2">Day2 트랙 <span class="text-[#00C1D5]">*</span></div>';
+  echo '<select name="'.e($nD2).'" data-day="2" class="'.$selCls.'"><option value="">Day2 트랙</option>';
   foreach ($TR[2] as $v=>$l) echo '<option value="'.e($v).'">'.e($l).'</option>';
-  echo '</select>';
-  echo '</div></div>';
+  echo '</select></div>';
+  echo '</div>';
+  // 티셔츠
   echo '<div><div class="text-sm font-medium text-[#a1a1aa] mb-2">티셔츠 <span class="text-[#00C1D5]">*</span></div>';
   echo '<div class="flex flex-wrap gap-3" data-pick-tshirt>';
   foreach (array('M','L','XL','XXL') as $s) {
@@ -177,15 +176,15 @@ function ufs_pick_block($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR) {
       <span class="text-sm font-bold text-[#00C1D5]" data-gm-no></span>
       <button type="button" class="text-[#71717a] hover:text-[#ff8674] text-xl leading-none" data-gm-del title="삭제">&times;</button>
     </div>
-    <div class="grid sm:grid-cols-2 gap-4 mb-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
       <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">이름 <span class="text-[#00C1D5]">*</span></label>
         <input type="text" name="member_name[__I__]" placeholder="이름" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
       <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">연락처 <span class="text-[#00C1D5]">*</span></label>
         <input type="tel" name="member_phone[__I__]" placeholder="01012345678" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
       <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">직무 <span class="text-[#00C1D5]">*</span></label>
-        <select name="member_grade[__I__]" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none"><option value="">선택해 주세요</option><?= ufs_opts($GRADES) ?></select></div>
-      <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">산업/관심 분야 <span class="text-[#00C1D5]">*</span></label>
-        <select name="member_ex1[__I__]" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none"><option value="">선택해 주세요</option><?= ufs_opts($EX1S) ?></select></div>
+        <select name="member_grade[__I__]" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none"><option value="">선택</option><?= ufs_opts($GRADES) ?></select></div>
+      <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">관심 분야 <span class="text-[#00C1D5]">*</span></label>
+        <select name="member_ex1[__I__]" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none"><option value="">선택</option><?= ufs_opts($EX1S) ?></select></div>
     </div>
     <?php ufs_pick_block('member_ticket[__I__]','member_day1[__I__]','member_day2[__I__]','member_tshirt[__I__]',$TKT,$UFS_TRACKS); ?>
   </div>

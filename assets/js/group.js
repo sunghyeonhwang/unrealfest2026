@@ -209,6 +209,10 @@
   })();
 
   window.gValidate = function () {
+    var aReq = document.querySelector('input[name="agree_req"]');
+    if (aReq && !aReq.checked) { alert('이용약관 및 개인정보처리방침에 동의해 주세요.'); return false; }
+    var aGrp = document.querySelector('input[name="agree_group"]');
+    if (aGrp && !aGrp.checked) { alert('단체 참가 인원의 개인정보 수집·제공 동의가 필요합니다.'); return false; }
     if (!document.getElementById('apply_ci').value) { alert('대표자 본인 인증을 먼저 진행해 주세요.'); return false; }
     var cs = cards();
     for (var i = 0; i < cs.length; i++) {

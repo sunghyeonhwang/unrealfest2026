@@ -90,7 +90,7 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
 
     <div class="space-y-4">
 
-      <?php include __DIR__ . '/_ticket_agree.php'; ?>
+      <?php $ufs_group_agree = true; include __DIR__ . '/_ticket_agree.php'; ?>
 
       <!-- 대표자 본인 인증 -->
       <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">

@@ -180,19 +180,26 @@ if ($err==='' && gp('action')==='register') {
     <a href="javascript:history.back()" class="inline-block px-6 py-3 bg-[#27272a] hover:bg-[#3f3f46] text-white font-bold">← 돌아가서 수정</a>
 
   <?php elseif ($done): ?>
-    <script>try{localStorage.removeItem('ufs_group_form')}catch(e){}</script>
+    <script>try{localStorage.removeItem('ufs_group_form')}catch(e){}
+    document.addEventListener('click',function(e){
+      var b=e.target.closest&&e.target.closest('[data-copy]'); if(!b)return;
+      var txt=b.getAttribute('data-copy');
+      function ok(){var o=b.getAttribute('data-label')||b.textContent;b.setAttribute('data-label',o);b.textContent='복사됨';setTimeout(function(){b.textContent=o;},1200);}
+      function fb(){try{var ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);}catch(_){}}
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(ok,function(){fb();ok();});}else{fb();ok();}
+    });</script>
     <h1 class="text-2xl md:text-3xl font-bold mb-2">단체 등록이 접수되었습니다</h1>
     <p class="text-[#a1a1aa] mb-8">접수번호 <b class="text-[#00C1D5]"><?= e($grp_code) ?></b> · 총 <?= count($attendees) ?>명 · 결제 금액 ₩<?= number_format($total) ?></p>
     <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mb-6">
       <h2 class="text-lg font-bold text-white mb-4">무통장 입금 안내</h2>
       <div class="space-y-3 text-sm">
-        <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">입금 계좌</span><span class="font-bold text-right">국민은행 98983000004185</span></div>
-        <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">예금주</span><span class="font-bold text-right">(주)그리프</span></div>
-        <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">입금 금액</span><span class="font-bold text-[#00C1D5] text-right">₩<?= number_format($total) ?></span></div>
+        <div class="flex justify-between gap-4 py-1 items-center"><span class="text-[#71717a]">입금 계좌</span><span class="font-bold text-right inline-flex items-center gap-2 justify-end">국민은행 98983000004185 <button type="button" data-copy="98983000004185" class="px-2 py-0.5 text-[11px] font-bold border border-[#27272a] text-[#a1a1aa] hover:border-[#00C1D5] hover:text-[#00C1D5] rounded whitespace-nowrap transition-colors">복사</button></span></div>
+        <div class="flex justify-between gap-4 py-1 items-center"><span class="text-[#71717a]">예금주</span><span class="font-bold text-right">(주)그리프</span></div>
+        <div class="flex justify-between gap-4 py-1 items-center"><span class="text-[#71717a]">입금 금액</span><span class="font-bold text-[#00C1D5] text-right inline-flex items-center gap-2 justify-end">₩<?= number_format($total) ?> <button type="button" data-copy="<?= (int)$total ?>" class="px-2 py-0.5 text-[11px] font-bold border border-[#27272a] text-[#a1a1aa] hover:border-[#00C1D5] hover:text-[#00C1D5] rounded whitespace-nowrap transition-colors">복사</button></span></div>
         <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">입금 기한</span><span class="font-bold text-right"><?= date('Y년 m월 d일', strtotime('+'.UFS_BANK_DAYS.' days')) ?> (<?= UFS_BANK_DAYS ?>일 이내)</span></div>
       </div>
       <div class="mt-8 pt-7 border-t border-[#27272a]">
-        <h3 class="text-base font-bold text-white mb-3">안내사항</h3>
+        <h3 class="text-base font-bold text-[#00C1D5] mb-3">안내사항</h3>
         <ul class="space-y-2 text-sm text-[#a1a1aa] leading-relaxed">
           <li class="flex items-baseline gap-2"><span class="text-[#00C1D5] flex-shrink-0">•</span><span>위 계좌로 기한 내 입금해 주세요.</span></li>
           <li class="flex items-baseline gap-2"><span class="text-[#00C1D5] flex-shrink-0">•</span><span>입금 안내는 대표자 연락처로도 발송되었습니다.</span></li>

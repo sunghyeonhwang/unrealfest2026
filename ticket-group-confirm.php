@@ -184,7 +184,7 @@ if ($err==='' && gp('action')==='register') {
 
     <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mb-4">
       <h2 class="text-lg font-bold text-white mb-4">대표자</h2>
-      <div class="grid sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+      <div class="space-y-1 text-sm">
         <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">이름</span><span><?= e($rep['name']) ?></span></div>
         <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">연락처</span><span><?= e($rep['phone']) ?></span></div>
         <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">이메일</span><span><?= e($rep['email']) ?></span></div>
@@ -227,7 +227,7 @@ if ($err==='' && gp('action')==='register') {
     <?php if ($tax['req']==='Y'): ?>
     <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mb-6">
       <h2 class="text-lg font-bold text-white mb-4">세금계산서 발행 정보</h2>
-      <div class="grid sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+      <div class="space-y-1 text-sm">
         <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">상호</span><span><?= e($rep['company']) ?></span></div>
         <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">사업자등록번호</span><span><?= e($rep['biznum']) ?></span></div>
         <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">대표자명</span><span><?= e($tax['ceo']) ?></span></div>

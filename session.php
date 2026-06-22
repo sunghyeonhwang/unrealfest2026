@@ -81,7 +81,7 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
         <div>
           <h2 class="text-xl font-bold text-white mb-4">권장 대상</h2>
           <ul class="space-y-2">
-            <?php foreach (explode(',', $session['target']) as $tg): ?>
+            <?php foreach (preg_split('/\r\n|\r|\n/', (string)$session['target']) as $tg): if (trim($tg)==='') continue; ?>
               <li class="flex items-baseline gap-2 text-[#a1a1aa]"><span class="text-[#00C1D5] flex-shrink-0">•</span><span><?= e(trim($tg)) ?></span></li>
             <?php endforeach; ?>
           </ul>

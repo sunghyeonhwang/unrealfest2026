@@ -58,7 +58,10 @@ function ufs_tracks_tshirt($nD1, $nD2, $nTshirt, $TR) {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= asset_v('assets/style.css') ?>">
-<style>*{word-break:keep-all}</style>
+<style>*{word-break:keep-all}
+/* 빌드된 Tailwind에 없는 5컬럼 — 멤버 한 줄(이름·연락처·직무·관심분야·티켓) */
+@media (min-width:1024px){ .gcols5{ grid-template-columns:repeat(5,minmax(0,1fr))!important } }
+</style>
 </head>
 <body class="bg-[#09090b] text-white" style="font-family:system-ui,'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
 
@@ -178,7 +181,7 @@ function ufs_tracks_tshirt($nD1, $nD2, $nTshirt, $TR) {
       <span class="text-sm font-bold text-[#00C1D5]" data-gm-no></span>
       <button type="button" class="text-[#71717a] hover:text-[#ff8674] text-xl leading-none" data-gm-del title="삭제">&times;</button>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gcols5 gap-3 mb-4">
       <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">이름 <span class="text-[#00C1D5]">*</span></label>
         <input type="text" name="member_name[__I__]" placeholder="이름" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
       <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">연락처 <span class="text-[#00C1D5]">*</span></label>

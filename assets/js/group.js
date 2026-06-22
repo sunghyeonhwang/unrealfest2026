@@ -1,183 +1,188 @@
-/* Unreal Fest Seoul 2026 — 단체 등록(ticket-group.php) 클라이언트 로직
- * 멤버 동적 행(추가/삭제, 최소4·최대29) / 상품·트랙 토글 / 금액 계산 / CSV 업로드 / 검증.
- * 의존: window.UFS_TRACKS, UFS_MIN_MEMBERS, UFS_MAX_TOTAL. ES5 호환.
- * 주: innerHTML 은 신뢰된 정적 템플릿+서버(UFS_TRACKS) 값만 사용. 업로드 CSV 값은 .value 로만 주입.
+/* Unreal Fest Seoul 2026 — 단체 등록(ticket-group.php) 클라이언트 로직 (개개인별 선택)
+ * 멤버 카드(템플릿 복제, 최소4·최대29) / 인원별 티켓·트랙·티셔츠 / 금액 합산 / CSV 업로드 / 검증.
+ * 의존: <template id="memTpl">, UFS_MIN_MEMBERS, UFS_MAX_TOTAL. ES5 호환. (innerHTML 미사용)
  */
 (function () {
   var membersEl = document.getElementById('gMembers');
-  if (!membersEl) return;
+  var tpl = document.getElementById('memTpl');
+  if (!membersEl || !tpl) return;
   var addBtn = document.getElementById('gAddBtn');
-  var product = { code: 'NORMAL_ALL', price: 0, days: [1, 2] };
+  var gIdx = 0;
 
-  function curProductLabel() {
-    return { 'NORMAL_ALL': '양일권', 'NORMAL_20': '1일권 · Day 1', 'NORMAL_21': '1일권 · Day 2' }[product.code] || '';
-  }
   function won(n) { return '₩' + (n || 0).toLocaleString('en-US'); }
+  function cards() { return document.querySelectorAll('[data-card]'); }
+  function memberRows() { return membersEl.querySelectorAll('[data-gm-row]'); }
 
-  function fillTrackOptions(sel, day) {
-    var m = window.UFS_TRACKS[day] || {};
-    var o0 = document.createElement('option'); o0.value = ''; o0.textContent = '선택'; sel.appendChild(o0);
-    for (var k in m) {
-      if (m.hasOwnProperty(k)) { var o = document.createElement('option'); o.value = k; o.textContent = m[k]; sel.appendChild(o); }
+  // 카드 내 티켓 선택 반영(하이라이트 + 트랙 요일 토글)
+  function refreshTicket(card) {
+    var sel = card.querySelector('[data-pick-ticket] input:checked');
+    var btns = card.querySelectorAll('[data-pick-ticket] .tkbtn');
+    for (var i = 0; i < btns.length; i++) {
+      var on = btns[i].querySelector('input').checked;
+      btns[i].classList.toggle('border-[#00C1D5]', on);
+      btns[i].classList.toggle('bg-[rgba(0,79,89,0.2)]', on);
+      btns[i].classList.toggle('text-white', on);
+      btns[i].classList.toggle('border-[#27272a]', !on);
+      btns[i].classList.toggle('text-[#71717a]', !on);
     }
+    var days = sel ? sel.getAttribute('data-days').split(',') : [];
+    var d1 = days.indexOf('1') >= 0, d2 = days.indexOf('2') >= 0;
+    var s1 = card.querySelector('[data-pick-track] [data-day="1"]');
+    var s2 = card.querySelector('[data-pick-track] [data-day="2"]');
+    if (s1) { s1.style.display = d1 ? '' : 'none'; s1.disabled = !d1; if (!d1) s1.value = ''; }
+    if (s2) { s2.style.display = d2 ? '' : 'none'; s2.disabled = !d2; if (!d2) s2.value = ''; }
   }
 
-  function makeInput(type, name, ph, cls) {
-    var el = document.createElement('input'); el.type = type; el.name = name; el.placeholder = ph; el.className = cls; return el;
+  function wireCard(card) {
+    var tks = card.querySelectorAll('[data-pick-ticket] input');
+    for (var i = 0; i < tks.length; i++) {
+      tks[i].addEventListener('change', function () { refreshTicket(card); recalc(); });
+    }
+    refreshTicket(card);
   }
-
-  // 멤버 행 생성 (DOM 구성 — 사용자 입력은 value로만)
-  function makeRow() {
-    var inputCls = 'w-full bg-[#0e0f14] border border-[#27272a] px-3 py-2 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm';
-    var selCls = 'w-full bg-[#0e0f14] border border-[#27272a] px-2 py-2 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none';
-    var row = document.createElement('div');
-    row.className = 'gmember-grid grid gap-2 items-center';
-    row.setAttribute('data-gm-row', '');
-    var no = document.createElement('div'); no.className = 'text-xs text-[#71717a] text-center'; no.setAttribute('data-gm-no', '');
-    var name = makeInput('text', 'member_name[]', '이름', inputCls);
-    var phone = makeInput('tel', 'member_phone[]', '01012345678', inputCls);
-    var s1 = document.createElement('select'); s1.name = 'member_day1[]'; s1.className = selCls; s1.setAttribute('data-gm-day1', ''); fillTrackOptions(s1, 1);
-    var s2 = document.createElement('select'); s2.name = 'member_day2[]'; s2.className = selCls; s2.setAttribute('data-gm-day2', ''); fillTrackOptions(s2, 2);
-    var del = document.createElement('button'); del.type = 'button'; del.className = 'text-[#71717a] hover:text-[#ff8674] text-lg leading-none'; del.setAttribute('data-gm-del', ''); del.title = '삭제'; del.textContent = '×';
-    row.appendChild(no); row.appendChild(name); row.appendChild(phone); row.appendChild(s1); row.appendChild(s2); row.appendChild(del);
-    return row;
-  }
-
-  function rows() { return membersEl.querySelectorAll('[data-gm-row]'); }
 
   function renumber() {
-    var rs = rows();
-    for (var i = 0; i < rs.length; i++) { rs[i].querySelector('[data-gm-no]').textContent = (i + 1); }
-    var cnt = document.getElementById('gMemCount');
-    if (cnt) cnt.textContent = '(' + rs.length + '명)';
-    applyDayVisibility();
+    var rs = memberRows();
+    for (var i = 0; i < rs.length; i++) {
+      var no = rs[i].querySelector('[data-gm-no]'); if (no) no.textContent = (i + 2) + '. 참석자';
+    }
+    var cnt = document.getElementById('gMemCount'); if (cnt) cnt.textContent = '(' + rs.length + '명)';
     recalc();
   }
 
-  function addRow() {
-    if (rows().length + 1 >= window.UFS_MAX_TOTAL) {
+  function addMember() {
+    if (memberRows().length + 1 >= window.UFS_MAX_TOTAL) {
       alert('대표자 포함 최대 ' + window.UFS_MAX_TOTAL + '명까지 등록할 수 있습니다.');
       return null;
     }
-    var node = makeRow();
-    membersEl.appendChild(node);
+    var frag = tpl.content.cloneNode(true);
+    // __I__ 토큰을 고유 인덱스로 치환
+    var idx = gIdx++;
+    var inputs = frag.querySelectorAll('[name]');
+    for (var i = 0; i < inputs.length; i++) {
+      inputs[i].setAttribute('name', inputs[i].getAttribute('name').replace('__I__', idx));
+    }
+    var node = frag.querySelector('[data-gm-row]');
+    membersEl.appendChild(frag);
     node.querySelector('[data-gm-del]').addEventListener('click', function () {
-      if (rows().length <= window.UFS_MIN_MEMBERS) { alert('대표자 외 최소 ' + window.UFS_MIN_MEMBERS + '인이 필요합니다.'); return; }
+      if (memberRows().length <= window.UFS_MIN_MEMBERS) { alert('대표자 외 최소 ' + window.UFS_MIN_MEMBERS + '인이 필요합니다.'); return; }
       node.parentNode.removeChild(node); renumber();
     });
+    wireCard(node);
     renumber();
     return node;
   }
 
-  function applyDayVisibility() {
-    var d1 = product.days.indexOf(1) >= 0, d2 = product.days.indexOf(2) >= 0;
-    var hc1 = document.querySelector('[data-col-day1]'), hc2 = document.querySelector('[data-col-day2]');
-    if (hc1) hc1.style.visibility = d1 ? '' : 'hidden';
-    if (hc2) hc2.style.visibility = d2 ? '' : 'hidden';
-    var rs = rows();
-    for (var i = 0; i < rs.length; i++) {
-      var s1 = rs[i].querySelector('[data-gm-day1]'), s2 = rs[i].querySelector('[data-gm-day2]');
-      s1.style.display = d1 ? '' : 'none'; s1.disabled = !d1; if (!d1) s1.value = '';
-      s2.style.display = d2 ? '' : 'none'; s2.disabled = !d2; if (!d2) s2.value = '';
-    }
-    var rb1 = document.getElementById('day1box'), rb2 = document.getElementById('day2box');
-    if (rb1) rb1.style.display = d1 ? '' : 'none';
-    if (rb2) rb2.style.display = d2 ? '' : 'none';
-  }
-
   function recalc() {
-    var people = rows().length + 1;
-    var total = people * product.price;
+    var cs = cards(), total = 0, people = 0, nAll = 0, nDay = 0;
+    for (var i = 0; i < cs.length; i++) {
+      people++;
+      var sel = cs[i].querySelector('[data-pick-ticket] input:checked');
+      if (!sel) continue;
+      total += parseInt(sel.getAttribute('data-price'), 10) || 0;
+      if (sel.value === 'NORMAL_ALL') nAll++; else nDay++;
+    }
     var set = function (id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
-    set('sumProd', curProductLabel());
-    set('sumUnit', won(product.price));
     set('sumPeople', people + '명');
+    set('sumAll', nAll + '명');
+    set('sumDay', nDay + '명');
     set('sumTotal', won(total));
   }
 
-  function bindProduct() {
-    var box = document.getElementById('gProduct');
-    box.querySelectorAll('.gprod').forEach(function (lab) {
-      lab.addEventListener('click', function () {
-        box.querySelectorAll('.gprod').forEach(function (x) { x.classList.remove('border-[#00C1D5]', 'bg-[rgba(0,79,89,0.2)]'); x.classList.add('border-[#27272a]'); });
-        lab.classList.remove('border-[#27272a]'); lab.classList.add('border-[#00C1D5]', 'bg-[rgba(0,79,89,0.2)]');
-        lab.querySelector('input').checked = true;
-        product.code = lab.getAttribute('data-code');
-        product.price = parseInt(lab.getAttribute('data-price'), 10) || 0;
-        product.days = lab.getAttribute('data-days').split(',').map(function (x) { return parseInt(x, 10); });
-        document.getElementById('group_product').value = product.code;
-        applyDayVisibility(); recalc();
+  // 결제수단
+  (function bindPay() {
+    var box = document.getElementById('gPay'); if (!box) return;
+    var labs = box.querySelectorAll('.gpay');
+    for (var i = 0; i < labs.length; i++) {
+      labs[i].addEventListener('click', function () {
+        for (var j = 0; j < labs.length; j++) {
+          labs[j].classList.remove('border-[#00C1D5]', 'bg-[rgba(0,79,89,0.2)]');
+          labs[j].classList.add('border-[#27272a]', 'bg-[#111115]');
+        }
+        this.classList.remove('border-[#27272a]', 'bg-[#111115]');
+        this.classList.add('border-[#00C1D5]', 'bg-[rgba(0,79,89,0.2)]');
+        this.querySelector('input').checked = true;
+        document.getElementById('group_paymethod').value = this.getAttribute('data-pay');
       });
-    });
-  }
+    }
+  })();
 
-  function bindPay() {
-    var box = document.getElementById('gPay');
-    box.querySelectorAll('.gpay').forEach(function (lab) {
-      lab.addEventListener('click', function () {
-        box.querySelectorAll('.gpay').forEach(function (x) { x.classList.remove('border-[#00C1D5]', 'bg-[rgba(0,79,89,0.2)]'); x.classList.add('border-[#27272a]'); });
-        lab.classList.remove('border-[#27272a]'); lab.classList.add('border-[#00C1D5]', 'bg-[rgba(0,79,89,0.2)]');
-        lab.querySelector('input').checked = true;
-        document.getElementById('group_paymethod').value = lab.getAttribute('data-pay');
-      });
-    });
-  }
-
-  function labelToCode(day, label) {
-    var m = window.UFS_TRACKS[day] || {}; label = (label || '').trim();
-    for (var k in m) { if (m.hasOwnProperty(k) && m[k] === label) return k; }
+  // CSV 업로드: 이름,연락처,직무,관심분야,티켓,Day1 트랙,Day2 트랙,티셔츠
+  function ticketCodeFromLabel(s) {
+    s = (s || '').toLowerCase();
+    if (s.indexOf('양일') >= 0) return 'NORMAL_ALL';
+    if (s.indexOf('day 1') >= 0 || s.indexOf('20') >= 0) return 'NORMAL_20';
+    if (s.indexOf('day 2') >= 0 || s.indexOf('21') >= 0) return 'NORMAL_21';
     return '';
   }
-  function bindUpload() {
-    var inp = document.getElementById('gUpload');
-    if (!inp) return;
+  function setSelectByText(sel, text) {
+    if (!sel) return; text = (text || '').trim(); if (!text) return;
+    for (var i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].text.trim() === text || sel.options[i].value === text) { sel.selectedIndex = i; return; }
+    }
+  }
+  (function bindUpload() {
+    var inp = document.getElementById('gUpload'); if (!inp) return;
     inp.addEventListener('change', function () {
       var f = inp.files[0]; if (!f) return;
       var rd = new FileReader();
       rd.onload = function (e) {
-        var lines = String(e.target.result).split(/\r\n|\n|\r/).filter(function (l) { return l.trim() !== ''; });
+        var lines = String(e.target.result).replace(/^﻿/, '').split(/\r\n|\n|\r/).filter(function (l) { return l.trim() !== ''; });
         if (!lines.length) return;
         var start = /이름|name/i.test(lines[0]) ? 1 : 0;
-        membersEl.innerHTML = '';
+        var existing = memberRows();
+        for (var k = existing.length - 1; k >= 0; k--) existing[k].parentNode.removeChild(existing[k]);
         var added = 0;
         for (var i = start; i < lines.length; i++) {
           var c = lines[i].split(',');
-          var node = addRow(); if (!node) break;
-          node.querySelector('input[name="member_name[]"]').value = (c[0] || '').trim();
-          node.querySelector('input[name="member_phone[]"]').value = (c[1] || '').trim().replace(/[^0-9]/g, '');
-          var s1 = node.querySelector('[data-gm-day1]'), s2 = node.querySelector('[data-gm-day2]');
-          if (s1) s1.value = labelToCode(1, c[2]);
-          if (s2) s2.value = labelToCode(2, c[3]);
+          var node = addMember(); if (!node) break;
+          var q = function (n) { return node.querySelector('[name^="' + n + '"]'); };
+          if (q('member_name')) q('member_name').value = (c[0] || '').trim();
+          if (q('member_phone')) q('member_phone').value = (c[1] || '').trim().replace(/[^0-9]/g, '');
+          setSelectByText(q('member_grade'), c[2]);
+          setSelectByText(q('member_ex1'), c[3]);
+          var tcode = ticketCodeFromLabel(c[4]);
+          if (tcode) { var tr = node.querySelector('[data-pick-ticket] input[value="' + tcode + '"]'); if (tr) { tr.checked = true; refreshTicket(node); } }
+          setSelectByText(node.querySelector('[data-day="1"]'), c[5]);
+          setSelectByText(node.querySelector('[data-day="2"]'), c[6]);
+          var ts = c[7] ? node.querySelector('[name^="member_tshirt"][value="' + c[7].trim() + '"]') : null; if (ts) ts.checked = true;
           added++;
         }
-        while (rows().length < window.UFS_MIN_MEMBERS) addRow();
+        while (memberRows().length < window.UFS_MIN_MEMBERS) addMember();
         renumber();
-        alert(added + '명을 불러왔습니다. 트랙/연락처를 확인해 주세요.');
+        alert(added + '명을 불러왔습니다. 항목을 확인해 주세요.');
         inp.value = '';
       };
       rd.readAsText(f, 'UTF-8');
     });
-  }
+  })();
 
+  // 검증
   window.gValidate = function () {
     if (!document.getElementById('apply_ci').value) { alert('대표자 본인 인증을 먼저 진행해 주세요.'); return false; }
-    var rs = rows();
-    if (rs.length < window.UFS_MIN_MEMBERS) { alert('대표자 외 최소 ' + window.UFS_MIN_MEMBERS + '인을 입력해 주세요.'); return false; }
-    var d1 = product.days.indexOf(1) >= 0, d2 = product.days.indexOf(2) >= 0;
-    for (var i = 0; i < rs.length; i++) {
-      var nm = rs[i].querySelector('input[name="member_name[]"]').value.trim();
-      var ph = rs[i].querySelector('input[name="member_phone[]"]').value.trim();
-      if (!nm || !ph) { alert((i + 1) + '번 인원의 이름/연락처를 입력해 주세요.'); return false; }
-      if (d1 && !rs[i].querySelector('[data-gm-day1]').value) { alert((i + 1) + '번 인원의 Day1 트랙을 선택해 주세요.'); return false; }
-      if (d2 && !rs[i].querySelector('[data-gm-day2]').value) { alert((i + 1) + '번 인원의 Day2 트랙을 선택해 주세요.'); return false; }
+    var cs = cards();
+    for (var i = 0; i < cs.length; i++) {
+      var who = (i === 0) ? '대표자' : ((i + 1) + '번 참석자');
+      var sel = cs[i].querySelector('[data-pick-ticket] input:checked');
+      if (!sel) { alert(who + '의 티켓을 선택해 주세요.'); return false; }
+      var days = sel.getAttribute('data-days').split(',');
+      if (days.indexOf('1') >= 0 && !cs[i].querySelector('[data-day="1"]').value) { alert(who + '의 Day1 트랙을 선택해 주세요.'); return false; }
+      if (days.indexOf('2') >= 0 && !cs[i].querySelector('[data-day="2"]').value) { alert(who + '의 Day2 트랙을 선택해 주세요.'); return false; }
+      if (!cs[i].querySelector('[data-pick-tshirt] input:checked')) { alert(who + '의 티셔츠를 선택해 주세요.'); return false; }
+    }
+    var ms = memberRows();
+    if (ms.length < window.UFS_MIN_MEMBERS) { alert('대표자 외 최소 ' + window.UFS_MIN_MEMBERS + '인을 입력해 주세요.'); return false; }
+    for (var m = 0; m < ms.length; m++) {
+      var nm = ms[m].querySelector('[name^="member_name"]').value.trim();
+      var ph = ms[m].querySelector('[name^="member_phone"]').value.trim();
+      if (!nm || !ph) { alert((m + 2) + '번 참석자의 이름/연락처를 입력해 주세요.'); return false; }
     }
     return true;
   };
 
-  bindProduct(); bindPay(); bindUpload();
-  var first = document.querySelector('.gprod input:checked');
-  if (first) first.parentNode.click();
-  for (var i = 0; i < window.UFS_MIN_MEMBERS; i++) addRow();
-  addBtn.addEventListener('click', addRow);
+  // 초기화: 대표자 카드 와이어 + 멤버 최소 인원
+  var rep = document.querySelector('[data-rep]'); if (rep) wireCard(rep);
+  for (var i = 0; i < window.UFS_MIN_MEMBERS; i++) addMember();
+  if (addBtn) addBtn.addEventListener('click', addMember);
   renumber();
 })();

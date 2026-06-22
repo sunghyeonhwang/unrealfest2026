@@ -1,13 +1,52 @@
 <?php
-/* Unreal Fest Seoul 2026 — 단체 등록 (ticket-group.php) [Phase 1: 입력 폼]
- * 대표자(본인인증+기존 등록필드 동일) + 멤버(이름·연락처·트랙) 최소 5명~최대 30명.
- * 상품: 양일권/1일권 선택. 결제수단: 신용카드 / 무통장 입금.
- * 제출 → ticket-group-confirm.php (Phase 2). 공통: _ticket_init.php / _ticket_fields.php / ticket.js
+/* Unreal Fest Seoul 2026 — 단체 등록 (ticket-group.php) [Phase 1: 입력 폼 / 개개인별 선택]
+ * 대표자(본인인증+기존 등록필드) + 멤버(이름·연락처·직무·관심분야 + 티켓·트랙·티셔츠).
+ * 단일 컬럼(와이드), 요약 최하단. 제출 → ticket-group-confirm.php. 공통: _ticket_init.php / ticket.js / group.js
  */
 require __DIR__ . '/_ticket_init.php';
-$P_ALL = ufs_ticket_price('NORMAL_ALL');
-$P_20  = ufs_ticket_price('NORMAL_20');
-$P_21  = ufs_ticket_price('NORMAL_21');
+
+$TKT = array(
+  array('code'=>'NORMAL_ALL','label'=>'양일권 (8.20~21)','price'=>ufs_ticket_price('NORMAL_ALL'),'days'=>'1,2'),
+  array('code'=>'NORMAL_20', 'label'=>'1일권 · Day 1',   'price'=>ufs_ticket_price('NORMAL_20'), 'days'=>'1'),
+  array('code'=>'NORMAL_21', 'label'=>'1일권 · Day 2',   'price'=>ufs_ticket_price('NORMAL_21'), 'days'=>'2'),
+);
+$JOBS  = array('직장인','학생','교육자/교육기관','인디 개발자','프리랜서');
+$GRADES= array('비주얼 아트','프로그래밍','프로덕션','엔지니어링','설계','기획','R&D','IT','감독/PD','비즈니스/마케팅','C-level','기타');
+$EX1S  = array('게임','영화 & TV','방송 & 라이브 이벤트','애니메이션','건축','자동차','제조/시뮬레이션','소프트웨어 & 툴 개발','VR·AR','교육','기타');
+function ufs_opts($arr){ $s=''; foreach($arr as $o){ $s.='<option>'.htmlspecialchars($o,ENT_QUOTES,'UTF-8').'</option>'; } return $s; }
+
+/* 인원별 선택 블록(티켓 3개 가로 + 트랙 + 티셔츠). */
+function ufs_pick_block($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR) {
+  $selCls = 'w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none';
+  echo '<div class="space-y-4" data-pick">';
+  echo '<div><div class="text-sm font-medium text-[#a1a1aa] mb-2">티켓 <span class="text-[#00C1D5]">*</span></div>';
+  echo '<div class="grid grid-cols-3 gap-3" data-pick-ticket>';
+  foreach ($TKT as $t) {
+    echo '<label class="tkbtn block p-4 border text-center cursor-pointer transition-all border-[#27272a] text-[#71717a] hover:border-white/20">';
+    echo '<input type="radio" name="'.e($nTicket).'" value="'.e($t['code']).'" class="sr-only" data-price="'.(int)$t['price'].'" data-days="'.e($t['days']).'">';
+    echo '<div class="text-sm font-bold leading-tight">'.e($t['label']).'</div>';
+    echo '<div class="text-xs mt-1">₩'.number_format($t['price']).'</div>';
+    echo '</label>';
+  }
+  echo '</div></div>';
+  echo '<div><div class="text-sm font-medium text-[#a1a1aa] mb-2">참석 트랙 <span class="text-[#00C1D5]">*</span></div>';
+  echo '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3" data-pick-track>';
+  echo '<select name="'.e($nD1).'" data-day="1" class="'.$selCls.'"><option value="">Day1 트랙 선택</option>';
+  foreach ($TR[1] as $v=>$l) echo '<option value="'.e($v).'">'.e($l).'</option>';
+  echo '</select>';
+  echo '<select name="'.e($nD2).'" data-day="2" class="'.$selCls.'"><option value="">Day2 트랙 선택</option>';
+  foreach ($TR[2] as $v=>$l) echo '<option value="'.e($v).'">'.e($l).'</option>';
+  echo '</select>';
+  echo '</div></div>';
+  echo '<div><div class="text-sm font-medium text-[#a1a1aa] mb-2">티셔츠 <span class="text-[#00C1D5]">*</span></div>';
+  echo '<div class="flex flex-wrap gap-3" data-pick-tshirt>';
+  foreach (array('M','L','XL','XXL') as $s) {
+    echo '<label class="relative cursor-pointer"><input type="radio" name="'.e($nTshirt).'" value="'.$s.'" class="peer sr-only">';
+    echo '<div class="w-14 h-14 border border-[#27272a] bg-[#0e0f14] flex items-center justify-center text-sm font-bold text-[#71717a] peer-checked:border-[#00C1D5] peer-checked:bg-[rgba(0,79,89,0.2)] peer-checked:text-[#00C1D5] transition-all hover:border-white/20">'.$s.'</div></label>';
+  }
+  echo '</div></div>';
+  echo '</div>';
+}
 ?>
 <!DOCTYPE html>
 <html lang="ko" class="dark">
@@ -19,7 +58,7 @@ $P_21  = ufs_ticket_price('NORMAL_21');
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= asset_v('assets/style.css') ?>">
-<style>*{word-break:keep-all} .gmember-grid{grid-template-columns:28px 1.2fr 1.2fr 1fr 1fr 32px}</style>
+<style>*{word-break:keep-all}</style>
 </head>
 <body class="bg-[#09090b] text-white" style="font-family:system-ui,'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
 
@@ -34,112 +73,123 @@ $P_21  = ufs_ticket_price('NORMAL_21');
 <input type="hidden" name="apply_ci" id="apply_ci" value="<?= e($sess_ci) ?>">
 <input type="hidden" name="apply_di" id="apply_di" value="<?= e($sess_di) ?>">
 <input type="hidden" name="apply_real_type" id="apply_real_type" value="">
-<input type="hidden" name="group_product" id="group_product" value="NORMAL_ALL">
 <input type="hidden" name="group_paymethod" id="group_paymethod" value="card">
 
 <div class="pt-32 pb-24 min-h-screen bg-[#09090b]">
-  <div class="max-w-7xl mx-auto px-6">
+  <div class="max-w-5xl mx-auto px-6">
     <a href="index.php#register" class="inline-flex items-center gap-2 text-[#71717a] hover:text-white transition-colors mb-8 text-sm"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> 돌아가기</a>
     <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">단체 등록</h1>
-    <p class="text-[#a1a1aa] mb-10">5인 이상 단체로 등록하실 수 있습니다. 대표자 1인은 본인 인증 후 대표 정보를 입력하고, 함께 참석하실 인원(최소 4인, 최대 29인 추가)의 명단을 작성해 주세요.</p>
+    <p class="text-[#a1a1aa] mb-10">5인 이상 단체로 등록하실 수 있습니다. 대표자 1인은 본인 인증 후 정보를 입력하고, 함께 참석하실 인원(최소 4인, 최대 29인 추가)을 작성해 주세요. 티켓·트랙·티셔츠는 인원별로 각각 선택합니다.</p>
 
-    <div class="grid lg:grid-cols-12 gap-8 items-start">
-      <div class="lg:col-span-7 xl:col-span-8 space-y-4">
+    <div class="space-y-4">
 
-        <?php include __DIR__ . '/_ticket_agree.php'; ?>
+      <?php include __DIR__ . '/_ticket_agree.php'; ?>
 
-        <!-- 상품 선택 -->
-        <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
-          <h2 class="text-lg font-bold text-white mb-5">티켓 종류</h2>
-          <div class="grid sm:grid-cols-3 gap-3" id="gProduct">
-            <label class="gprod relative p-4 border transition-all border-[#27272a] cursor-pointer hover:border-white/20" data-code="NORMAL_ALL" data-price="<?= $P_ALL ?>" data-days="1,2">
-              <input type="radio" name="gprod" value="NORMAL_ALL" class="sr-only" checked>
-              <div class="text-sm font-bold text-white mb-1">양일권</div>
-              <div class="text-xs text-[#71717a] mb-2">8월 20일(목)~21일(금)</div>
-              <div class="text-lg font-black text-white">₩<?= number_format($P_ALL) ?><span class="text-xs font-normal text-[#71717a]">/1인</span></div>
-            </label>
-            <label class="gprod relative p-4 border transition-all border-[#27272a] cursor-pointer hover:border-white/20" data-code="NORMAL_20" data-price="<?= $P_20 ?>" data-days="1">
-              <input type="radio" name="gprod" value="NORMAL_20" class="sr-only">
-              <div class="text-sm font-bold text-white mb-1">1일권 · Day 1</div>
-              <div class="text-xs text-[#71717a] mb-2">8월 20일(목)</div>
-              <div class="text-lg font-black text-white">₩<?= number_format($P_20) ?><span class="text-xs font-normal text-[#71717a]">/1인</span></div>
-            </label>
-            <label class="gprod relative p-4 border transition-all border-[#27272a] cursor-pointer hover:border-white/20" data-code="NORMAL_21" data-price="<?= $P_21 ?>" data-days="2">
-              <input type="radio" name="gprod" value="NORMAL_21" class="sr-only">
-              <div class="text-sm font-bold text-white mb-1">1일권 · Day 2</div>
-              <div class="text-xs text-[#71717a] mb-2">8월 21일(금)</div>
-              <div class="text-lg font-black text-white">₩<?= number_format($P_21) ?><span class="text-xs font-normal text-[#71717a]">/1인</span></div>
-            </label>
-          </div>
-        </div>
-
-        <!-- 대표자 정보 (본인인증 + 기존 등록필드 동일) -->
-        <div class="text-sm font-bold text-[#00C1D5] mt-2 mb-1 px-1">대표자 정보</div>
-        <?php include __DIR__ . '/_ticket_fields.php'; ?>
-
-        <!-- 대표자 트랙 -->
-        <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
-          <h2 class="text-lg font-bold text-white mb-5">대표자 참석 트랙</h2>
-          <?php ufs_track_box(1, $UFS_TRACKS[1], $trackRemain); ?>
-          <?php ufs_track_box(2, $UFS_TRACKS[2], $trackRemain); ?>
-          <p class="text-xs text-[#71717a] mt-2">※ 현장 혼잡 시 선택한 트랙 참석자가 우선 입장될 수 있습니다.</p>
-        </div>
-
-        <!-- 멤버 명단 -->
-        <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
-          <div class="flex items-center justify-between mb-2">
-            <h2 class="text-lg font-bold text-white">함께 참석하는 인원 <span id="gMemCount" class="text-[#00C1D5] text-sm">(0명)</span></h2>
-            <div class="flex gap-2">
-              <a href="downloads/group_template.csv" download class="px-3 py-2 text-xs font-bold border border-[#27272a] text-[#a1a1aa] hover:border-white/20 hover:text-white transition-all">양식 다운로드</a>
-              <label class="px-3 py-2 text-xs font-bold border border-[#27272a] text-[#a1a1aa] hover:border-white/20 hover:text-white transition-all cursor-pointer">양식 업로드<input type="file" id="gUpload" accept=".csv" class="hidden"></label>
-            </div>
-          </div>
-          <p class="text-xs text-[#71717a] mb-4">대표자 외 최소 4인 ~ 최대 29인. 멤버는 이름·연락처·참석 트랙만 입력합니다.</p>
-
-          <div class="hidden md:grid gmember-grid gap-2 px-1 pb-2 text-[11px] text-[#71717a] font-bold border-b border-[#27272a]">
-            <div>#</div><div>이름</div><div>연락처</div><div data-col-day1>Day1 트랙</div><div data-col-day2>Day2 트랙</div><div></div>
-          </div>
-          <div id="gMembers" class="space-y-2 mt-2"></div>
-
-          <button type="button" id="gAddBtn" class="mt-4 w-full py-3 border border-dashed border-[#27272a] text-[#a1a1aa] hover:border-[#00C1D5] hover:text-[#00C1D5] transition-all text-sm font-bold">+ 인원 추가</button>
-        </div>
-
-        <!-- 결제 수단 -->
-        <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
-          <h2 class="text-lg font-bold text-white mb-5">결제 수단</h2>
-          <div class="grid sm:grid-cols-2 gap-3" id="gPay">
-            <label class="gpay p-4 border transition-all border-[#00C1D5] bg-[rgba(0,79,89,0.2)] cursor-pointer" data-pay="card">
-              <input type="radio" name="gpay" value="card" class="sr-only" checked>
-              <div class="text-sm font-bold text-white">신용카드</div>
-              <div class="text-xs text-[#71717a] mt-1">PG 결제창에서 일괄 결제</div>
-            </label>
-            <label class="gpay p-4 border transition-all border-[#27272a] cursor-pointer hover:border-white/20" data-pay="bank">
-              <input type="radio" name="gpay" value="bank" class="sr-only">
-              <div class="text-sm font-bold text-white">무통장 입금</div>
-              <div class="text-xs text-[#71717a] mt-1">계좌·금액·기한 안내(LMS) 후 입금</div>
-            </label>
-          </div>
+      <!-- 대표자 본인 인증 -->
+      <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
+        <h2 class="text-lg font-bold text-white mb-5 flex items-center gap-2"><svg class="w-5 h-5 text-[#00C1D5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg> 대표자 본인 인증</h2>
+        <p class="text-sm text-[#a1a1aa] mb-5">대표자 본인 확인을 위해 인증해 주세요. <span id="authState" class="ml-2 font-bold"></span></p>
+        <div class="flex flex-wrap gap-4">
+          <a href="#n" onclick="jsSubmit();return false;" class="px-6 py-3 bg-[#00C1D5] text-black font-bold hover:bg-[#00a8ba] transition-all">휴대폰 본인 인증</a>
+          <a href="#n" onclick="jsSubmitPin();return false;" class="px-6 py-3 bg-transparent text-[#a1a1aa] font-bold border border-[#27272a] hover:border-white/20 hover:text-white transition-all">아이핀 본인 인증</a>
         </div>
       </div>
 
-      <!-- 우측 요약 -->
-      <div class="lg:col-span-5 xl:col-span-4">
-        <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 lg:sticky lg:top-24">
-          <h2 class="text-lg font-bold text-white mb-5">등록 요약</h2>
-          <div class="space-y-3 text-sm">
-            <div class="flex justify-between gap-4"><span class="text-[#71717a]">티켓</span><span id="sumProd" class="font-bold text-right">양일권</span></div>
-            <div class="flex justify-between gap-4"><span class="text-[#71717a]">1인 금액</span><span id="sumUnit" class="font-bold text-right">₩<?= number_format($P_ALL) ?></span></div>
-            <div class="flex justify-between gap-4"><span class="text-[#71717a]">인원 (대표자 포함)</span><span id="sumPeople" class="font-bold text-right">1명</span></div>
-            <div class="border-t border-[#27272a] pt-3 flex justify-between gap-4 items-end"><span class="text-[#71717a]">총 결제 금액</span><span id="sumTotal" class="text-2xl font-black text-[#00C1D5]">₩0</span></div>
-          </div>
-          <button type="submit" class="mt-6 w-full py-4 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#090a0f] font-extrabold transition-colors">등록 정보 확인</button>
-          <p class="text-xs text-[#71717a] mt-3 leading-relaxed">대표자 본인 인증 후 진행됩니다. 무통장 입금 선택 시 대표자 연락처로 계좌·금액·입금 기한이 안내됩니다.</p>
+      <!-- 대표자 정보 -->
+      <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
+        <h2 class="text-lg font-bold text-white mb-5">대표자 정보</h2>
+        <div class="grid md:grid-cols-3 gap-6 mb-6">
+          <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">이름 <span class="text-[#00C1D5]">*</span></label>
+            <input type="text" name="apply_user_name" id="apply_user_name" value="<?= e($sess_name) ?>" placeholder="본인인증 시 자동입력" readonly class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none text-sm"></div>
+          <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">이메일 <span class="text-[#00C1D5]">*</span></label>
+            <input type="email" name="apply_user_email" placeholder="email@example.com" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
+          <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">연락처 <span class="text-[#00C1D5]">*</span></label>
+            <input type="tel" name="apply_user_phone" value="<?= e($sess_tel) ?>" placeholder="01034567890" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-6 mb-6">
+          <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">직업 <span class="text-[#00C1D5]">*</span></label>
+            <select name="apply_user_job" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none"><option value="">선택해 주세요</option><?= ufs_opts($JOBS) ?></select></div>
+          <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">회사명/소속 <span class="text-[#00C1D5]">*</span></label>
+            <input type="text" name="apply_user_company" placeholder="에픽게임즈" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
+        </div>
+        <div class="grid md:grid-cols-3 gap-6">
+          <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">부서 <span class="text-[#00C1D5]">*</span></label>
+            <input type="text" name="apply_user_depart" placeholder="개발팀" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
+          <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">직무 <span class="text-[#00C1D5]">*</span></label>
+            <select name="apply_user_grade" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none"><option value="">선택해 주세요</option><?= ufs_opts($GRADES) ?></select></div>
+          <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">산업/관심 분야 <span class="text-[#00C1D5]">*</span></label>
+            <select name="apply_user_ex1" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none"><option value="">선택해 주세요</option><?= ufs_opts($EX1S) ?></select></div>
         </div>
       </div>
+
+      <!-- 참석자: 대표자 본인 선택 -->
+      <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8" data-card data-rep>
+        <div class="text-sm font-bold text-[#00C1D5] mb-4">1. 대표자 참석 선택</div>
+        <?php ufs_pick_block('rep_ticket','rep_day1','rep_day2','rep_tshirt',$TKT,$UFS_TRACKS); ?>
+      </div>
+
+      <!-- 멤버 명단 -->
+      <div class="flex items-center justify-between mt-2 mb-1 px-1">
+        <div class="text-sm font-bold text-white">함께 참석하는 인원 <span id="gMemCount" class="text-[#00C1D5]">(0명)</span></div>
+        <div class="flex gap-2">
+          <a href="downloads/group_template.csv" download class="px-3 py-2 text-xs font-bold border border-[#27272a] text-[#a1a1aa] hover:border-white/20 hover:text-white transition-all">양식 다운로드</a>
+          <label class="px-3 py-2 text-xs font-bold border border-[#27272a] text-[#a1a1aa] hover:border-white/20 hover:text-white transition-all cursor-pointer">양식 업로드<input type="file" id="gUpload" accept=".csv" class="hidden"></label>
+        </div>
+      </div>
+      <div id="gMembers" class="space-y-4"></div>
+      <button type="button" id="gAddBtn" class="mt-4 w-full py-3 border border-dashed border-[#27272a] text-[#a1a1aa] hover:border-[#00C1D5] hover:text-[#00C1D5] transition-all text-sm font-bold">+ 인원 추가</button>
+
+      <!-- 결제 수단 -->
+      <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mt-4">
+        <h2 class="text-lg font-bold text-white mb-5">결제 수단</h2>
+        <div class="space-y-3" id="gPay">
+          <label class="gpay flex items-center gap-3 p-4 border border-[#00C1D5] bg-[rgba(0,79,89,0.2)] cursor-pointer" data-pay="card">
+            <input type="radio" name="gpay" value="card" checked class="accent-[#00C1D5] w-4 h-4">
+            <span class="text-white font-medium text-sm">신용카드</span><span class="text-xs text-[#71717a]">PG 결제창에서 일괄 결제</span></label>
+          <label class="gpay flex items-center gap-3 p-4 border border-[#27272a] bg-[#111115] cursor-pointer hover:border-white/20" data-pay="bank">
+            <input type="radio" name="gpay" value="bank" class="accent-[#00C1D5] w-4 h-4">
+            <span class="text-white font-medium text-sm">무통장 입금</span><span class="text-xs text-[#71717a]">계좌·금액·기한 안내(LMS) 후 입금</span></label>
+        </div>
+      </div>
+
+      <!-- 등록 요약 (최하단) -->
+      <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mt-4">
+        <h2 class="text-lg font-bold text-white mb-5">등록 요약</h2>
+        <div class="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
+          <div class="flex justify-between gap-4"><span class="text-[#71717a]">총 인원 (대표자 포함)</span><span id="sumPeople" class="font-bold text-right">1명</span></div>
+          <div class="flex justify-between gap-4"><span class="text-[#71717a]">양일권</span><span id="sumAll" class="font-bold text-right">0명</span></div>
+          <div class="flex justify-between gap-4"><span class="text-[#71717a]">1일권 (합계)</span><span id="sumDay" class="font-bold text-right">0명</span></div>
+        </div>
+        <div class="border-t border-[#27272a] mt-4 pt-4 flex justify-between gap-4 items-end"><span class="text-[#71717a]">총 결제 금액</span><span id="sumTotal" class="text-3xl font-black text-[#00C1D5]">₩0</span></div>
+        <button type="submit" class="mt-6 w-full py-4 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#090a0f] font-extrabold transition-colors">등록 정보 확인</button>
+        <p class="text-xs text-[#71717a] mt-3 leading-relaxed">대표자 본인 인증 후 진행됩니다. 무통장 입금 선택 시 대표자 연락처로 계좌·금액·입금 기한이 안내됩니다.</p>
+      </div>
+
     </div>
   </div>
 </div>
 </form>
+
+<!-- 멤버 카드 템플릿 (JS가 복제; __I__ = 인덱스 토큰) -->
+<template id="memTpl">
+  <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8" data-card data-gm-row>
+    <div class="flex items-center justify-between mb-4">
+      <span class="text-sm font-bold text-[#00C1D5]" data-gm-no></span>
+      <button type="button" class="text-[#71717a] hover:text-[#ff8674] text-xl leading-none" data-gm-del title="삭제">&times;</button>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4 mb-4">
+      <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">이름 <span class="text-[#00C1D5]">*</span></label>
+        <input type="text" name="member_name[__I__]" placeholder="이름" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
+      <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">연락처 <span class="text-[#00C1D5]">*</span></label>
+        <input type="tel" name="member_phone[__I__]" placeholder="01012345678" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
+      <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">직무 <span class="text-[#00C1D5]">*</span></label>
+        <select name="member_grade[__I__]" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none"><option value="">선택해 주세요</option><?= ufs_opts($GRADES) ?></select></div>
+      <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">산업/관심 분야 <span class="text-[#00C1D5]">*</span></label>
+        <select name="member_ex1[__I__]" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none"><option value="">선택해 주세요</option><?= ufs_opts($EX1S) ?></select></div>
+    </div>
+    <?php ufs_pick_block('member_ticket[__I__]','member_day1[__I__]','member_day2[__I__]','member_tshirt[__I__]',$TKT,$UFS_TRACKS); ?>
+  </div>
+</template>
 
 <!-- 본인인증 팝업 타깃 (대표자) -->
 <form name="form1" id="form1" method="post"></form>
@@ -152,13 +202,8 @@ $P_21  = ufs_ticket_price('NORMAL_21');
 </form>
 
 <script>
-/* 트랙 옵션 (단체 멤버용) — _ticket_init.php $UFS_TRACKS 와 동일 */
-window.UFS_TRACKS = {
-  1: <?= json_encode($UFS_TRACKS[1], JSON_UNESCAPED_UNICODE) ?>,
-  2: <?= json_encode($UFS_TRACKS[2], JSON_UNESCAPED_UNICODE) ?>
-};
-window.UFS_MIN_MEMBERS = 4;   // 대표자 외 최소
-window.UFS_MAX_TOTAL   = 30;  // 대표자 포함 최대
+window.UFS_MIN_MEMBERS = 4;
+window.UFS_MAX_TOTAL   = 30;
 </script>
 <script src="<?= asset_v('assets/js/ticket.js') ?>"></script>
 <script src="<?= asset_v('assets/js/group.js') ?>"></script>

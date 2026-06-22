@@ -130,7 +130,7 @@ function ufs_track_room($tr) {
 // 그리드 트랙 표시 라벨 — '제조 및 시뮬레이션'은 Day별로 다름 (Day1=공통, Day2=제조 및 시뮬레이션)
 function ufs_grid_track_label($tr, $day) {
     // 그리드뷰는 띄어쓰기 포함 정식 명칭으로 표기
-    if ($tr === '제조 및 시뮬레이션') return ((int)$day === 1) ? '공통' : '제조 & 시뮬레이션';
+    if ($tr === '제조 및 시뮬레이션') return ((int)$day === 1) ? '공통' : '제조 및 시뮬레이션';
     if ($tr === '미디어 & 엔터테인먼트') return '미디어 & 엔터테인먼트';
     if ($tr === '게임: 아트' || $tr === '게임: 프로그래밍') return $tr; // 콜론 뒤 띄어쓰기 유지
     return ufs_track_label_day($tr, $day);
@@ -334,7 +334,7 @@ include __DIR__ . '/_head.php';
                 <div class="ufs-fgrid">
                   <?php
                   $tf = array(array('key'=>'all','label'=>'전체'));
-                  foreach (array('게임: 아트','게임: 프로그래밍','미디어 & 엔터테인먼트','제조 및 시뮬레이션') as $tr) { $tf[] = array('key'=>$tr,'label'=>($tr==='제조 및 시뮬레이션'?'제조 & 시뮬레이션':$tr)); }
+                  foreach (array('게임: 아트','게임: 프로그래밍','미디어 & 엔터테인먼트','제조 및 시뮬레이션') as $tr) { $tf[] = array('key'=>$tr,'label'=>($tr==='제조 및 시뮬레이션'?'제조 및 시뮬레이션':$tr)); }
                   foreach ($tf as $t): ?>
                     <label class="flex items-center gap-2.5 cursor-pointer py-1">
                       <input type="checkbox" data-filter-track="<?= e($t['key']) ?>" class="w-4 h-4 rounded text-[#00C1D5] focus:ring-[#00C1D5] bg-transparent border-[#27272a]"<?= $t['key']==='all' ? ' checked' : '' ?>>

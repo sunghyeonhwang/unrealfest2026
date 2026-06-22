@@ -198,7 +198,7 @@ $ov_icons = array(
   <?php endforeach; ?>
 
   <div class="max-w-7xl mx-auto px-6">
-    <p class="text-sm text-[#71717a] mt-8 text-right tracking-tight">※ 세션 내용, 발표자 및 일정은 사정에 따라 변경될 수 있습니다.</p>
+    <p class="text-sm text-[#71717a] mt-8 text-right tracking-tight">· 세션 내용, 발표자 및 일정은 사정에 따라 변경될 수 있습니다.</p>
   </div>
 
   <!-- CTA -->

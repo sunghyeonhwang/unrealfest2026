@@ -349,7 +349,7 @@ $ov_icons = array(
         </div>
       <?php endforeach; ?>
     </div>
-    <p class="text-xs text-[#71717a] mt-8 text-right">※ 이벤트는 사정에 따라 변경될 수 있습니다.</p>
+    <p class="text-xs text-[#71717a] mt-8 text-right">· 이벤트는 사정에 따라 변경될 수 있습니다.</p>
   </div>
 </section>
 

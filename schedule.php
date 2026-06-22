@@ -230,13 +230,14 @@ function ufs_render_grid_view($daySessions, $day) {
         }
     }
     echo '</tbody></table></div>';
-    // 범례
+    /* 범례 — 요청으로 주석처리(비노출)
     echo '<div class="flex flex-wrap gap-4 mt-8">';
     foreach (array('키노트','게임: 아트','게임: 프로그래밍','미디어 & 엔터테인먼트','제조 및 시뮬레이션') as $tr) {
         $c = ufs_sched_colors($tr);
         echo '<div class="flex items-center gap-1.5 text-xs text-[#a1a1aa]"><span class="w-2.5 h-2.5 rounded-full '.$c['dot'].'"></span>'.e(ufs_track_room($tr)).'</div>';
     }
     echo '</div>';
+    */
 }
 
 $day1 = ufs_db_day_all(1);

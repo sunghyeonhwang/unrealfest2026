@@ -72,13 +72,17 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
       <div class="space-y-10">
         <div>
           <h2 class="text-xl font-bold text-white mb-4">세션 소개</h2>
-          <p class="text-[#a1a1aa] leading-relaxed"><?= e($session['desc']) ?></p>
+          <p class="text-[#a1a1aa] leading-relaxed" style="white-space:pre-line"><?= e($session['desc']) ?></p>
         </div>
         <div>
           <h2 class="text-xl font-bold text-white mb-4">세션 목차</h2>
           <ul class="space-y-2">
             <?php foreach ($session['contents'] as $c): ?>
-              <li class="flex items-baseline gap-2 text-[#a1a1aa]"><span class="text-[#00C1D5] flex-shrink-0">•</span><span><?= e($c) ?></span></li>
+              <?php if (strpos($c, '-') === 0): ?>
+                <li class="flex items-baseline gap-2 text-[#a1a1aa] ml-5"><span class="text-[#71717a] flex-shrink-0">-</span><span><?= e(ltrim($c, "- \t")) ?></span></li>
+              <?php else: ?>
+                <li class="flex items-baseline gap-2 text-[#a1a1aa]"><span class="text-[#00C1D5] flex-shrink-0">•</span><span><?= e($c) ?></span></li>
+              <?php endif; ?>
             <?php endforeach; ?>
           </ul>
         </div>

@@ -286,12 +286,8 @@ include __DIR__ . '/_head.php';
       th.ufs-gtime{width:44px!important}
       /* 시간: 모바일에서만 3줄(시작/~/끝) */
       .ufs-tt{display:block}
-      /* 필터 패널: 모바일은 fixed 전체폭 오버레이로 — sticky 바에 가려/잘리지 않게 */
-      [data-filter-panel]{
-        position:fixed!important; left:1rem!important; right:1rem!important; top:120px!important;
-        width:auto!important; max-width:none!important; max-height:calc(100vh - 140px)!important;
-        overflow-y:auto!important;
-      }
+      /* 모바일에서는 필터 자체를 숨김 */
+      .ufs-filterwrap{display:none!important}
     }
   </style>
   <!-- 컨트롤 바 -->
@@ -313,8 +309,8 @@ include __DIR__ . '/_head.php';
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
           </button>
         </div>
-        <!-- 필터 -->
-        <div class="relative">
+        <!-- 필터 (모바일 숨김) -->
+        <div class="relative ufs-filterwrap">
           <button type="button" data-filter-btn class="px-4 py-2 text-sm font-medium flex items-center gap-1.5 border transition-colors border-[#27272a] text-[#a1a1aa] hover:text-white hover:border-white/20">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
             Filter

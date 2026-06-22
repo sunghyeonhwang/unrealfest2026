@@ -126,6 +126,7 @@ function ufs_grid_track_label($tr, $day) {
     // 그리드뷰는 띄어쓰기 포함 정식 명칭으로 표기
     if ($tr === '제조 및 시뮬레이션') return ((int)$day === 1) ? '공통' : '제조 및 시뮬레이션';
     if ($tr === '미디어 & 엔터테인먼트') return '미디어 & 엔터테인먼트';
+    if ($tr === '게임: 아트' || $tr === '게임: 프로그래밍') return $tr; // 콜론 뒤 띄어쓰기 유지
     return ufs_track_label_day($tr, $day);
 }
 function ufs_render_grid_view($daySessions, $day) {

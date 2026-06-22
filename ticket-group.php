@@ -139,7 +139,7 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
       <div class="flex items-center justify-between mt-2 mb-1 px-1">
         <div class="text-sm font-bold text-white">함께 참석하는 인원 <span id="gMemCount" class="text-[#00C1D5]">(0명)</span></div>
         <div class="flex gap-2" data-grp-tools>
-          <a href="downloads/group_template.csv" download class="px-3 py-2 text-xs font-bold border border-[#27272a] text-[#a1a1aa] hover:border-white/20 hover:text-white transition-all">양식 다운로드</a>
+          <a href="<?= asset_v('downloads/group_template.csv') ?>" download="group_template.csv" class="px-3 py-2 text-xs font-bold border border-[#27272a] text-[#a1a1aa] hover:border-white/20 hover:text-white transition-all">양식 다운로드</a>
           <label class="px-3 py-2 text-xs font-bold border border-[#27272a] text-[#a1a1aa] hover:border-white/20 hover:text-white transition-all cursor-pointer">양식 업로드<input type="file" id="gUpload" accept=".csv" class="hidden"></label>
         </div>
       </div>

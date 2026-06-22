@@ -123,6 +123,9 @@ function ufs_track_room($tr) {
 // 그리드뷰(타임테이블) 렌더 — 시간 슬롯 순서대로 키노트/공통/세션 행을 통합 렌더
 // 그리드 트랙 표시 라벨 — '제조 및 시뮬레이션'은 Day별로 다름 (Day1=공통, Day2=제조 및 시뮬레이션)
 function ufs_grid_track_label($tr, $day) {
+    // 그리드뷰는 띄어쓰기 포함 정식 명칭으로 표기
+    if ($tr === '제조 및 시뮬레이션') return ((int)$day === 1) ? '공통' : '제조 및 시뮬레이션';
+    if ($tr === '미디어 & 엔터테인먼트') return '미디어 & 엔터테인먼트';
     return ufs_track_label_day($tr, $day);
 }
 function ufs_render_grid_view($daySessions, $day) {
@@ -255,6 +258,11 @@ include __DIR__ . '/_head.php';
     </div>
   </section>
 
+  <style>
+    /* 필터 옵션: 저해상도 4열(높이 절감), 고해상도(≥1536px) 3열(가독성) */
+    .ufs-fgrid{display:grid;gap:.25rem;grid-template-columns:repeat(4,minmax(0,1fr));}
+    @media (min-width:1536px){.ufs-fgrid{grid-template-columns:repeat(3,minmax(0,1fr));}}
+  </style>
   <!-- 컨트롤 바 -->
   <div class="sticky top-[73px] z-40 bg-[#111115] border-b border-[#27272a]">
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
@@ -295,7 +303,7 @@ include __DIR__ . '/_head.php';
               </div>
               <div class="mb-6">
                 <h3 class="text-sm font-bold text-white mb-3">트랙</h3>
-                <div class="grid gap-1" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+                <div class="ufs-fgrid">
                   <?php
                   $tf = array(array('key'=>'all','label'=>'전체'));
                   foreach (array('게임: 아트','게임: 프로그래밍','미디어 & 엔터테인먼트','제조 및 시뮬레이션') as $tr) { $tf[] = array('key'=>$tr,'label'=>ufs_track_label_list($tr)); }
@@ -309,7 +317,7 @@ include __DIR__ . '/_head.php';
               </div>
               <div class="mb-6">
                 <h3 class="text-sm font-bold text-white mb-3">난이도</h3>
-                <div class="grid gap-1" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+                <div class="ufs-fgrid">
                   <?php foreach (array(array('all','전체'),array('초보자용','초급'),array('중급자용','중급'),array('전문가용','고급')) as $l): ?>
                     <label class="flex items-center gap-2.5 cursor-pointer py-1">
                       <input type="checkbox" data-filter-level="<?= e($l[0]) ?>" class="w-4 h-4 rounded text-[#00C1D5] focus:ring-[#00C1D5] bg-transparent border-[#27272a]"<?= $l[0]==='all' ? ' checked' : '' ?>>
@@ -320,7 +328,7 @@ include __DIR__ . '/_head.php';
               </div>
               <div class="mb-6">
                 <h3 class="text-sm font-bold text-white mb-3">주제</h3>
-                <div class="grid gap-1" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+                <div class="ufs-fgrid">
                   <?php foreach (array('공통','프로그래밍','비주얼 아트','디지털 휴먼','AI','버추얼 프로덕션','프로덕션','기획','메타버스','디지털 트윈','XR(VR·AR·MR)') as $tp): ?>
                     <label class="flex items-center gap-2.5 cursor-pointer py-1">
                       <input type="checkbox" data-filter-topic="<?= e($tp) ?>" class="w-4 h-4 rounded text-[#00C1D5] focus:ring-[#00C1D5] bg-transparent border-[#27272a]">
@@ -331,7 +339,7 @@ include __DIR__ . '/_head.php';
               </div>
               <div class="mb-6">
                 <h3 class="text-sm font-bold text-white mb-3">제품</h3>
-                <div class="grid gap-1" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+                <div class="ufs-fgrid">
                   <?php foreach (array('UE4','UE5','UEFN','리얼리티스캔','메타휴먼','에픽게임즈 스토어','에픽 온라인 서비스','팹','퀵셀') as $pd): ?>
                     <label class="flex items-center gap-2.5 cursor-pointer py-1">
                       <input type="checkbox" data-filter-product="<?= e($pd) ?>" class="w-4 h-4 rounded text-[#00C1D5] focus:ring-[#00C1D5] bg-transparent border-[#27272a]">

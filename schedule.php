@@ -388,7 +388,7 @@ include __DIR__ . '/_head.php';
       var okL = lv.all || lv.list.length === 0 || lv.list.indexOf(l) >= 0;
       var okTopic = anyMatch(c.getAttribute('data-topics'), topics);
       var okProd  = anyMatch(c.getAttribute('data-products'), prods);
-      c.style.opacity = (okT && okL && okTopic && okProd) ? '1' : '0.5';
+      c.style.opacity = (okT && okL && okTopic && okProd) ? '1' : '0.2';
     }
   }
   // 체크박스 변경 시 즉시 적용

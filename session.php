@@ -39,9 +39,10 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
       <div class="flex flex-wrap gap-2 mb-5">
         <span class="px-1.5 py-1 text-xs rounded-[4px] <?= ufs_track_badge_home($session['track']) ?>"><?= e(ufs_track_label_day($session['track'], $session['day'])) ?></span>
         <span class="px-1.5 py-1 text-xs font-semibold rounded-[4px] bg-[#27272a] text-[#f4f4f5]"><?= e(ufs_level_label_detail($session['level'])) ?></span>
-        <?php foreach ($cats as $cat): ?>
+        <?php /* 제품(제품군) 배지 노출 제외 — 요청
+        foreach ($cats as $cat): ?>
           <span class="px-1.5 py-1 text-xs text-[#a1a1aa] border border-[#27272a] rounded-[4px]"><?= e($cat) ?></span>
-        <?php endforeach; ?>
+        <?php endforeach; */ ?>
       </div>
       <h1 class="text-3xl md:text-4xl font-bold text-[#fafafa] mb-6 tracking-tight leading-tight"><?= e($session['title']) ?></h1>
       <div class="flex flex-wrap items-center gap-6 text-sm text-[#a1a1aa] mb-6">
@@ -86,6 +87,22 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
             <?php endforeach; ?>
           </ul>
         </div>
+        <?php
+        // 키워드: 분야 → 주제 → 제품 순(중복 제거)
+        $kw = array();
+        foreach (array('field','topic','product') as $kk) {
+            if (!empty($session[$kk])) foreach ($session[$kk] as $kv) { $kv = trim($kv); if ($kv !== '' && !in_array($kv, $kw, true)) $kw[] = $kv; }
+        }
+        if ($kw): ?>
+        <div>
+          <h2 class="text-xl font-bold text-white mb-4">키워드</h2>
+          <div class="flex flex-wrap gap-2">
+            <?php foreach ($kw as $k): ?>
+              <span class="px-2.5 py-1 text-xs text-[#a1a1aa] border border-[#27272a] rounded-[4px]"><?= e($k) ?></span>
+            <?php endforeach; ?>
+          </div>
+        </div>
+        <?php endif; ?>
       </div>
 
       <!-- 우측 -->
@@ -148,8 +165,8 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
     </div>
   </section>
 
-  <!-- 관련 세션 -->
-  <?php if (count($related) > 0): ?>
+  <!-- 관련 세션 — 요청으로 비노출(if false) -->
+  <?php if (false && count($related) > 0): ?>
   <section class="max-w-7xl mx-auto px-6 pb-24">
     <h2 class="text-xl font-bold text-white mb-6">관련 세션</h2>
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">

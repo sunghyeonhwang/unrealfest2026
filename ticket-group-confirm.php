@@ -191,7 +191,7 @@ if ($err==='' && gp('action')==='register') {
         <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">입금 금액</span><span class="font-bold text-[#00C1D5] text-right">₩<?= number_format($total) ?></span></div>
         <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">입금 기한</span><span class="font-bold text-right"><?= date('Y년 m월 d일', strtotime('+'.UFS_BANK_DAYS.' days')) ?> (<?= UFS_BANK_DAYS ?>일 이내)</span></div>
       </div>
-      <div class="mt-6 pt-5 border-t border-[#27272a]">
+      <div class="mt-8 pt-7 border-t border-[#27272a]">
         <h3 class="text-base font-bold text-white mb-3">안내사항</h3>
         <ul class="space-y-2 text-sm text-[#a1a1aa] leading-relaxed">
           <li class="flex items-baseline gap-2"><span class="text-[#00C1D5] flex-shrink-0">•</span><span>위 계좌로 기한 내 입금해 주세요.</span></li>

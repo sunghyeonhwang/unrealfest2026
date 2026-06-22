@@ -249,14 +249,23 @@
   function initSchedule() {
     var sc = $('[data-schedule]');
     if (!sc) return;
-    var day = 'day1', view = 'track', fTrack = 'all', fLevel = 'all', fTopics = {}, fProducts = {};
+    var day = 'day1', view = 'track', fTopics = {}, fProducts = {};
     var fbtn = sc.querySelector('[data-filter-btn]'), fpanel = sc.querySelector('[data-filter-panel]'), fdot = sc.querySelector('[data-filter-dot]');
 
     function pickedKeys(obj) { var a = []; for (var k in obj) { if (obj[k]) a.push(k); } return a; }
+    // 체크된 항목 수집(멀티) — {list:[특정값], all:'전체'체크여부}
+    function chosen(attr) { var ck = $all('[' + attr + ']', sc), list = [], all = false; ck.forEach(function (c) { if (c.checked) { var v = c.getAttribute(attr); if (v === 'all') all = true; else list.push(v); } }); return { list: list, all: all }; }
     function topicCount() { return pickedKeys(fTopics).length; }
     function productCount() { return pickedKeys(fProducts).length; }
     function anyMatch(attrVal, picks) { if (picks.length === 0) return true; var arr = (attrVal || '').split('|'); for (var i = 0; i < picks.length; i++) { if (arr.indexOf(picks[i]) >= 0) return true; } return false; }
-    function hasFilter() { return fTrack !== 'all' || fLevel !== 'all' || topicCount() > 0 || productCount() > 0; }
+    function hasFilter() { return chosen('data-filter-track').list.length > 0 || chosen('data-filter-level').list.length > 0 || topicCount() > 0 || productCount() > 0; }
+    // '전체' 토글 관리: 특정 체크 시 전체 해제, 특정 모두 해제 시 전체 자동 체크
+    function syncAll(attr, cb) {
+      var key = cb.getAttribute(attr), allBox = sc.querySelector('[' + attr + '="all"]');
+      if (key === 'all') { if (cb.checked) { $all('[' + attr + ']', sc).forEach(function (o) { o.checked = (o.getAttribute(attr) === 'all'); }); } else { cb.checked = true; } return; }
+      if (cb.checked) { if (allBox) allBox.checked = false; }
+      else { var any = false; $all('[' + attr + ']', sc).forEach(function (o) { if (o.getAttribute(attr) !== 'all' && o.checked) any = true; }); if (!any && allBox) allBox.checked = true; }
+    }
 
     function showView(v) {
       view = v;
@@ -289,10 +298,11 @@
       var active = sc.querySelector('[data-day-content="' + day + '"]'); if (!active) return;
       var tv = active.querySelector('[data-view-content="track"]'); if (!tv) return;
       var tps = pickedKeys(fTopics), pds = pickedKeys(fProducts);
+      var trk = chosen('data-filter-track'), lvl = chosen('data-filter-level');
       $all('[data-sched-card]', tv).forEach(function (card) {
         if (card.getAttribute('data-track') === '키노트') { card.classList.remove('hidden'); return; } // 키노트 항상 표시
-        var okT = fTrack === 'all' || card.getAttribute('data-track') === fTrack;
-        var okL = fLevel === 'all' || card.getAttribute('data-level') === fLevel;
+        var okT = trk.all || trk.list.length === 0 || trk.list.indexOf(card.getAttribute('data-track')) >= 0;
+        var okL = lvl.all || lvl.list.length === 0 || lvl.list.indexOf(card.getAttribute('data-level')) >= 0;
         var okTop = anyMatch(card.getAttribute('data-topics'), tps);
         var okProd = anyMatch(card.getAttribute('data-products'), pds);
         card.classList.toggle('hidden', !(okT && okL && okTop && okProd));
@@ -312,20 +322,10 @@
     var fapply = sc.querySelector('[data-filter-apply]'); if (fapply && fpanel) fapply.addEventListener('click', function () { fpanel.classList.add('hidden'); });
 
     $all('[data-filter-track]', sc).forEach(function (cb) {
-      cb.addEventListener('change', function () {
-        var key = cb.getAttribute('data-filter-track');
-        fTrack = (fTrack === key) ? 'all' : key;
-        $all('[data-filter-track]', sc).forEach(function (o) { o.checked = (o.getAttribute('data-filter-track') === fTrack); });
-        applyFilter();
-      });
+      cb.addEventListener('change', function () { syncAll('data-filter-track', cb); applyFilter(); });
     });
     $all('[data-filter-level]', sc).forEach(function (cb) {
-      cb.addEventListener('change', function () {
-        var key = cb.getAttribute('data-filter-level');
-        fLevel = (fLevel === key) ? 'all' : key;
-        $all('[data-filter-level]', sc).forEach(function (o) { o.checked = (o.getAttribute('data-filter-level') === fLevel); });
-        applyFilter();
-      });
+      cb.addEventListener('change', function () { syncAll('data-filter-level', cb); applyFilter(); });
     });
     $all('[data-filter-topic]', sc).forEach(function (cb) {
       cb.addEventListener('change', function () { fTopics[cb.getAttribute('data-filter-topic')] = cb.checked; applyFilter(); });
@@ -335,7 +335,7 @@
     });
     var freset = sc.querySelector('[data-filter-reset]');
     if (freset) freset.addEventListener('click', function () {
-      fTrack = 'all'; fLevel = 'all'; fTopics = {}; fProducts = {};
+      fTopics = {}; fProducts = {};
       $all('[data-filter-track]', sc).forEach(function (o) { o.checked = (o.getAttribute('data-filter-track') === 'all'); });
       $all('[data-filter-level]', sc).forEach(function (o) { o.checked = (o.getAttribute('data-filter-level') === 'all'); });
       $all('[data-filter-topic]', sc).forEach(function (o) { o.checked = false; });

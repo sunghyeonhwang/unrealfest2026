@@ -26,7 +26,7 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
   echo '<div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">티켓 <span class="text-[#00C1D5]">*</span></label>';
   echo '<select name="'.e($nTicket).'" data-pick-ticket class="'.$SEL_CLS.'"><option value="">티켓 선택</option>';
   foreach ($TKT as $t) echo '<option value="'.e($t['code']).'" data-price="'.(int)$t['price'].'" data-days="'.e($t['days']).'">'.e($t['label']).' (₩'.number_format($t['price']).')</option>';
-  if ($allowNone) echo '<option value="NONE" data-price="0" data-days="">미참가 (등록만, 비참석)</option>';
+  if ($allowNone) echo '<option value="NONE" data-price="0" data-days="">결제만 (비참석 · 등록 인원 제외)</option>';
   echo '</select></div>';
   // Day1
   echo '<div class="space-y-2" data-track-wrap data-day="1"><label class="text-sm font-medium text-[#a1a1aa]">Day1 트랙 <span class="text-[#00C1D5]">*</span></label>';

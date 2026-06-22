@@ -347,8 +347,8 @@ include __DIR__ . '/_head.php';
       <div data-view-content="track"><?php ufs_render_track_view($day2); ?></div>
       <div data-view-content="grid" class="hidden"><?php ufs_render_grid_view($day2, 2); ?></div>
     </div>
+    <p class="text-right text-xs text-[#71717a] mt-6">※ 세션 내용, 발표자 및 일정은 사정에 따라 변경될 수 있습니다.</p>
   </div>
-  <p class="text-right text-xs text-[#71717a] mt-4 px-6">※ 세션 내용, 발표자 및 일정은 사정에 따라 변경될 수 있습니다.</p>
 </div>
 
 <script>

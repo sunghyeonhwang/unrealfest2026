@@ -283,6 +283,12 @@ include __DIR__ . '/_head.php';
       th.ufs-gtime{width:44px!important}
       /* 시간: 모바일에서만 3줄(시작/~/끝) */
       .ufs-tt{display:block}
+      /* 필터 패널: 모바일은 fixed 전체폭 오버레이로 — sticky 바에 가려/잘리지 않게 */
+      [data-filter-panel]{
+        position:fixed!important; left:1rem!important; right:1rem!important; top:120px!important;
+        width:auto!important; max-width:none!important; max-height:calc(100vh - 140px)!important;
+        overflow-y:auto!important;
+      }
     }
   </style>
   <!-- 컨트롤 바 -->

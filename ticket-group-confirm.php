@@ -4,6 +4,10 @@
  * 신규 테이블: cb_unreal_2026_group / cb_unreal_2026_group_member. PHP 7.0 호환.
  */
 require __DIR__ . '/_ticket_init.php'; // common.php + e() + $UFS_TRACKS + _pricing
+require_once __DIR__ . '/_sms.php';    // 무통장 입금 안내 LMS
+
+define('UFS_BANK_INFO', '국민은행 98983000004185 (주)그리프');
+define('UFS_BANK_DAYS', 5); // 입금 기한(일)
 
 function gp($k){ return isset($_POST[$k]) ? trim($_POST[$k]) : ''; }
 function garr($k){ return (isset($_POST[$k]) && is_array($_POST[$k])) ? $_POST[$k] : array(); }
@@ -30,7 +34,7 @@ function coupon_percent($code){
 $rep = array(
     'name'=>gp('apply_user_name'), 'email'=>gp('apply_user_email'), 'phone'=>gp('apply_user_phone'),
     'job'=>gp('apply_user_job'), 'company'=>gp('apply_user_company'), 'depart'=>gp('apply_user_depart'),
-    'grade'=>gp('apply_user_grade'), 'ex1'=>gp('apply_user_ex1'), 'ci'=>gp('apply_ci'), 'di'=>gp('apply_di'),
+    'grade'=>gp('apply_user_grade'), 'ex1'=>gp('apply_user_ex1'), 'biznum'=>gp('apply_user_biznum'), 'ci'=>gp('apply_ci'), 'di'=>gp('apply_di'),
     'ticket'=>gp('rep_ticket'), 'day1'=>gp('rep_day1'), 'day2'=>gp('rep_day2'), 'tshirt'=>gp('rep_tshirt'),
 );
 $paymethod = (gp('group_paymethod')==='bank') ? 'bank' : 'card';
@@ -62,7 +66,7 @@ $member_count = 0; foreach ($attendees as $a){ if ($a['role']==='member') $membe
 // ── 검증
 $err = '';
 if ($rep['ci']==='') $err = '대표자 본인 인증이 필요합니다.';
-elseif ($rep['name']==='' || $rep['email']==='' || $rep['phone']==='' || $rep['company']==='' || $rep['depart']==='' || $rep['job']==='' || $rep['grade']==='' || $rep['ex1']==='') $err = '대표자 정보를 모두 입력해 주세요.';
+elseif ($rep['name']==='' || $rep['email']==='' || $rep['phone']==='' || $rep['company']==='' || $rep['depart']==='' || $rep['job']==='' || $rep['grade']==='' || $rep['ex1']==='' || $rep['biznum']==='') $err = '대표자 정보(사업자등록번호 포함)를 모두 입력해 주세요.';
 elseif ($member_count < 4) $err = '대표자 외 최소 4인을 입력해 주세요.';
 elseif (count($attendees) < 1) $err = '참석 인원이 없습니다.';
 if ($err==='') {
@@ -88,19 +92,38 @@ unset($a);
 // ── 등록 처리
 $done = false; $grp_code = '';
 if ($err==='' && gp('action')==='register') {
-    sql_query("CREATE TABLE IF NOT EXISTS cb_unreal_2026_group (grp_no INT UNSIGNED NOT NULL AUTO_INCREMENT, grp_code VARCHAR(40) NOT NULL DEFAULT '', rep_name VARCHAR(60), rep_email VARCHAR(120), rep_phone VARCHAR(30), rep_job VARCHAR(60), rep_company VARCHAR(120), rep_depart VARCHAR(80), rep_grade VARCHAR(60), rep_ex1 VARCHAR(80), rep_ci VARCHAR(120), rep_di VARCHAR(120), rep_attend CHAR(1) DEFAULT 'Y', paymethod VARCHAR(10), coupon_code VARCHAR(40), discount_pct INT DEFAULT 0, total_amount INT DEFAULT 0, headcount INT DEFAULT 0, pay_status VARCHAR(20) DEFAULT 'pending', reg DATETIME, PRIMARY KEY(grp_no), KEY k_code(grp_code)) DEFAULT CHARSET=utf8");
+    sql_query("CREATE TABLE IF NOT EXISTS cb_unreal_2026_group (grp_no INT UNSIGNED NOT NULL AUTO_INCREMENT, grp_code VARCHAR(40) NOT NULL DEFAULT '', rep_name VARCHAR(60), rep_email VARCHAR(120), rep_phone VARCHAR(30), rep_job VARCHAR(60), rep_company VARCHAR(120), rep_biznum VARCHAR(30), rep_depart VARCHAR(80), rep_grade VARCHAR(60), rep_ex1 VARCHAR(80), rep_ci VARCHAR(120), rep_di VARCHAR(120), rep_attend CHAR(1) DEFAULT 'Y', paymethod VARCHAR(10), coupon_code VARCHAR(40), discount_pct INT DEFAULT 0, total_amount INT DEFAULT 0, headcount INT DEFAULT 0, pay_status VARCHAR(20) DEFAULT 'pending', pay_tid VARCHAR(60) DEFAULT '', pay_applnum VARCHAR(40) DEFAULT '', paid_at DATETIME DEFAULT NULL, reg DATETIME, PRIMARY KEY(grp_no), KEY k_code(grp_code)) DEFAULT CHARSET=utf8");
+    @sql_query("ALTER TABLE cb_unreal_2026_group ADD COLUMN rep_biznum VARCHAR(30)");
+    @sql_query("ALTER TABLE cb_unreal_2026_group ADD COLUMN pay_tid VARCHAR(60) DEFAULT ''");
+    @sql_query("ALTER TABLE cb_unreal_2026_group ADD COLUMN pay_applnum VARCHAR(40) DEFAULT ''");
+    @sql_query("ALTER TABLE cb_unreal_2026_group ADD COLUMN paid_at DATETIME DEFAULT NULL");
     sql_query("CREATE TABLE IF NOT EXISTS cb_unreal_2026_group_member (gm_no INT UNSIGNED NOT NULL AUTO_INCREMENT, grp_no INT NOT NULL, role VARCHAR(10), name VARCHAR(60), email VARCHAR(120), phone VARCHAR(30), job VARCHAR(60), company VARCHAR(120), depart VARCHAR(80), grade VARCHAR(60), ex1 VARCHAR(80), ticket VARCHAR(20), day1 VARCHAR(20), day2 VARCHAR(20), tshirt VARCHAR(10), price INT DEFAULT 0, PRIMARY KEY(gm_no), KEY k_grp(grp_no)) DEFAULT CHARSET=utf8");
 
     $grp_code = 'G'.date('ymdHis').rand(100,999);
     $f = function($v){ return "'".sql_real_escape_string($v)."'"; };
-    sql_query("INSERT INTO cb_unreal_2026_group (grp_code,rep_name,rep_email,rep_phone,rep_job,rep_company,rep_depart,rep_grade,rep_ex1,rep_ci,rep_di,rep_attend,paymethod,coupon_code,discount_pct,total_amount,headcount,pay_status,reg) VALUES (".
-        $f($grp_code).",".$f($rep['name']).",".$f($rep['email']).",".$f($rep['phone']).",".$f($rep['job']).",".$f($rep['company']).",".$f($rep['depart']).",".$f($rep['grade']).",".$f($rep['ex1']).",".$f($rep['ci']).",".$f($rep['di']).",".$f($rep_attend).",".$f($paymethod).",".$f($coupon_code).",".(int)$eff.",".(int)$total.",".(int)count($attendees).",'pending',now())");
+    sql_query("INSERT INTO cb_unreal_2026_group (grp_code,rep_name,rep_email,rep_phone,rep_job,rep_company,rep_biznum,rep_depart,rep_grade,rep_ex1,rep_ci,rep_di,rep_attend,paymethod,coupon_code,discount_pct,total_amount,headcount,pay_status,reg) VALUES (".
+        $f($grp_code).",".$f($rep['name']).",".$f($rep['email']).",".$f($rep['phone']).",".$f($rep['job']).",".$f($rep['company']).",".$f($rep['biznum']).",".$f($rep['depart']).",".$f($rep['grade']).",".$f($rep['ex1']).",".$f($rep['ci']).",".$f($rep['di']).",".$f($rep_attend).",".$f($paymethod).",".$f($coupon_code).",".(int)$eff.",".(int)$total.",".(int)count($attendees).",'pending',now())");
     $grp_no = (int)sql_insert_id();
     foreach ($attendees as $a) {
         sql_query("INSERT INTO cb_unreal_2026_group_member (grp_no,role,name,email,phone,job,company,depart,grade,ex1,ticket,day1,day2,tshirt,price) VALUES (".
             (int)$grp_no.",".$f($a['role']).",".$f($a['name']).",".$f($a['email']).",".$f($a['phone']).",".$f($a['job']).",".$f($a['company']).",".$f($a['depart']).",".$f($a['grade']).",".$f($a['ex1']).",".$f($a['ticket']).",".$f($a['day1']).",".$f($a['day2']).",".$f($a['tshirt']).",".(int)$a['price'].")");
     }
     $done = true;
+
+    if ($paymethod === 'card') {
+        // 카드: INICIS 일괄 결제 페이지로 이동
+        header('Location: ticket-group-pay.php?g='.(int)$grp_no.'&t='.rawurlencode($grp_code)); exit;
+    } else {
+        // 무통장: 대표자에게 입금 안내 LMS
+        $deadline = date('Y년 m월 d일', strtotime('+'.UFS_BANK_DAYS.' days'));
+        $lms = "[언리얼 페스트 서울 2026] 단체 등록 입금 안내\n".
+               "접수번호: ".$grp_code."\n".
+               "입금금액: ".number_format($total)."원\n".
+               "입금계좌: ".UFS_BANK_INFO."\n".
+               "입금기한: ".$deadline." (".UFS_BANK_DAYS."일 이내)\n".
+               "기한 내 미입금 시 자동 취소될 수 있습니다.";
+        @ufs_send_text_sms($rep['name'], $rep['phone'], '언리얼 페스트 서울 2026', $lms, 'group-bank');
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -132,13 +155,14 @@ if ($err==='' && gp('action')==='register') {
     <h1 class="text-2xl md:text-3xl font-bold mb-2">단체 등록이 접수되었습니다</h1>
     <p class="text-[#a1a1aa] mb-8">접수번호 <b class="text-[#00C1D5]"><?= e($grp_code) ?></b> · 총 <?= count($attendees) ?>명 · 결제 금액 ₩<?= number_format($total) ?></p>
     <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mb-6">
-      <p class="text-[#a1a1aa] leading-relaxed">
-        <?php if ($paymethod==='card'): ?>
-        선택하신 <b class="text-white">신용카드</b> 결제 단계는 현재 준비 중입니다(Phase 3). 접수 내역은 저장되었으며, 결제 연동 완료 후 안내드립니다.
-        <?php else: ?>
-        선택하신 <b class="text-white">무통장 입금</b> 안내(계좌·금액·기한 + 통장/사업자등록증)는 현재 준비 중입니다(Phase 3). 접수 내역은 저장되었으며, 대표자 연락처로 입금 안내가 발송될 예정입니다.
-        <?php endif; ?>
-      </p>
+      <h2 class="text-lg font-bold text-white mb-4">무통장 입금 안내</h2>
+      <div class="space-y-3 text-sm">
+        <div class="flex justify-between gap-4"><span class="text-[#71717a]">입금 계좌</span><span class="font-bold text-right">국민은행 98983000004185</span></div>
+        <div class="flex justify-between gap-4"><span class="text-[#71717a]">예금주</span><span class="font-bold text-right">(주)그리프</span></div>
+        <div class="flex justify-between gap-4"><span class="text-[#71717a]">입금 금액</span><span class="font-bold text-[#00C1D5] text-right">₩<?= number_format($total) ?></span></div>
+        <div class="flex justify-between gap-4"><span class="text-[#71717a]">입금 기한</span><span class="font-bold text-right"><?= date('Y년 m월 d일', strtotime('+'.UFS_BANK_DAYS.' days')) ?> (<?= UFS_BANK_DAYS ?>일 이내)</span></div>
+      </div>
+      <p class="text-xs text-[#71717a] mt-4 leading-relaxed">위 계좌로 기한 내 입금해 주세요. 입금 안내는 대표자 연락처로도 발송되었습니다. 기한 내 미입금 시 자동 취소될 수 있습니다. 통장 사본·사업자등록증은 별도 안내됩니다. 입금이 확인되면 등록자분들께 안내 문자가 발송됩니다.</p>
     </div>
     <a href="index.php" class="inline-block px-6 py-3 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#090a0f] font-extrabold">홈으로</a>
 
@@ -154,6 +178,7 @@ if ($err==='' && gp('action')==='register') {
         <div class="flex justify-between gap-4"><span class="text-[#71717a]">연락처</span><span><?= e($rep['phone']) ?></span></div>
         <div class="flex justify-between gap-4"><span class="text-[#71717a]">이메일</span><span><?= e($rep['email']) ?></span></div>
         <div class="flex justify-between gap-4"><span class="text-[#71717a]">회사/소속</span><span><?= e($rep['company']) ?></span></div>
+        <div class="flex justify-between gap-4"><span class="text-[#71717a]">사업자등록번호</span><span><?= e($rep['biznum']) ?></span></div>
         <div class="flex justify-between gap-4"><span class="text-[#71717a]">참석 여부</span><span><?= $rep_attend==='Y' ? '참석' : '결제만 (비참석)' ?></span></div>
       </div>
     </div>
@@ -191,7 +216,7 @@ if ($err==='' && gp('action')==='register') {
 
     <form method="post" action="ticket-group-confirm.php">
       <?php
-      foreach (array('apply_user_name','apply_user_email','apply_user_phone','apply_user_job','apply_user_company','apply_user_depart','apply_user_grade','apply_user_ex1','apply_ci','apply_di','rep_ticket','rep_day1','rep_day2','rep_tshirt','group_paymethod','coupon_code') as $hf) {
+      foreach (array('apply_user_name','apply_user_email','apply_user_phone','apply_user_job','apply_user_company','apply_user_biznum','apply_user_depart','apply_user_grade','apply_user_ex1','apply_ci','apply_di','rep_ticket','rep_day1','rep_day2','rep_tshirt','group_paymethod','coupon_code') as $hf) {
         echo '<input type="hidden" name="'.e($hf).'" value="'.e(gp($hf)).'">';
       }
       foreach (array('member_name'=>$mName,'member_email'=>$mEmail,'member_phone'=>$mPhone,'member_depart'=>$mDepart,'member_grade'=>$mGrade,'member_ex1'=>$mEx1,'member_ticket'=>$mTicket,'member_day1'=>$mD1,'member_day2'=>$mD2,'member_tshirt'=>$mTshirt) as $fn=>$arr) {

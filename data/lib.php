@@ -157,8 +157,8 @@ function ufs_level_label_sessions($level) { // 세션목록: 전체 참가자→
     $m = array('전체 참가자'=>'All Levels', '초보자용'=>'초급', '중급자용'=>'중급', '전문가용'=>'고급');
     return isset($m[$level]) ? $m[$level] : $level;
 }
-function ufs_level_label_detail($level) { // 세션상세: 전체/초보자/중급/전문가
-    $m = array('전체 참가자'=>'전체', '초보자용'=>'초보자', '중급자용'=>'중급', '전문가용'=>'전문가');
+function ufs_level_label_detail($level) { // 세션상세: 전체/초급/중급/고급 (전 페이지 통일)
+    $m = array('전체 참가자'=>'전체', '초보자용'=>'초급', '중급자용'=>'중급', '전문가용'=>'고급');
     return isset($m[$level]) ? $m[$level] : $level;
 }
 // 세션상세 키워드 트랙 배지 (키노트 포함)

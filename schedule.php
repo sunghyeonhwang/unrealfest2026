@@ -53,6 +53,13 @@ function ufs_render_track_view($daySessions) {
             echo '<div class="w-[120px] md:w-[160px] flex-shrink-0 flex items-center justify-center"><div class="text-base font-bold text-white tracking-tight text-center">'.e($time).'</div></div>';
             echo '<div class="flex-grow border-l border-[#27272a]">';
             foreach ($inSlot as $s) {
+                if (!empty($s['_slot_type']) && $s['_slot_type'] === 'welcome') {
+                    $wsp = $s['speaker']; $wline = trim($wsp['company'].' '.$wsp['name'].' '.$wsp['role']);
+                    echo '<div data-sched-common class="h-full flex flex-col justify-center px-6 text-left text-sm font-semibold text-[#71717a] bg-[#0b0c10]"><div>'.e(ufs_slot_common_label($s)).'</div>';
+                    if ($wline !== '') echo '<div class="text-xs font-normal text-[#71717a] mt-1">'.e($wline).'</div>';
+                    echo '</div>';
+                    continue;
+                }
                 echo '<div data-sched-common class="h-full flex items-center justify-center px-6 text-center text-sm font-semibold text-[#71717a] bg-[#0b0c10]">'.e(ufs_slot_common_label($s)).'</div>';
             }
             echo '</div></div>';
@@ -160,8 +167,8 @@ function ufs_render_grid_view($daySessions, $day) {
                 $wsp = $cm['speaker'];
                 $wline = trim($wsp['company'].' '.$wsp['name'].' '.$wsp['role']);
                 echo '<tr class="border-b border-[#27272a] bg-[#0b0c10]"><td class="p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#0b0c10] z-10">'.e($cm['time']).'</td>';
-                echo '<td colspan="4" class="p-4 text-left"><div class="text-base font-bold text-white mb-1">'.e($cm['title']).'</div>';
-                if ($wline !== '') echo '<div class="text-sm text-[#a1a1aa]">'.e($wline).'</div>';
+                echo '<td colspan="4" class="p-3 text-center text-sm font-semibold text-[#71717a]">'.e(ufs_slot_common_label($cm));
+                if ($wline !== '') echo '<div class="text-xs font-normal text-[#71717a] mt-1">'.e($wline).'</div>';
                 echo '</td></tr>';
                 continue;
             }

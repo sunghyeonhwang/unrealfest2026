@@ -145,17 +145,17 @@ if ($err==='' && gp('action')==='register') {
 <meta name="robots" content="noindex, nofollow, noarchive">
 <title>단체 등록 확인 — Unreal Fest Seoul 2026</title>
 <link rel="stylesheet" href="<?= asset_v('assets/style.css') ?>">
-<style>*{word-break:keep-all}</style>
+<style>*{word-break:keep-all}.gwrap{max-width:56rem;margin-left:auto;margin-right:auto}</style>
 </head>
 <body class="bg-[#09090b] text-white" style="font-family:system-ui,'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
 <header class="fixed top-0 inset-x-0 z-50 bg-[#09090b]/95 backdrop-blur border-b border-[#27272a]">
-  <div class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+  <div class="gwrap px-6 h-16 flex items-center justify-between">
     <a href="index.php"><img src="white_logo.svg" alt="Unreal Fest Seoul 2026" class="h-7 w-auto"></a>
     <a href="index.php" class="text-sm text-[#a1a1aa] hover:text-white">홈으로</a>
   </div>
 </header>
 <div class="pt-32 pb-24 min-h-screen">
-  <div class="max-w-5xl mx-auto px-6">
+  <div class="gwrap px-6">
 
   <?php if ($err !== ''): ?>
     <h1 class="text-2xl font-bold mb-4">입력 확인이 필요합니다</h1>

@@ -10,3 +10,10 @@ public/*.mp4
 # 작업 중 생성 백업
 *.bak-*
 *.bak
+
+# repo 관리 대상 아님(업로드 자산/임시)
+_agfix.php
+hero_new_main_logo.svg
+image/
+picture/
+picture_upload/

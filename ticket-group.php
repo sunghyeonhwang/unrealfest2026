@@ -20,7 +20,12 @@ $SEL_CLS = 'w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white out
 
 /* 참석 선택 한 줄: 티켓 · Day1트랙 · Day2트랙 · 티셔츠 (4컬럼). $allowNone=대표자 '미참가' 옵션 */
 function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = false) {
-  global $SEL_CLS;
+  global $SEL_CLS, $trackRemain;
+  $remain = is_array($trackRemain) ? $trackRemain : array();
+  $opt = function($v,$l) use ($remain) {
+    $full = (isset($remain[$v]) && (int)$remain[$v] <= 0);
+    return '<option value="'.e($v).'"'.($full?' disabled':'').'>'.e($l).($full?' (마감)':'').'</option>';
+  };
   echo '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-start">';
   // 티켓
   echo '<div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">티켓 <span class="text-[#00C1D5]">*</span></label>';
@@ -31,12 +36,12 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
   // Day1
   echo '<div class="space-y-2" data-track-wrap data-day="1"><label class="text-sm font-medium text-[#a1a1aa]">Day1 트랙 <span class="text-[#00C1D5]">*</span></label>';
   echo '<select name="'.e($nD1).'" data-day="1" class="'.$SEL_CLS.'"><option value="">Day1 트랙</option>';
-  foreach ($TR[1] as $v=>$l) echo '<option value="'.e($v).'">'.e($l).'</option>';
+  foreach ($TR[1] as $v=>$l) echo $opt($v,$l);
   echo '</select></div>';
   // Day2
   echo '<div class="space-y-2" data-track-wrap data-day="2"><label class="text-sm font-medium text-[#a1a1aa]">Day2 트랙 <span class="text-[#00C1D5]">*</span></label>';
   echo '<select name="'.e($nD2).'" data-day="2" class="'.$SEL_CLS.'"><option value="">Day2 트랙</option>';
-  foreach ($TR[2] as $v=>$l) echo '<option value="'.e($v).'">'.e($l).'</option>';
+  foreach ($TR[2] as $v=>$l) echo $opt($v,$l);
   echo '</select></div>';
   // 티셔츠 (드롭박스)
   echo '<div class="space-y-2" data-tshirt-wrap><label class="text-sm font-medium text-[#a1a1aa]">티셔츠 <span class="text-[#00C1D5]">*</span></label>';

@@ -50,6 +50,10 @@ if ($g['coupon_code'] !== '') {
     @sql_query("UPDATE cb_unreal_2026_coupon SET cp_used=cp_used+1 WHERE cp_code='".sql_real_escape_string($g['coupon_code'])."'");
 }
 
+// 등록현황(apply) 반영 + QR
+require_once __DIR__ . '/_group_apply.php';
+@ufs_group_reflect($grp_no);
+
 // ③ 카드 결제완료 → 대표자 LMS
 $lms = "[언리얼 페스트 서울 2026] 단체 등록 결제가 완료되었습니다.\n".
        "접수번호: ".$g['grp_code']." · ".(int)$g['headcount']."명\n".

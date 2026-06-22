@@ -85,6 +85,20 @@ if ($err==='') {
 if ($err==='' && $tax['req']==='Y') {
     if ($rep['biznum']==='' || $tax['ceo']==='' || $tax['addr']==='' || $tax['biztype']==='' || $tax['bizitem']==='') $err = '세금계산서 발행 정보(사업자등록번호·주소·대표자명·업태·종목)를 모두 입력해 주세요.';
 }
+// 트랙 정원 재확인 (이 단체의 동일 트랙 인원 포함)
+if ($err==='') {
+    $wantCnt = array();
+    foreach ($attendees as $a) { foreach (array($a['day1'],$a['day2']) as $tk){ $tk=trim($tk); if($tk==='')continue; $wantCnt[$tk]=(isset($wantCnt[$tk])?$wantCnt[$tk]:0)+1; } }
+    foreach ($wantCnt as $tk=>$want) {
+        $tke = sql_real_escape_string($tk);
+        $cap = sql_fetch("select date1 from 2026_event_ticket where name='$tke'");
+        $capN = $cap ? (int)$cap['date1'] : 0;
+        if ($capN <= 0) continue;
+        $reg = sql_fetch("select count(*) c from cb_unreal_2026_event2_apply where apply_temp_yn='N' and apply_pay_status<>0 and apply_track like '%$tke%'");
+        $regN = $reg ? (int)$reg['c'] : 0;
+        if ($regN + $want > $capN) { $err = track_label($tk,$UFS_TRACKS).' 트랙이 마감되어 등록할 수 없습니다. 고객센터(02-326-3701)로 문의해 주세요.'; break; }
+    }
+}
 
 // ── 금액(서버 재계산): 유효할인 = max(단체할인, 쿠폰) — 중복 안 됨
 $gdisc = ufs_group_discount();

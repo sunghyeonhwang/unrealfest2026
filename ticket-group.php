@@ -151,10 +151,10 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
       <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mt-4">
         <h2 class="text-lg font-bold text-white mb-5">결제 수단</h2>
         <div class="space-y-3" id="gPay">
-          <label class="gpay flex items-center gap-3 p-4 border border-[#00C1D5] bg-[rgba(0,79,89,0.2)] cursor-pointer" data-pay="card">
+          <label class="gpay flex items-center gap-4 px-6 py-5 my-1 border border-[#00C1D5] bg-[rgba(0,79,89,0.2)] cursor-pointer" data-pay="card">
             <input type="radio" name="gpay" value="card" checked class="accent-[#00C1D5] w-4 h-4">
             <span class="text-white font-medium text-sm">신용카드</span><span class="text-xs text-[#71717a]">PG 결제창에서 일괄 결제</span></label>
-          <label class="gpay flex items-center gap-3 p-4 border border-[#27272a] bg-[#111115] cursor-pointer hover:border-white/20" data-pay="bank">
+          <label class="gpay flex items-center gap-4 px-6 py-5 my-1 border border-[#27272a] bg-[#111115] cursor-pointer hover:border-white/20" data-pay="bank">
             <input type="radio" name="gpay" value="bank" class="accent-[#00C1D5] w-4 h-4">
             <span class="text-white font-medium text-sm">무통장 입금</span><span class="text-xs text-[#71717a]">계좌·금액·기한 안내(LMS) 후 입금</span></label>
         </div>

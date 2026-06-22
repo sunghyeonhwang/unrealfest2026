@@ -13,7 +13,7 @@ $paid = ($g['pay_status'] === 'paid');
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow"><title>단체 등록 완료 — Unreal Fest Seoul 2026</title>
 <link rel="stylesheet" href="<?= asset_v('assets/style.css') ?>"><style>*{word-break:keep-all}</style></head>
-<body class="bg-[#09090b] text-white" style="font-family:system-ui,'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
+<body class="bg-[#09090b] text-white min-h-screen flex flex-col" style="font-family:system-ui,'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
 <script>try{localStorage.removeItem('ufs_group_form')}catch(e){}</script>
 <header class="fixed top-0 inset-x-0 z-50 bg-[#09090b]/95 backdrop-blur border-b border-[#27272a]">
   <div class="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -21,7 +21,8 @@ $paid = ($g['pay_status'] === 'paid');
     <a href="index.php" class="text-sm text-[#a1a1aa] hover:text-white">홈으로</a>
   </div>
 </header>
-<div class="max-w-xl mx-auto px-6 py-32 text-center">
+<main class="flex-grow flex items-center justify-center px-6 pt-24 pb-12">
+<div class="max-w-xl w-full text-center">
   <svg class="w-16 h-16 mx-auto mb-6 text-[#00C1D5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>
   <h1 class="text-2xl md:text-3xl font-bold mb-2"><?= $paid ? '단체 등록 결제가 완료되었습니다' : '단체 등록이 접수되었습니다' ?></h1>
   <p class="text-[#a1a1aa] mb-8">접수번호 <b class="text-[#00C1D5]"><?= e($g['grp_code']) ?></b></p>
@@ -33,4 +34,12 @@ $paid = ($g['pay_status'] === 'paid');
     <div class="flex justify-between gap-4"><span class="text-[#71717a]">상태</span><span class="font-bold"><?= $paid ? '결제 완료' : '입금 대기' ?></span></div>
   </div>
   <a href="index.php" class="inline-block px-8 py-3.5 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#090a0f] font-extrabold transition-colors">홈으로</a>
-</div></body></html>
+</div>
+</main>
+<footer class="border-t border-[#27272a] py-8">
+  <div class="max-w-3xl mx-auto px-6 text-center text-xs text-[#71717a] space-y-1">
+    <p>© 2026 Unreal Fest Seoul · 주최 Epic Games · 주관 (주)그리프</p>
+    <p>문의 <a href="mailto:info@epiclounge.co.kr" class="hover:text-white">info@epiclounge.co.kr</a> · <a href="tel:02-326-3701" class="hover:text-white">02-326-3701</a></p>
+  </div>
+</footer>
+</body></html>

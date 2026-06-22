@@ -288,5 +288,11 @@ if ($err==='' && gp('action')==='register') {
 
   </div>
 </div>
+<footer class="border-t border-[#27272a] py-8">
+  <div class="gwrap px-6 text-center text-xs text-[#71717a] space-y-1">
+    <p>© 2026 Unreal Fest Seoul · 주최 Epic Games · 주관 (주)그리프</p>
+    <p>문의 <a href="mailto:info@epiclounge.co.kr" class="hover:text-white">info@epiclounge.co.kr</a> · <a href="tel:02-326-3701" class="hover:text-white">02-326-3701</a></p>
+  </div>
+</footer>
 </body>
 </html>

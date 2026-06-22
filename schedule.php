@@ -394,12 +394,18 @@ include __DIR__ . '/_head.php';
   // 체크박스 변경 시 즉시 적용
   var fcbs = document.querySelectorAll('[data-filter-track],[data-filter-level],[data-filter-topic],[data-filter-product]');
   for (var i = 0; i < fcbs.length; i++) fcbs[i].addEventListener('change', applyGrid);
-  // 초기화 버튼: app.js 상단 Reset 로직 실행 + 그리드 리셋
+  // 그리드 필터 초기화: 체크박스 직접 리셋(트랙/난이도='전체', 주제/제품 해제) + 즉시 그리드 재적용
+  // (app.js 초기화 타이밍에 의존하지 않도록 자족적으로 처리 → 한 번 클릭으로 반영)
+  function ufsGridReset(){
+    var setAll = function(a){ var ck=document.querySelectorAll('['+a+']'); for(var i=0;i<ck.length;i++) ck[i].checked=(ck[i].getAttribute(a)==='all'); };
+    var clr = function(a){ var ck=document.querySelectorAll('['+a+']'); for(var i=0;i<ck.length;i++) ck[i].checked=false; };
+    setAll('data-filter-track'); setAll('data-filter-level'); clr('data-filter-topic'); clr('data-filter-product');
+    applyGrid();
+  }
   var gr = document.querySelector('[data-grid-reset]');
-  if (gr) gr.addEventListener('click', function(){ var tr = document.querySelector('[data-filter-reset]'); if (tr) tr.click(); setTimeout(applyGrid, 0); });
-  // 상단 'Reset' 링크: app.js가 체크박스만 초기화(프로그램적 변경은 change 미발생) → 그리드 흐림도 재적용
+  if (gr) gr.addEventListener('click', function(){ var tr = document.querySelector('[data-filter-reset]'); if (tr && tr !== gr) tr.click(); ufsGridReset(); });
   var frl = document.querySelector('[data-filter-reset]');
-  if (frl) frl.addEventListener('click', function(){ setTimeout(applyGrid, 0); });
+  if (frl) frl.addEventListener('click', ufsGridReset);
   applyGrid();
 })();
 </script>

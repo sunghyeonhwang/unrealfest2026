@@ -133,11 +133,12 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR) {
       <!-- 멤버 명단 -->
       <div class="flex items-center justify-between mt-2 mb-1 px-1">
         <div class="text-sm font-bold text-white">함께 참석하는 인원 <span id="gMemCount" class="text-[#00C1D5]">(0명)</span></div>
-        <div class="flex gap-2">
+        <div class="flex gap-2" data-grp-tools>
           <a href="downloads/group_template.csv" download class="px-3 py-2 text-xs font-bold border border-[#27272a] text-[#a1a1aa] hover:border-white/20 hover:text-white transition-all">양식 다운로드</a>
           <label class="px-3 py-2 text-xs font-bold border border-[#27272a] text-[#a1a1aa] hover:border-white/20 hover:text-white transition-all cursor-pointer">양식 업로드<input type="file" id="gUpload" accept=".csv" class="hidden"></label>
         </div>
       </div>
+      <p class="text-xs text-[#71717a] mb-3 px-1">※ 함께 참석하는 인원의 <b class="text-[#a1a1aa]">직업·회사명</b>은 대표자와 동일하게 자동 등록됩니다.</p>
       <div id="gMembers" class="space-y-4"></div>
       <button type="button" id="gAddBtn" class="mt-4 w-full py-3 border border-dashed border-[#27272a] text-[#a1a1aa] hover:border-[#00C1D5] hover:text-[#00C1D5] transition-all text-sm font-bold">+ 인원 추가</button>
 

@@ -302,7 +302,7 @@ include __DIR__ . '/_head.php';
                   foreach ($tf as $t): ?>
                     <label class="flex items-center gap-2.5 cursor-pointer py-1">
                       <input type="checkbox" data-filter-track="<?= e($t['key']) ?>" class="w-4 h-4 rounded text-[#00C1D5] focus:ring-[#00C1D5] bg-transparent border-[#27272a]"<?= $t['key']==='all' ? ' checked' : '' ?>>
-                      <span class="text-sm text-[#a1a1aa]"><?= e($t['label']) ?></span>
+                      <span class="text-xs text-[#a1a1aa]"><?= e($t['label']) ?></span>
                     </label>
                   <?php endforeach; ?>
                 </div>
@@ -313,7 +313,7 @@ include __DIR__ . '/_head.php';
                   <?php foreach (array(array('all','전체'),array('초보자용','초급'),array('중급자용','중급'),array('전문가용','고급')) as $l): ?>
                     <label class="flex items-center gap-2.5 cursor-pointer py-1">
                       <input type="checkbox" data-filter-level="<?= e($l[0]) ?>" class="w-4 h-4 rounded text-[#00C1D5] focus:ring-[#00C1D5] bg-transparent border-[#27272a]"<?= $l[0]==='all' ? ' checked' : '' ?>>
-                      <span class="text-sm text-[#a1a1aa]"><?= e($l[1]) ?></span>
+                      <span class="text-xs text-[#a1a1aa]"><?= e($l[1]) ?></span>
                     </label>
                   <?php endforeach; ?>
                 </div>
@@ -324,7 +324,7 @@ include __DIR__ . '/_head.php';
                   <?php foreach (array('공통','프로그래밍','비주얼 아트','디지털 휴먼','AI','버추얼 프로덕션','프로덕션','기획','메타버스','디지털 트윈','XR(VR·AR·MR)') as $tp): ?>
                     <label class="flex items-center gap-2.5 cursor-pointer py-1">
                       <input type="checkbox" data-filter-topic="<?= e($tp) ?>" class="w-4 h-4 rounded text-[#00C1D5] focus:ring-[#00C1D5] bg-transparent border-[#27272a]">
-                      <span class="text-sm text-[#a1a1aa]"><?= e($tp) ?></span>
+                      <span class="text-xs text-[#a1a1aa]"><?= e($tp) ?></span>
                     </label>
                   <?php endforeach; ?>
                 </div>
@@ -335,7 +335,7 @@ include __DIR__ . '/_head.php';
                   <?php foreach (array('UE4','UE5','UEFN','리얼리티스캔','메타휴먼','에픽게임즈 스토어','에픽 온라인 서비스','팹','퀵셀') as $pd): ?>
                     <label class="flex items-center gap-2.5 cursor-pointer py-1">
                       <input type="checkbox" data-filter-product="<?= e($pd) ?>" class="w-4 h-4 rounded text-[#00C1D5] focus:ring-[#00C1D5] bg-transparent border-[#27272a]">
-                      <span class="text-sm text-[#a1a1aa]"><?= e($pd) ?></span>
+                      <span class="text-xs text-[#a1a1aa]"><?= e($pd) ?></span>
                     </label>
                   <?php endforeach; ?>
                 </div>

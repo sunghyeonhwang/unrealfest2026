@@ -39,6 +39,9 @@ $rep = array(
 );
 $paymethod = (gp('group_paymethod')==='bank') ? 'bank' : 'card';
 $coupon_code = strtoupper(gp('coupon_code'));
+// 세금계산서(무통장 시에만 의미) — req=Y 일 때만 저장
+$tax = array('req'=>(($paymethod==='bank' && gp('tax_request')==='Y')?'Y':'N'),'addr'=>gp('tax_addr'),'ceo'=>gp('tax_ceo'),'biztype'=>gp('tax_biztype'),'bizitem'=>gp('tax_bizitem'));
+if ($tax['req']!=='Y') { $tax['addr']=$tax['ceo']=$tax['biztype']=$tax['bizitem']=''; }
 
 $mName=garr('member_name'); $mEmail=garr('member_email'); $mPhone=garr('member_phone');
 $mDepart=garr('member_depart'); $mGrade=garr('member_grade'); $mEx1=garr('member_ex1');
@@ -97,12 +100,17 @@ if ($err==='' && gp('action')==='register') {
     @sql_query("ALTER TABLE cb_unreal_2026_group ADD COLUMN pay_tid VARCHAR(60) DEFAULT ''");
     @sql_query("ALTER TABLE cb_unreal_2026_group ADD COLUMN pay_applnum VARCHAR(40) DEFAULT ''");
     @sql_query("ALTER TABLE cb_unreal_2026_group ADD COLUMN paid_at DATETIME DEFAULT NULL");
+    @sql_query("ALTER TABLE cb_unreal_2026_group ADD COLUMN tax_request CHAR(1) DEFAULT 'N'");
+    @sql_query("ALTER TABLE cb_unreal_2026_group ADD COLUMN tax_addr VARCHAR(200) DEFAULT ''");
+    @sql_query("ALTER TABLE cb_unreal_2026_group ADD COLUMN tax_ceo VARCHAR(60) DEFAULT ''");
+    @sql_query("ALTER TABLE cb_unreal_2026_group ADD COLUMN tax_biztype VARCHAR(80) DEFAULT ''");
+    @sql_query("ALTER TABLE cb_unreal_2026_group ADD COLUMN tax_bizitem VARCHAR(80) DEFAULT ''");
     sql_query("CREATE TABLE IF NOT EXISTS cb_unreal_2026_group_member (gm_no INT UNSIGNED NOT NULL AUTO_INCREMENT, grp_no INT NOT NULL, role VARCHAR(10), name VARCHAR(60), email VARCHAR(120), phone VARCHAR(30), job VARCHAR(60), company VARCHAR(120), depart VARCHAR(80), grade VARCHAR(60), ex1 VARCHAR(80), ticket VARCHAR(20), day1 VARCHAR(20), day2 VARCHAR(20), tshirt VARCHAR(10), price INT DEFAULT 0, PRIMARY KEY(gm_no), KEY k_grp(grp_no)) DEFAULT CHARSET=utf8");
 
     $grp_code = 'G'.date('ymdHis').rand(100,999);
     $f = function($v){ return "'".sql_real_escape_string($v)."'"; };
-    sql_query("INSERT INTO cb_unreal_2026_group (grp_code,rep_name,rep_email,rep_phone,rep_job,rep_company,rep_biznum,rep_depart,rep_grade,rep_ex1,rep_ci,rep_di,rep_attend,paymethod,coupon_code,discount_pct,total_amount,headcount,pay_status,reg) VALUES (".
-        $f($grp_code).",".$f($rep['name']).",".$f($rep['email']).",".$f($rep['phone']).",".$f($rep['job']).",".$f($rep['company']).",".$f($rep['biznum']).",".$f($rep['depart']).",".$f($rep['grade']).",".$f($rep['ex1']).",".$f($rep['ci']).",".$f($rep['di']).",".$f($rep_attend).",".$f($paymethod).",".$f($coupon_code).",".(int)$eff.",".(int)$total.",".(int)count($attendees).",'pending',now())");
+    sql_query("INSERT INTO cb_unreal_2026_group (grp_code,rep_name,rep_email,rep_phone,rep_job,rep_company,rep_biznum,rep_depart,rep_grade,rep_ex1,rep_ci,rep_di,rep_attend,paymethod,coupon_code,discount_pct,total_amount,headcount,pay_status,tax_request,tax_addr,tax_ceo,tax_biztype,tax_bizitem,reg) VALUES (".
+        $f($grp_code).",".$f($rep['name']).",".$f($rep['email']).",".$f($rep['phone']).",".$f($rep['job']).",".$f($rep['company']).",".$f($rep['biznum']).",".$f($rep['depart']).",".$f($rep['grade']).",".$f($rep['ex1']).",".$f($rep['ci']).",".$f($rep['di']).",".$f($rep_attend).",".$f($paymethod).",".$f($coupon_code).",".(int)$eff.",".(int)$total.",".(int)count($attendees).",'pending',".$f($tax['req']).",".$f($tax['addr']).",".$f($tax['ceo']).",".$f($tax['biztype']).",".$f($tax['bizitem']).",now())");
     $grp_no = (int)sql_insert_id();
     foreach ($attendees as $a) {
         sql_query("INSERT INTO cb_unreal_2026_group_member (grp_no,role,name,email,phone,job,company,depart,grade,ex1,ticket,day1,day2,tshirt,price) VALUES (".
@@ -214,9 +222,23 @@ if ($err==='' && gp('action')==='register') {
       <div class="border-t border-[#27272a] mt-4 pt-4 flex justify-between items-end"><span class="text-[#71717a]">총 결제 금액</span><span class="text-3xl font-black text-[#00C1D5]">₩<?= number_format($total) ?></span></div>
     </div>
 
+    <?php if ($tax['req']==='Y'): ?>
+    <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mb-6">
+      <h2 class="text-lg font-bold text-white mb-4">세금계산서 발행 정보</h2>
+      <div class="grid sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+        <div class="flex justify-between gap-4"><span class="text-[#71717a]">상호</span><span><?= e($rep['company']) ?></span></div>
+        <div class="flex justify-between gap-4"><span class="text-[#71717a]">사업자등록번호</span><span><?= e($rep['biznum']) ?></span></div>
+        <div class="flex justify-between gap-4"><span class="text-[#71717a]">대표자명</span><span><?= e($tax['ceo']) ?></span></div>
+        <div class="flex justify-between gap-4"><span class="text-[#71717a]">사업장 주소</span><span class="text-right"><?= e($tax['addr']) ?></span></div>
+        <div class="flex justify-between gap-4"><span class="text-[#71717a]">업태</span><span><?= e($tax['biztype']) ?></span></div>
+        <div class="flex justify-between gap-4"><span class="text-[#71717a]">종목</span><span><?= e($tax['bizitem']) ?></span></div>
+      </div>
+    </div>
+    <?php endif; ?>
+
     <form method="post" action="ticket-group-confirm.php">
       <?php
-      foreach (array('apply_user_name','apply_user_email','apply_user_phone','apply_user_job','apply_user_company','apply_user_biznum','apply_user_depart','apply_user_grade','apply_user_ex1','apply_ci','apply_di','rep_ticket','rep_day1','rep_day2','rep_tshirt','group_paymethod','coupon_code') as $hf) {
+      foreach (array('apply_user_name','apply_user_email','apply_user_phone','apply_user_job','apply_user_company','apply_user_biznum','apply_user_depart','apply_user_grade','apply_user_ex1','apply_ci','apply_di','rep_ticket','rep_day1','rep_day2','rep_tshirt','group_paymethod','coupon_code','tax_request','tax_addr','tax_ceo','tax_biztype','tax_bizitem') as $hf) {
         echo '<input type="hidden" name="'.e($hf).'" value="'.e(gp($hf)).'">';
       }
       foreach (array('member_name'=>$mName,'member_email'=>$mEmail,'member_phone'=>$mPhone,'member_depart'=>$mDepart,'member_grade'=>$mGrade,'member_ex1'=>$mEx1,'member_ticket'=>$mTicket,'member_day1'=>$mD1,'member_day2'=>$mD2,'member_tshirt'=>$mTshirt) as $fn=>$arr) {

@@ -7,6 +7,7 @@ require_once "../unrealfest2025/inisis_pc/libs/INIStdPayUtil.php";
 require_once "../unrealfest2025/inisis_pc/libs/HttpClient.php";
 require_once "../unrealfest2025/inisis_pc/libs/properties.php";
 include_once "../common.php";
+require_once __DIR__ . "/_sms.php";   // 결제완료 LMS
 
 $mid="MOIepiclou"; $signKey="Wno0S3hIQVhUZ1BKSHFYMXRIVUJpQT09";
 
@@ -48,6 +49,13 @@ sql_query("UPDATE cb_unreal_2026_group SET pay_status='paid', pay_tid='".grmv($r
 if ($g['coupon_code'] !== '') {
     @sql_query("UPDATE cb_unreal_2026_coupon SET cp_used=cp_used+1 WHERE cp_code='".sql_real_escape_string($g['coupon_code'])."'");
 }
+
+// ③ 카드 결제완료 → 대표자 LMS
+$lms = "[언리얼 페스트 서울 2026] 단체 등록 결제가 완료되었습니다.\n".
+       "접수번호: ".$g['grp_code']." · ".(int)$g['headcount']."명\n".
+       "결제금액: ".number_format((int)$g['total_amount'])."원\n".
+       "감사합니다. 문의: 02-326-3701";
+@ufs_send_text_sms($g['rep_name'], $g['rep_phone'], '언리얼 페스트 서울 2026', $lms, 'group-card-done');
 
 header("Location: ticket-group-complete.php?g=".intval($grp_no)."&t=".rawurlencode($g['grp_code']));
 exit;

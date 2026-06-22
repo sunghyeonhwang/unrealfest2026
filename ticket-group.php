@@ -162,6 +162,25 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
         </div>
       </div>
 
+      <!-- 세금계산서 (무통장 입금 시에만 노출) -->
+      <div id="taxSection" class="hidden bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mt-4">
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" id="taxReq" name="tax_request" value="Y" class="accent-[#00C1D5] w-4 h-4">
+          <span class="text-lg font-bold text-white">세금계산서 발행 신청</span>
+        </label>
+        <p class="text-xs text-[#71717a] mt-2">상호·사업자등록번호는 대표자 정보를 사용합니다. 신청 시 아래 추가 정보를 입력해 주세요.</p>
+        <div id="taxFields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+          <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">사업장 주소</label>
+            <input type="text" name="tax_addr" placeholder="서울특별시 ..." class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
+          <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">(법인) 대표자명</label>
+            <input type="text" name="tax_ceo" placeholder="홍길동" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
+          <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">업태</label>
+            <input type="text" name="tax_biztype" placeholder="서비스업" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
+          <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">종목</label>
+            <input type="text" name="tax_bizitem" placeholder="소프트웨어 개발" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
+        </div>
+      </div>
+
       <!-- 등록 요약 (최하단) -->
       <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mt-4">
         <h2 class="text-lg font-bold text-white mb-5">등록 요약</h2>

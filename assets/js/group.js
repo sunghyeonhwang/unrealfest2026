@@ -107,9 +107,21 @@
         this.classList.remove('border-[#27272a]', 'bg-[#111115]');
         this.classList.add('border-[#00C1D5]', 'bg-[rgba(0,79,89,0.2)]');
         this.querySelector('input').checked = true;
-        document.getElementById('group_paymethod').value = this.getAttribute('data-pay');
+        var pay = this.getAttribute('data-pay');
+        document.getElementById('group_paymethod').value = pay;
+        var taxSec = document.getElementById('taxSection');
+        if (taxSec) {
+          if (pay === 'bank') { taxSec.classList.remove('hidden'); }
+          else { taxSec.classList.add('hidden'); var t=document.getElementById('taxReq'); if(t) t.checked=false; var tf=document.getElementById('taxFields'); if(tf) tf.classList.add('hidden'); }
+        }
       });
     }
+  })();
+
+  // 세금계산서 체크 → 필드 토글
+  (function bindTax(){
+    var t=document.getElementById('taxReq'); var tf=document.getElementById('taxFields'); if(!t||!tf) return;
+    t.addEventListener('change', function(){ tf.classList.toggle('hidden', !t.checked); });
   })();
 
   // 쿠폰 적용

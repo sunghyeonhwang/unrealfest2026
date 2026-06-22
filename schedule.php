@@ -155,6 +155,16 @@ function ufs_render_grid_view($daySessions, $day) {
         }
         // 공통 행(풀폭, 클릭 불가)
         foreach ($commons as $cm) {
+            // 환영사: 키노트처럼 좌측정렬 + 연사(소속·이름·직함) 표시
+            if (!empty($cm['_slot_type']) && $cm['_slot_type'] === 'welcome') {
+                $wsp = $cm['speaker'];
+                $wline = trim($wsp['company'].' '.$wsp['name'].' '.$wsp['role']);
+                echo '<tr class="border-b border-[#27272a] bg-[#0b0c10]"><td class="p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#0b0c10] z-10">'.e($cm['time']).'</td>';
+                echo '<td colspan="4" class="p-4 text-left"><div class="text-base font-bold text-white mb-1">'.e($cm['title']).'</div>';
+                if ($wline !== '') echo '<div class="text-sm text-[#a1a1aa]">'.e($wline).'</div>';
+                echo '</td></tr>';
+                continue;
+            }
             echo '<tr class="border-b border-[#27272a] bg-[#0b0c10]"><td class="p-3 text-sm font-bold text-white align-middle text-center sticky left-0 bg-[#0b0c10] z-10">'.e($cm['time']).'</td>';
             echo '<td colspan="4" class="p-3 text-center text-sm font-semibold text-[#71717a]">'.e(ufs_slot_common_label($cm)).'</td></tr>';
         }

@@ -31,6 +31,9 @@ if ($row) {
 <?php include __DIR__ . '/_favicon.php'; ?>
 <?php if (defined('_GNUBOARD_')) include __DIR__ . '/../inc/marketing_head.php'; /* 라운지 전역 SEO/마케팅 */ ?>
 <?php include __DIR__.'/_wcs.php'; ?>
+<?php if (!empty($ufs_conv) && !empty($seo_kakao_pixel_id)): /* 카카오 전환(서비스신청) — 등록 완료 시점. 픽셀ID는 config(v3_seo_config) */ ?>
+<script type="text/javascript">if(window.kakaoPixel)kakaoPixel('<?= htmlspecialchars($seo_kakao_pixel_id, ENT_QUOTES, 'UTF-8') ?>').signUp();</script>
+<?php endif; ?>
 </head>
 <body class="bg-[#09090b] text-white" style="font-family:system-ui,'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
 <header class="fixed top-0 inset-x-0 z-50 bg-[#09090b]/95 backdrop-blur border-b border-[#27272a]">

@@ -73,8 +73,8 @@ if (!isset($is_home)) { $is_home = false; }
     <div class="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-slate-500">
       <p>© 2026 Epic Games, Inc. All Rights Reserved. Unreal 및 그 로고의 저작권은 Epic Games, Inc. 에 있으며, 이는 미국 및 그 외 국가에 모두 해당됩니다.</p>
       <div class="flex gap-6">
-        <?php foreach (ufs_footer_legal_links() as $label): ?>
-          <a href="#" class="hover:text-white transition-colors"><?= e($label) ?></a>
+        <?php foreach (ufs_footer_legal_links() as $label => $url): ?>
+          <a href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors"><?= e($label) ?></a>
         <?php endforeach; ?>
       </div>
     </div>

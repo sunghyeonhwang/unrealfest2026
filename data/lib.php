@@ -78,7 +78,10 @@ function ufs_footer_epic_links() {
     );
 }
 function ufs_footer_legal_links() {
-    return array('이용약관', '개인정보처리방침', '쿠키 정책');
+    return array(
+        '이용약관' => 'https://epiclounge.co.kr/v3/contents/v4/ode.php',
+        '개인정보처리방침' => 'https://epiclounge.co.kr/v3/contents/v4/personal.php',
+    );
 }
 
 /* ───────── 트랙 메타 (전체키 → 표시/색상) ─────────

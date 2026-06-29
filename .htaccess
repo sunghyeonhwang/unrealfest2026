@@ -1,5 +1,6 @@
-# Unreal Fest Seoul 2026 — 검색엔진 색인 차단 (비공개/테스트 기간)
-# 정식 공개 시 이 파일을 제거하거나 아래 헤더를 주석 처리하세요.
+# Unreal Fest Seoul 2026 — 검색엔진 색인 설정
+# 정식 공개(2026-06-29): 디렉터리 전체 noindex 해제. 거래/완료 페이지는 각 페이지의 <meta robots noindex>로 개별 보호됨.
+# 비공개로 되돌리려면 아래 Header 줄의 주석을 해제하세요.
 <IfModule mod_headers.c>
-  Header set X-Robots-Tag "noindex, nofollow, noarchive"
+#  Header set X-Robots-Tag "noindex, nofollow, noarchive"
 </IfModule>

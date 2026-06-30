@@ -11,6 +11,9 @@ public/*.mp4
 *.bak-*
 *.bak
 
+# 서버 전용 비밀값(카카오 CAPI 토큰 등) — git 추적 금지, SFTP 전용
+_secret_kakao.php
+
 # repo 관리 대상 아님(업로드 자산/임시)
 _agfix.php
 hero_new_main_logo.svg

@@ -153,5 +153,9 @@ if (file_exists("../unrealfest2025/phpqrcode/qrlib.php")) {
 // 카드 등 즉시완료 → QR jpg 첨부 MMS 발송 (운영 전환 시 발송; QR 파일 생성 후 호출)
 ufs_send_qr_mms($prev['apply_user_name'], $prev['apply_user_phone'], $apply_no, $prev['apply_product_code']);
 
+// 카카오 Conversion API(서버 전송) — 광고 수신동의 시 Purchase 전환 (비차단)
+require_once __DIR__ . '/_kakao_capi.php';
+@ufs_kakao_capi_send($prev);
+
 header("Location: ticket-complete.php?k=".rawurlencode(base64_encode($apply_no)));
 exit;

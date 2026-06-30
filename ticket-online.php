@@ -46,6 +46,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $row = sql_query("SELECT LAST_INSERT_ID() as idx")->fetch_array();
     // 온라인 등록완료 안내 SMS
     ufs_send_online_sms($name, $phone);
+    // 카카오 Conversion API(서버 전송) — 광고 수신동의 시 CompleteRegistration 전환 (비차단)
+    require_once __DIR__ . '/_kakao_capi.php';
+    @ufs_kakao_capi_send(array(
+        'apply_user_email' => $email, 'apply_user_phone' => $phone,
+        'apply_product_code' => 'ONLINE', 'apply_product_price' => 0,
+        'apply_user_event_agree' => $agree, 'free_yn' => 'Y', 'apply_no' => $row['idx'],
+    ));
     header("Location: ticket-complete.php?online=1&k=".rawurlencode(base64_encode($row['idx'])));
     exit;
 }

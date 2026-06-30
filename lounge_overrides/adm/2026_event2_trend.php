@@ -13,7 +13,9 @@ function e2($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 
 // 일자별 등록 추세 (apply_reg_datetime 기준)
 $trend = array();
-$rt = sql_query("SELECT DATE(apply_reg_datetime) d,
+// 등록시각 t → '다음 오전 10시' 아침으로 라벨(매일 오전 10시 기준): label = DATE(t + 14h)
+//   t<10:00 → 당일 아침 / t>=10:00 → 익일 아침. 각 행 = 해당일 오전 10:00 시점 스냅샷.
+$rt = sql_query("SELECT DATE(apply_reg_datetime + INTERVAL 14 HOUR) d,
     SUM(apply_pay_status=10 AND apply_product_code='NORMAL_ALL') allday,
     SUM(apply_pay_status=10 AND apply_product_code IN ('NORMAL_20','NORMAL_21')) dayone,
     SUM(apply_pay_status<>0 AND (free_yn='Y' OR apply_product_code='ONLINE')) onl,
@@ -23,7 +25,7 @@ $rt = sql_query("SELECT DATE(apply_reg_datetime) d,
     SUM(apply_pay_status=0 AND (free_yn='Y' OR apply_product_code='ONLINE')) cancel_on
   FROM cb_unreal_2026_event2_apply
   WHERE apply_temp_yn='N' AND apply_reg_datetime IS NOT NULL AND apply_reg_datetime>'1970-01-01'
-  GROUP BY DATE(apply_reg_datetime) ORDER BY d ASC");
+  GROUP BY DATE(apply_reg_datetime + INTERVAL 14 HOUR) ORDER BY d ASC");
 if ($rt) { while ($x = $rt->fetch_assoc()) { $trend[] = $x; } }
 $cum_tot=0;$cum_off=0;$cum_on=0;$trend_max=1;
 foreach ($trend as $i=>$row) {
@@ -32,6 +34,8 @@ foreach ($trend as $i=>$row) {
     $trend[$i]['off']=$off; $trend[$i]['cum_tot']=$cum_tot; $trend[$i]['cum_off']=$cum_off; $trend[$i]['cum_on']=$cum_on;
     if ((int)$row['act']>$trend_max) $trend_max=(int)$row['act'];
 }
+// 가장 최근 '지나간' 오전 10시 = 마지막 확정 스냅샷일. 그 이후(=오늘 10시 이후) 라벨은 집계중.
+$ufs_last_snap = ((int)date('H') >= 10) ? date('Y-m-d') : date('Y-m-d', strtotime('-1 day'));
 
 include_once('./admin.head.php');   // ← 왼쪽 관리자 메뉴 + 상단 chrome
 ?>
@@ -61,15 +65,15 @@ include_once('./admin.head.php');   // ← 왼쪽 관리자 메뉴 + 상단 chro
 </style>
 
 <div class="ufs26">
-  <h1>일자별 등록 추세</h1>
-  <p class="sub">기준: 등록 일시(apply_reg_datetime) · 취소 제외 활성 등록 · 날짜 오름차순(위=과거 → 아래=최신)</p>
+  <h1>일자별 등록 추세 <span style="display:inline-block;background:#00C1D5;color:#062a2f;font-size:12px;font-weight:800;border-radius:6px;padding:3px 10px;vertical-align:middle;margin-left:6px">매일 오전 10시 기준</span></h1>
+  <p class="sub">각 행 = 해당 날짜 <b>오전 10:00 시점</b>의 누적 등록. 신규·취소 = <b>전일 10:00 ~ 당일 10:00</b> 변동분. 기준 = 등록 일시(apply_reg_datetime) · 날짜 오름차순(위=과거 → 아래=최신). <span style="color:#e67e22;font-weight:700">집계중</span> = 오늘 오전 10시 이후 누적(다음 10시에 확정).</p>
 
   <div class="toprow">
     <a href="2026_event2_list.php" class="btn">← 등록 현황 목록</a>
     <button type="button" class="btn pri" onclick="ufsCopyAll()" style="margin-left:auto">표 전체 복사</button>
   </div>
 
-  <div class="trend-legend"><span><i style="background:#00C1D5"></i>오프라인</span><span><i style="background:#2aa7b5"></i>온라인</span><span style="margin-left:auto">막대 높이 = 일별 전체 등록</span></div>
+  <div class="trend-legend"><span><i style="background:#00C1D5"></i>오프라인</span><span><i style="background:#2aa7b5"></i>온라인</span><span style="margin-left:auto">막대 높이 = 전일 10시~당일 10시 신규 등록</span></div>
   <div class="trend-chart">
     <?php if (!$trend): ?><div style="color:#8a90a2;padding:20px">데이터 없음</div><?php endif; ?>
     <?php foreach ($trend as $row): $act=(int)$row['act'];
@@ -85,14 +89,14 @@ include_once('./admin.head.php');   // ← 왼쪽 관리자 메뉴 + 상단 chro
 
   <table id="trendTable">
     <thead><tr>
-      <th>날짜</th><th>전체 누적</th><th>취소건</th><th>전체 등록자 수</th>
+      <th>기준일(오전10시)</th><th>전체 누적</th><th>취소건</th><th>전체 등록자 수</th>
       <th>오프라인 누적</th><th>오프라인 양일권</th><th>오프라인 일일권</th><th>온라인 누적</th><th>온라인 등록자 수</th>
       <th class="nocopy">+카운트(합)</th><th class="nocopy">−카운트(합)</th><th class="nocopy">복사</th>
     </tr></thead>
     <tbody>
-    <?php foreach ($trend as $row): ?>
-      <tr>
-        <td><?= e2($row['d']) ?></td>
+    <?php foreach ($trend as $i=>$row): ?>
+      <tr<?= ($i===0 || $row['d'] > $ufs_last_snap) ? ' class="xcopyall"' : '' ?>>
+        <td><?= e2($row['d']) ?><?php if ($row['d'] > $ufs_last_snap): ?> <span style="color:#e67e22;font-size:10px;font-weight:800">집계중</span><?php endif; ?></td>
         <td><b><?= number_format($row['cum_tot']) ?></b></td>
         <td style="color:#9aa0af"><?= number_format($row['cancel']) ?></td>
         <td><?= number_format($row['act']) ?></td>
@@ -132,14 +136,15 @@ function ufsCopyAll(){
   var ths=t.querySelectorAll('thead th'), h=[];
   for (var i=0;i<ths.length;i++){ if(ufsIsNoCopy(ths[i])) continue; h.push((ths[i].innerText||ths[i].textContent).trim()); }
   out.push(h.join('\t'));
-  var trs=t.querySelectorAll('tbody tr');
+  var trs=t.querySelectorAll('tbody tr'), n=0;
   for (var r=0;r<trs.length;r++){
+    if ((trs[r].className||'').indexOf('xcopyall')>=0) continue;  // 1행·집계중 행 제외
     var tds=trs[r].querySelectorAll('td'), row=[];
     for (var c=0;c<tds.length;c++){ if(ufsIsNoCopy(tds[c])) continue; row.push(ufsCellText(tds[c])); }
-    out.push(row.join('\t'));
+    out.push(row.join('\t')); n++;
   }
   ufsCopyText(out.join('\n'));
-  alert('표 전체('+trs.length+'행)를 복사했습니다. +/−카운트 열은 제외됩니다. 엑셀/시트에 붙여넣기 하세요.');
+  alert('표 전체('+n+'행)를 복사했습니다. 1행·집계중 행과 +/−카운트 열은 제외됩니다. 엑셀/시트에 붙여넣기 하세요.');
 }
 </script>
 <?php

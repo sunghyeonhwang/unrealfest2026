@@ -164,6 +164,9 @@ ufs_send_qr_mms($prev['apply_user_name'], $prev['apply_user_phone'], $apply_no, 
 // 카카오 Conversion API(서버 전송) — 광고 수신동의 시 Purchase 전환 (비차단)
 require_once __DIR__ . '/_kakao_capi.php';
 @ufs_kakao_capi_send($prev);
+// Meta Conversions API(서버 전송) — 광고 수신동의 시 Purchase 전환 (비차단, 클라 픽셀과 event_id dedup)
+require_once __DIR__ . '/_meta_capi.php';
+@ufs_meta_capi_send($prev);
 
 header("Location: ticket-complete.php?k=".rawurlencode(base64_encode($apply_no)));
 exit;

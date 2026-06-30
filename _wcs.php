@@ -12,11 +12,10 @@ $wcs_e = function($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 <!-- Naver Wcslog (CTS) -->
 <script type="text/javascript" src="//wcs.naver.net/wcslog.js"></script>
 <script type="text/javascript">
-if (!wcs_add) var wcs_add = {};
-wcs_add["wa"] = "<?= $wcs_e($ufs_naver_wa) ?>";
-if (!_nasa) var _nasa = {};
 if (window.wcs) {
-  wcs.inflow();
+  if (!wcs_add) var wcs_add = {};
+  wcs_add["wa"] = "<?= $wcs_e($ufs_naver_wa) ?>";
+  wcs.inflow("epiclounge.co.kr");   // 전환추적 cookie domain (공식 wcs.trans 가이드 필수 인자)
   wcs_do();
 <?php if (!empty($ufs_conv) && isset($ufs_conv['value'])): ?>
   var _conv = {};

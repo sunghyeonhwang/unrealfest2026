@@ -78,7 +78,7 @@ if (!function_exists('ufs_promo_hero_line')) {
 function ufs_promo_hero_line() { return ufs_promo_is_ext() ? '전체 세션 공개 기념, 마지막 할인 혜택 !' : ''; }
 }
 if (!function_exists('ufs_promo_countdown_label')) {
-function ufs_promo_countdown_label() { return ufs_promo_is_ext() ? '전체 세션 공개 기념 얼리버드 연장' : '얼리버드 할인 종료까지'; }
+function ufs_promo_countdown_label() { return ufs_promo_is_ext() ? '전체 세션 공개 기념 | 얼리버드 연장' : '얼리버드 할인 종료까지'; }
 }
 if (!function_exists('ufs_promo_card_badge')) {
 function ufs_promo_card_badge() { return ufs_promo_is_ext() ? '전체 세션 공개 기념, 마지막 할인 혜택 !' : '얼리버드 50% 할인'; }

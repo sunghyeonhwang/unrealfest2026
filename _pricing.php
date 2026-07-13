@@ -84,10 +84,10 @@ if (!function_exists('ufs_promo_card_badge')) {
 function ufs_promo_card_badge() { return ufs_promo_is_ext() ? '전체 세션 공개 기념, 마지막 할인 혜택 !' : '얼리버드 50% 할인'; }
 }
 if (!function_exists('ufs_promo_card_note')) {   // index 티켓카드 가격 아래 줄
-function ufs_promo_card_note() { return ufs_promo_is_ext() ? '마지막 할인 혜택 ! 50% 할인 (~7/27 마감)' : '얼리버드 할인 (~7/13 마감)'; }
+function ufs_promo_card_note() { return ufs_promo_is_ext() ? '50% 할인 혜택, 마지막 기회 (~7/27 마감)' : '얼리버드 할인 (~7/13 마감)'; }
 }
 if (!function_exists('ufs_promo_ticket_note')) { // 구매 페이지(ticket-all/day) 카드 소문구
-function ufs_promo_ticket_note() { return ufs_promo_is_ext() ? '마지막 할인 혜택 ! 50% 할인 (~7/27 마감)' : '얼리버드 50% 할인'; }
+function ufs_promo_ticket_note() { return ufs_promo_is_ext() ? '50% 할인 혜택, 마지막 기회 (~7/27 마감)' : '얼리버드 50% 할인'; }
 }
 if (!function_exists('ufs_refund_eb_label')) {   // FAQ/문구용 얼리버드 환불 마감일 라벨
 function ufs_refund_eb_label() { return ufs_extended() ? '7월 27일' : '7월 13일'; }

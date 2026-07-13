@@ -28,7 +28,7 @@ function ufs_extend_mode() {                                          // 'off' |
 }
 }
 if (!function_exists('ufs_extend_start_ts')) {
-function ufs_extend_start_ts() { return strtotime('2026-07-14 00:00:00 +0900'); }  // 'sched' 자동전환 시각(KST 고정)
+function ufs_extend_start_ts() { return strtotime('2026-07-13 23:55:00 +0900'); }  // 'sched' 자동전환 시각(KST)
 }
 if (!function_exists('ufs_preview_key')) {
 function ufs_preview_key() { return 'ufseb2707x9f3a'; }               // 프리뷰 시크릿(비공개 링크용)

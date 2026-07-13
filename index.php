@@ -37,6 +37,10 @@ include __DIR__ . '/_head.php';
     <div class="mb-10">
       <img class="hero-logo" src="https://unrealsummit16.cafe24.com/2026/ufs26/hero_new_main_logo2.svg" alt="Unreal Fest Seoul 2026" style="width: 700px; max-width: 100%;">
     </div>
+    <?php if (ufs_promo_hero_line() !== ''): ?>
+    <!-- 연장(전체 세션 공개 기념) 프로모 문구 — 자정 전에는 노출 안 됨. 날짜/장소는 로고 이미지에 포함. -->
+    <p class="text-[#00C1D5] font-bold text-base md:text-lg -mt-4 mb-6 tracking-tight"><?= e(ufs_promo_hero_line()) ?></p>
+    <?php endif; ?>
     <div class="flex flex-col sm:flex-row items-start gap-4 mb-10">
       <button type="button" data-scroll="register" class="bg-[#00C1D5] hover:bg-[#004F59] text-white px-8 py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-lg clip-btn">
         지금 등록하기
@@ -49,8 +53,8 @@ include __DIR__ . '/_head.php';
   <div class="absolute inset-x-0 bottom-20 z-10 pointer-events-none">
     <div class="max-w-7xl mx-auto px-6 flex justify-end">
       <div class="relative bg-[#050508] px-8 py-4 pointer-events-auto" data-countdown data-deadline="<?= e(ufs_earlybird_deadline()) ?>">
-        <div class="absolute -top-[30px] left-0 bg-[#00C1D5] px-5 py-1">
-          <span class="text-[#090a0f] text-[14px] font-bold tracking-tight">얼리버드 할인 종료까지</span>
+        <div class="absolute -top-[30px] left-0 bg-[#00C1D5] px-5 py-1 whitespace-nowrap">
+          <span class="text-[#090a0f] text-[14px] font-bold tracking-tight"><?= e(ufs_promo_countdown_label()) ?></span>
         </div>
         <div class="flex items-center gap-0 mt-1">
           <div class="flex flex-col items-center w-[40px]">
@@ -221,11 +225,11 @@ $ov_icons = array(
     <div class="grid md:grid-cols-3 gap-[26px] pt-[35px]">
       <!-- 양일권 -->
       <div class="relative bg-[#0e0f14] border border-[#27272a] p-9 flex flex-col items-center text-center">
-        <?php if (ufs_is_earlybird()): ?><div class="absolute -top-[13px] left-0 bg-[#00C1D5] text-[#090a0f] text-[14px] font-bold px-[18px] py-[7px]">얼리버드 50% 할인</div><?php endif; ?>
+        <?php if (ufs_is_earlybird()): ?><div class="absolute -top-[13px] left-0 bg-[#00C1D5] text-[#090a0f] font-bold whitespace-nowrap <?= ufs_promo_is_ext() ? 'text-[12px] px-[14px] py-[7px]' : 'text-[14px] px-[18px] py-[7px]' ?>"><?= e(ufs_promo_card_badge()) ?></div><?php endif; ?>
         <h3 class="text-[38px] text-white mt-[18px] mb-[26px] leading-[46px] font-jamjil font-medium">오프라인 양일권</h3>
         <?php if (ufs_is_earlybird()): ?><div class="mb-1"><span class="text-[18px] text-[#71717a] line-through tracking-tight">₩ <?= number_format(ufs_ticket_orig('NORMAL_ALL')) ?></span></div><?php endif; ?>
         <div class="mb-2"><span class="text-[40px] font-bold text-white tracking-tight">₩ <?= number_format(ufs_ticket_price('NORMAL_ALL')) ?></span></div>
-        <?php if (ufs_is_earlybird()): ?><p class="text-[13px] text-[#9adbe8] mb-auto">얼리버드 할인 (~7/13 마감)</p><?php else: ?><div class="mb-auto"></div><?php endif; ?>
+        <?php if (ufs_is_earlybird()): ?><p class="text-[13px] text-[#9adbe8] mb-auto"><?= e(ufs_promo_card_note()) ?></p><?php else: ?><div class="mb-auto"></div><?php endif; ?>
         <a href="ticket-all.php" class="mt-[35px] w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 transition-colors font-jamjil">
           양일권 등록하기
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
@@ -233,11 +237,11 @@ $ov_icons = array(
       </div>
       <!-- 1일권 (featured) -->
       <div class="relative bg-[#0e0f14] border border-[rgba(0,193,213,0.5)] p-9 flex flex-col items-center text-center shadow-[0_0_11px_rgba(0,193,213,0.1)]">
-        <?php if (ufs_is_earlybird()): ?><div class="absolute -top-[13px] left-0 bg-[#00C1D5] text-[#090a0f] text-[14px] font-bold px-[18px] py-[7px]">얼리버드 50% 할인</div><?php endif; ?>
+        <?php if (ufs_is_earlybird()): ?><div class="absolute -top-[13px] left-0 bg-[#00C1D5] text-[#090a0f] font-bold whitespace-nowrap <?= ufs_promo_is_ext() ? 'text-[12px] px-[14px] py-[7px]' : 'text-[14px] px-[18px] py-[7px]' ?>"><?= e(ufs_promo_card_badge()) ?></div><?php endif; ?>
         <h3 class="text-[38px] text-white mt-[18px] mb-[26px] leading-[46px] font-jamjil font-medium">오프라인 1일권</h3>
         <?php if (ufs_is_earlybird()): ?><div class="mb-1"><span class="text-[18px] text-[#71717a] line-through tracking-tight">₩ <?= number_format(ufs_ticket_orig('NORMAL_20')) ?></span></div><?php endif; ?>
         <div class="mb-2"><span class="text-[40px] font-bold text-white tracking-tight">₩ <?= number_format(ufs_ticket_price('NORMAL_20')) ?></span></div>
-        <?php if (ufs_is_earlybird()): ?><p class="text-[13px] text-[#9adbe8] mb-auto">얼리버드 할인 (~7/13 마감)</p><?php else: ?><div class="mb-auto"></div><?php endif; ?>
+        <?php if (ufs_is_earlybird()): ?><p class="text-[13px] text-[#9adbe8] mb-auto"><?= e(ufs_promo_card_note()) ?></p><?php else: ?><div class="mb-auto"></div><?php endif; ?>
         <a href="ticket-day.php" class="mt-[35px] w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 transition-colors font-jamjil">
           1일권 등록하기
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
@@ -423,4 +427,17 @@ $ov_icons = array(
   </div>
 </section>
 
+<!-- GA4: 메인 페이지 30초 이상 체류(포그라운드 누적, 1회) -->
+<script type="text/javascript">
+(function(){
+  var fired=false, acc=0, last=Date.now();
+  function tick(){
+    if(document.visibilityState!=='hidden'){ acc += Date.now()-last; }
+    last=Date.now();
+    if(!fired && acc>=30000){ fired=true; if(window.gtag){ gtag('event','메인_페이지_30초_이상_체류한_대상'); } }
+  }
+  document.addEventListener('visibilitychange', function(){ tick(); last=Date.now(); });
+  setInterval(tick, 2000);
+})();
+</script>
 <?php include __DIR__ . '/_foot.php'; ?>

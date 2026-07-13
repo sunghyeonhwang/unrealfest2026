@@ -31,7 +31,9 @@ function asset_v($path) {
 }
 
 /* ───────── 행사 상수 ───────── */
-function ufs_earlybird_deadline() { return '2026-07-13T23:59:59+09:00'; } // 얼리버드 카운트다운 타깃
+function ufs_earlybird_deadline() { // 얼리버드 카운트다운 타깃(연장 시 7/27)
+    return (function_exists('ufs_extended') && ufs_extended()) ? '2026-07-27T23:59:59+09:00' : '2026-07-13T23:59:59+09:00';
+}
 function ufs_event_dates_label() { return '2026. 8. 20 (목) - 8. 21 (금)'; }
 
 /* ───────── GNB / Footer 네비 ───────── */

@@ -176,14 +176,18 @@ function ufs_db_day_all($day) {
     return ufs_db_rows('ag_day=' . (int)$day, true);
 }
 
+// 프리뷰 모드면 가림 세션(ag_is_active='N')도 노출 — "전체 세션 공개 후" 화면 미리보기용.
+// 라이브 공개는 코드가 아니라 관리자 DB(ag_is_active 'N'→'Y')로 수동 처리한다.
+function ufs_agenda_preview_all() { return function_exists('ufs_is_preview') && ufs_is_preview(); }
+
 // Day별 세션만(키노트/공통 제외) — index_s 캐러셀용
 function ufs_db_day_sessions($day) {
-    return ufs_db_rows("ag_day=" . (int)$day . " AND ag_slot_type='session'");
+    return ufs_db_rows("ag_day=" . (int)$day . " AND ag_slot_type='session'", ufs_agenda_preview_all());
 }
 
 // 키노트만 — index_s 키노트 블록용
 function ufs_db_keynotes() {
-    return ufs_db_rows("ag_slot_type='keynote'");
+    return ufs_db_rows("ag_slot_type='keynote'", ufs_agenda_preview_all());
 }
 
 // 단일 세션 — session_s 용

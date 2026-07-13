@@ -62,7 +62,7 @@ $d = (isset($_GET['d']) && $_GET['d'] === '2') ? 'DAY2' : 'DAY1';
               <div class="mb-1">
                 <?php if (ufs_is_earlybird()): ?>
                 <div class="text-base text-[#71717a] line-through">₩<?= number_format(ufs_ticket_orig('NORMAL_20')) ?></div>
-                <div class="text-xs font-bold text-[#00C1D5] my-0.5">얼리버드 50% 할인</div>
+                <div class="text-xs font-bold text-[#00C1D5] my-0.5"><?= e(ufs_promo_ticket_note()) ?></div>
                 <?php endif; ?>
                 <div class="text-2xl font-black text-white">₩<?= number_format(ufs_ticket_price('NORMAL_20')) ?></div>
               </div>
@@ -75,7 +75,7 @@ $d = (isset($_GET['d']) && $_GET['d'] === '2') ? 'DAY2' : 'DAY1';
               <div class="mb-1">
                 <?php if (ufs_is_earlybird()): ?>
                 <div class="text-base text-[#71717a] line-through">₩<?= number_format(ufs_ticket_orig('NORMAL_21')) ?></div>
-                <div class="text-xs font-bold text-[#00C1D5] my-0.5">얼리버드 50% 할인</div>
+                <div class="text-xs font-bold text-[#00C1D5] my-0.5"><?= e(ufs_promo_ticket_note()) ?></div>
                 <?php endif; ?>
                 <div class="text-2xl font-black text-white">₩<?= number_format(ufs_ticket_price('NORMAL_21')) ?></div>
               </div>

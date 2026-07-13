@@ -4,6 +4,7 @@ $ufs_page = 'session';
 include_once __DIR__ . '/../common.php';        // DB (sql_query)
 require_once __DIR__ . '/data/lib.php';
 require_once __DIR__ . '/data/agenda_db.php';
+require_once __DIR__ . '/_pricing.php';   // ufs_is_preview() — 프리뷰 시 가림 세션 상세 노출
 
 $id = isset($_GET['id']) ? (string)$_GET['id'] : '';
 $session = $id !== '' ? ufs_db_session($id) : null;

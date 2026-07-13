@@ -150,7 +150,7 @@ function ufs_db_map_row($r) {
         'is_keynote' => ($slot === 'keynote'),
         '_slot_type' => $slot,
         '_sort'      => (int)$r['ag_sort'],
-        '_hidden'    => (isset($r['ag_is_active']) && $r['ag_is_active'] === 'N'), // 가림(곧 공개 예정)
+        '_hidden'    => (isset($r['ag_is_active']) && $r['ag_is_active'] === 'N') && !ufs_agenda_preview_all(), // 가림(곧 공개 예정) — 프리뷰면 해제(schedule/상세 실내용 렌더)
     );
 }
 
@@ -193,7 +193,7 @@ function ufs_db_keynotes() {
 // 단일 세션 — session_s 용
 function ufs_db_session($sid) {
     $sid_e = sql_real_escape_string((string)$sid);
-    $rows = ufs_db_rows("ag_sid='$sid_e'");
+    $rows = ufs_db_rows("ag_sid='$sid_e'", ufs_agenda_preview_all()); // 프리뷰면 가림 세션 상세도 노출
     return count($rows) > 0 ? $rows[0] : null;
 }
 
@@ -201,7 +201,7 @@ function ufs_db_session($sid) {
 function ufs_db_related($session, $limit) {
     if ($limit === null) $limit = 2;
     $out = array();
-    foreach (ufs_db_rows("ag_slot_type IN ('session','keynote')") as $s) {
+    foreach (ufs_db_rows("ag_slot_type IN ('session','keynote')", ufs_agenda_preview_all()) as $s) {
         if ($s['id'] === $session['id']) continue;
         if ($s['track'] === $session['track'] || $s['track'] === '키노트' || $s['is_keynote']) {
             $out[] = $s;

@@ -42,6 +42,9 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
       <!-- 키워드 (강연 제목 상단) — 일정표 세션 배지와 동일 디자인, 크기 유지 -->
       <div class="flex flex-wrap gap-2 mb-5">
         <span class="px-1.5 py-1 text-xs rounded-[4px] <?= ufs_track_badge_home($session['track']) ?>"><?= e(ufs_track_label_day($session['track'], $session['day'])) ?></span>
+        <?php if ($session['id'] === 'd2-t1-s5'): // 2트랙 통합 세션 — 게임:프로그래밍 배지 추가 ?>
+        <span class="px-1.5 py-1 text-xs rounded-[4px] <?= ufs_track_badge_home('게임: 프로그래밍') ?>"><?= e(ufs_track_label_day('게임: 프로그래밍', $session['day'])) ?></span>
+        <?php endif; ?>
         <span class="px-1.5 py-1 text-xs font-semibold rounded-[4px] bg-[#27272a] text-[#f4f4f5]"><?= e(ufs_level_label_detail($session['level'])) ?></span>
         <?php /* 제품(제품군) 배지 노출 제외 — 요청
         foreach ($cats as $cat): ?>

@@ -39,6 +39,10 @@ if ($row) {
   $ufs_meta_val = (int)$ufs_conv['value']; ?>
 <script type="text/javascript">if(window.fbq){<?php if ($ufs_meta_val > 0): ?>fbq('track','Purchase',{value:<?= $ufs_meta_val ?>,currency:'KRW'},{eventID:'<?= $ufs_meta_eid ?>'});<?php else: ?>fbq('track','CompleteRegistration',{},{eventID:'<?= $ufs_meta_eid ?>'});<?php endif; ?>}</script>
 <?php endif; ?>
+<?php if (!empty($ufs_conv)): /* GA4(gtag) 전환 — gtag는 marketing_head.php에서 로드. 유료=purchase+paid_register / 무료웨비나=free_register+webinar_complete / 공통=register_complete (한글명 인제스트 불안정 → 영문 소문자로 변경) */
+  $ga_val = (int)$ufs_conv['value']; ?>
+<script type="text/javascript">if(window.gtag){<?php if ($ga_val > 0): ?>gtag('event','purchase',{transaction_id:'<?= intval($apply_no) ?>',value:<?= $ga_val ?>,currency:'KRW',items:[{item_id:<?= json_encode(isset($row['apply_product_code'])?$row['apply_product_code']:'', JSON_UNESCAPED_UNICODE) ?>,item_name:<?= json_encode(isset($row['apply_product_name'])?$row['apply_product_name']:'', JSON_UNESCAPED_UNICODE) ?>,price:<?= $ga_val ?>,quantity:1}]});gtag('event','paid_register',{value:<?= $ga_val ?>,currency:'KRW'});<?php else: ?>gtag('event','free_register');gtag('event','webinar_complete');<?php endif; ?>gtag('event','register_complete');}</script>
+<?php endif; ?>
 </head>
 <body class="bg-[#09090b] text-white" style="font-family:system-ui,'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
 <header class="fixed top-0 inset-x-0 z-50 bg-[#09090b]/95 backdrop-blur border-b border-[#27272a]">

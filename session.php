@@ -115,6 +115,38 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
 
       <!-- 우측 -->
       <div class="space-y-6">
+        <?php if ($session['id'] === 'd2-t4-s1'):   // 패널 세션 전용: 모더레이터(상단) + 패널 4명 2x2, 약력보기 없음
+          $sp_mod = $session['speakers'][0];
+          $sp_panels = array_slice($session['speakers'], 1); ?>
+        <!-- 모더레이터 -->
+        <div class="bg-[#0e0f14] p-6">
+          <div class="flex items-center gap-4">
+            <div class="w-20 h-20 rounded-full bg-[#1a1a1f] border border-[#27272a] flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <?php if ($sp_mod['photo'] !== ''): ?><img src="<?= e($sp_mod['photo']) ?>" alt="<?= e($sp_mod['name']) ?>" class="w-full h-full object-cover" onerror="this.style.display='none'"><?php else: ?><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 text-[#71717a]"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><?php endif; ?>
+            </div>
+            <div class="min-w-0">
+              <div class="text-[11px] font-bold text-[#00C1D5] mb-0.5">모더레이터</div>
+              <div class="text-lg font-bold text-[#fafafa]"><?= e($sp_mod['name']) ?></div>
+              <?php if ($sp_mod['company'] !== ''): ?><div class="text-xs text-[#71717a]"><?= e($sp_mod['company']) ?></div><?php endif; ?>
+            </div>
+          </div>
+        </div>
+        <!-- 패널 (2 x 2) -->
+        <div class="bg-[#0e0f14] p-6">
+          <div class="text-[11px] font-bold text-[#00C1D5] mb-4">패널</div>
+          <div class="grid grid-cols-2 gap-5">
+            <?php foreach ($sp_panels as $pp): ?>
+            <div class="flex flex-col items-center text-center gap-2.5">
+              <div class="w-16 h-16 rounded-full bg-[#1a1a1f] border border-[#27272a] flex items-center justify-center overflow-hidden">
+                <?php if ($pp['photo'] !== ''): ?><img src="<?= e($pp['photo']) ?>" alt="<?= e($pp['name']) ?>" class="w-full h-full object-cover" onerror="this.style.display='none'"><?php else: ?><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-[#71717a]"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><?php endif; ?>
+              </div>
+              <div class="text-sm font-bold text-[#fafafa] leading-tight"><?= e($pp['name']) ?></div>
+              <?php if ($pp['company'] !== ''): ?><div class="text-xs text-[#71717a] leading-tight"><?= e($pp['company']) ?></div><?php endif; ?>
+            </div>
+            <?php endforeach; ?>
+          </div>
+        </div>
+        <?php else: ?>
         <?php foreach ($session['speakers'] as $spi => $sp): ?>
         <div class="bg-[#0e0f14] p-6">
           <div class="flex items-center gap-4 mb-4">
@@ -140,6 +172,7 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
           <?php endif; ?>
         </div>
         <?php endforeach; ?>
+        <?php endif; ?>
 
         <?php
           $cal_date  = str_replace('-', '', ufs_day_iso($session['day']));      // 20260820

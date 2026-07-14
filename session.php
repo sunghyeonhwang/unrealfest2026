@@ -81,11 +81,16 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
         <div>
           <h2 class="text-xl font-bold text-white mb-4">세션 목차</h2>
           <ul class="space-y-2">
-            <?php foreach ($session['contents'] as $c): ?>
-              <?php if (strpos($c, '-') === 0): ?>
-                <li class="flex items-baseline gap-2 text-[#a1a1aa] ml-5"><span class="text-[#71717a] flex-shrink-0">-</span><span><?= e(ltrim($c, "- \t")) ?></span></li>
+            <?php foreach ($session['contents'] as $c):
+              $ct = rtrim(preg_replace('/^[\pZ\s]+/u', '', $c));   // 앞쪽 공백 제거(nbsp·전각공백 등 유니코드 포함)
+              if (preg_match('/^\d+\.\s+/', $ct)):            // "숫자. " → 채운 총알(•), 레벨1
+                $ct = preg_replace('/^\d+\.\s+/', '', $ct); ?>
+                <li class="flex items-baseline gap-2 text-[#a1a1aa]"><span class="text-[#00C1D5] flex-shrink-0">&bull;</span><span><?= e($ct) ?></span></li>
+              <?php elseif (preg_match('/^[-–·]\s*/u', $ct)):  // "-" → 빈 총알(◦), 레벨2(들여쓰기)
+                $ct = preg_replace('/^[-–·]\s*/u', '', $ct); ?>
+                <li class="flex items-baseline gap-2 text-[#a1a1aa] ml-5"><span class="text-[#00C1D5] flex-shrink-0">&#9702;</span><span><?= e($ct) ?></span></li>
               <?php else: ?>
-                <li class="flex items-baseline gap-2 text-[#a1a1aa]"><span class="text-[#00C1D5] flex-shrink-0">•</span><span><?= e($c) ?></span></li>
+                <li class="flex items-baseline gap-2 text-[#a1a1aa]"><span class="text-[#00C1D5] flex-shrink-0">&bull;</span><span><?= e($ct) ?></span></li>
               <?php endif; ?>
             <?php endforeach; ?>
           </ul>

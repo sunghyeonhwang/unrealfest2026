@@ -85,12 +85,12 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
               $ct = rtrim(preg_replace('/^[\pZ\s]+/u', '', $c));   // 앞쪽 공백 제거(nbsp·전각공백 등 유니코드 포함)
               if (preg_match('/^\d+\.\s+/', $ct)):            // "숫자. " → 채운 원(CSS), 레벨1
                 $ct = preg_replace('/^\d+\.\s+/', '', $ct); ?>
-                <li class="flex items-start gap-2.5 text-[#a1a1aa]"><span class="flex-shrink-0 mt-[0.5em] w-[7px] h-[7px] rounded-full bg-[#00C1D5]"></span><span><?= e($ct) ?></span></li>
+                <li class="flex items-start gap-2.5 text-[#a1a1aa]"><span class="flex-shrink-0 mt-[0.55em] w-1 h-1 rounded-full bg-[#00C1D5]"></span><span><?= e($ct) ?></span></li>
               <?php elseif (preg_match('/^[-–·]\s*/u', $ct)):  // "-" → 빈 원/링(CSS), 레벨2(들여쓰기)
                 $ct = preg_replace('/^[-–·]\s*/u', '', $ct); ?>
-                <li class="flex items-start gap-2.5 text-[#a1a1aa] ml-5"><span class="flex-shrink-0 mt-[0.5em] w-[7px] h-[7px] rounded-full border-[1.5px] border-[#00C1D5]"></span><span><?= e($ct) ?></span></li>
+                <li class="flex items-start gap-2.5 text-[#a1a1aa] ml-5"><span class="flex-shrink-0 mt-[0.55em] w-1 h-1 rounded-full border border-[#00C1D5]"></span><span><?= e($ct) ?></span></li>
               <?php else: ?>
-                <li class="flex items-start gap-2.5 text-[#a1a1aa]"><span class="flex-shrink-0 mt-[0.5em] w-[7px] h-[7px] rounded-full bg-[#00C1D5]"></span><span><?= e($ct) ?></span></li>
+                <li class="flex items-start gap-2.5 text-[#a1a1aa]"><span class="flex-shrink-0 mt-[0.55em] w-1 h-1 rounded-full bg-[#00C1D5]"></span><span><?= e($ct) ?></span></li>
               <?php endif; ?>
             <?php endforeach; ?>
           </ul>

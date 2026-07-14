@@ -152,6 +152,17 @@ function ufs_track_label_day($track, $day) {
     if ($track === '제조 및 시뮬레이션') return ((int)$day === 1) ? '공통' : '제조 및 시뮬레이션';
     return ufs_track_label_list($track);
 }
+// 통합(colspan>1) 세션이 시작 트랙 다음으로 걸치는 트랙들 — 트랙 배지 병기용(상세·스케줄)
+function ufs_merged_extra_tracks($track, $colspan) {
+    $cs = (int)$colspan;
+    if ($cs < 2) return array();
+    $order = ufs_tracks();                       // 4트랙 순서(키노트 제외)
+    $i = array_search($track, $order, true);
+    if ($i === false) return array();
+    $out = array();
+    for ($j = 1; $j < $cs && ($i + $j) < count($order); $j++) $out[] = $order[$i + $j];
+    return $out;
+}
 
 /* ───────── 레벨(난이도) 라벨 (컨텍스트별) ───────── */
 function ufs_level_label_short($level) { // 홈/세션목록/스케줄: 초급/중급/고급/전체

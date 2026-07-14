@@ -104,7 +104,9 @@ function ufs_render_track_view($daySessions) {
             $open = $isKey ? '<div' : '<a href="session.php?id='.e($s['id']).'"';
             $hovcls = $isKey ? ' bg-[rgba(0,193,213,0.03)]' : ' hover:bg-[#0e0f14] transition-colors';
             echo $open.' data-sched-card data-track="'.e($s['track']).'" data-level="'.e($s['level']).'" data-topics="'.e($topics).'" data-products="'.e($prods).'" class="block p-6'.$hovcls.'">';
-            echo '<div class="flex items-center gap-2 mb-2"><span class="px-1.5 py-1 text-[10px] rounded-[4px] '.ufs_track_badge_home($isKey ? '키노트' : $s['track']).'">'.e($isKey ? '키노트' : ufs_track_label_day($s['track'], $s['day'])).'</span><span class="px-2 py-0.5 text-[11px] font-semibold bg-[#27272a] text-[#f4f4f5]">'.e(ufs_level_label_short($s['level'])).'</span></div>';
+            $xtb = '';
+            if (!$isKey) { foreach (ufs_merged_extra_tracks($s['track'], isset($s['colspan']) ? $s['colspan'] : 1) as $xt) { $xtb .= '<span class="px-1.5 py-1 text-[10px] rounded-[4px] '.ufs_track_badge_home($xt).'">'.e(ufs_track_label_day($xt, $s['day'])).'</span>'; } }
+            echo '<div class="flex items-center flex-wrap gap-2 mb-2"><span class="px-1.5 py-1 text-[10px] rounded-[4px] '.ufs_track_badge_home($isKey ? '키노트' : $s['track']).'">'.e($isKey ? '키노트' : ufs_track_label_day($s['track'], $s['day'])).'</span>'.$xtb.'<span class="px-2 py-0.5 text-[11px] font-semibold bg-[#27272a] text-[#f4f4f5]">'.e(ufs_level_label_short($s['level'])).'</span></div>';
             echo '<h3 class="font-bold text-[#fafafa] mb-2 tracking-tight leading-snug '.($isKey ? 'text-xl' : 'text-base').'">'.e($s['title']).'</h3>';
             if (!$isKey && $s['desc'] !== '') echo '<p class="text-sm text-[#a1a1aa] mb-3 line-clamp-2">'.e($s['desc']).'</p>';
             $sp_sub = ($isKey && $s['speaker']['role'] !== '') ? ($s['speaker']['role'].($s['speaker']['company'] !== '' ? ' · '.$s['speaker']['company'] : '')) : $s['speaker']['company'];
@@ -217,7 +219,9 @@ function ufs_render_grid_view($daySessions, $day) {
                         $gtopics = implode('|', isset($cell['topic']) ? $cell['topic'] : array());
                         $gprods  = implode('|', isset($cell['product']) ? $cell['product'] : array());
                         echo '<a href="session.php?id='.e($cell['id']).'" data-grid-cell data-track="'.e($cell['track']).'" data-level="'.e($cell['level']).'" data-topics="'.e($gtopics).'" data-products="'.e($gprods).'" class="block bg-[#0e0f14] p-5 hover:bg-[#111115] transition-colors transition-opacity flex-grow'.$minh.' flex flex-col gap-2">';
-                        echo '<div class="flex items-center gap-2 flex-wrap"><span class="px-1.5 py-1 text-[10px] rounded-[4px] '.ufs_track_badge_home($cell['track']).'">'.e(ufs_grid_track_label($cell['track'], $day)).'</span><span class="px-2 py-0.5 text-[11px] font-semibold bg-[#27272a] text-[#f4f4f5]">'.e(ufs_level_label_short($cell['level'])).'</span></div>';
+                        $gxtb = '';
+                        foreach (ufs_merged_extra_tracks($cell['track'], isset($cell['colspan']) ? $cell['colspan'] : 1) as $gxt) { $gxtb .= '<span class="px-1.5 py-1 text-[10px] rounded-[4px] '.ufs_track_badge_home($gxt).'">'.e(ufs_grid_track_label($gxt, $day)).'</span>'; }
+                        echo '<div class="flex items-center gap-2 flex-wrap"><span class="px-1.5 py-1 text-[10px] rounded-[4px] '.ufs_track_badge_home($cell['track']).'">'.e(ufs_grid_track_label($cell['track'], $day)).'</span>'.$gxtb.'<span class="px-2 py-0.5 text-[11px] font-semibold bg-[#27272a] text-[#f4f4f5]">'.e(ufs_level_label_short($cell['level'])).'</span></div>';
                         echo '<h4 class="text-[15px] font-bold text-[#fafafa] leading-snug tracking-tight line-clamp-3 flex-grow">'.e($cell['title']).'</h4>';
                         echo '<div class="flex items-center gap-2.5 mt-auto">'.ufs_avatar($cell, 'w-12 h-12', $c['dot'], 'w-6 h-6 text-black/60').'<div class="min-w-0"><div class="text-sm font-medium text-[#fafafa] truncate">'.e($cell['_speakers_label']).'</div><div class="text-xs text-[#71717a] truncate">'.e($cell['speaker']['company']).'</div></div></div>';
                         echo '</a>';

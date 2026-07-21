@@ -5,7 +5,8 @@
  */
 require __DIR__ . '/_ticket_init.php';
 
-$GDISC = ufs_group_discount(); // 단체 할인율(%)
+$GDISC   = ufs_group_discount();     // 일괄 할인율(%) — 쿠폰 모드면 0
+$GCOUPON = ufs_group_coupon_mode();  // 쿠폰 모드 여부(전역 100)
 $TKT = array(
   array('code'=>'NORMAL_ALL','label'=>'양일권 (8.20~21)','price'=>ufs_group_price('NORMAL_ALL'),'orig'=>ufs_ticket_orig('NORMAL_ALL'),'days'=>'1,2'),
   array('code'=>'NORMAL_20', 'label'=>'1일권 · Day 1',   'price'=>ufs_group_price('NORMAL_20'), 'orig'=>ufs_ticket_orig('NORMAL_20'), 'days'=>'1'),
@@ -191,7 +192,8 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
           <div class="flex justify-between items-center gap-4"><span class="text-[#71717a]">양일권</span><span id="sumAll" class="font-bold text-right">0명</span></div>
           <div class="flex justify-between items-center gap-4"><span class="text-[#71717a]">1일권 (합계)</span><span id="sumDay" class="font-bold text-right">0명</span></div>
         </div>
-        <!-- 쿠폰 -->
+        <!-- 쿠폰 (쿠폰 모드에서만 노출 — 일괄 모드에선 쿠폰 무시) -->
+        <?php if ($GCOUPON): ?>
         <div class="mt-4">
           <div class="text-sm font-medium text-[#a1a1aa] mb-2">쿠폰 코드</div>
           <div class="flex gap-2">
@@ -202,6 +204,7 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
           <input type="hidden" name="coupon_percent" id="couponPercent" value="0">
           <p id="couponMsg" class="text-xs mt-2"></p>
         </div>
+        <?php endif; ?>
         <div class="space-y-2 text-sm mt-4 pt-4 border-t border-[#27272a]">
           <div class="flex justify-between items-center gap-4"><span class="text-[#71717a]">정상가 합계</span><span id="sumOrig" class="text-right text-[#a1a1aa]">₩0</span></div>
           <div class="flex justify-between items-center gap-4"><span class="text-[#71717a]">적용 할인 <span id="sumDiscPct"></span></span><span id="sumDisc" class="text-right text-[#00C1D5]">-₩0</span></div>
@@ -254,7 +257,8 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
 <script>
 window.UFS_MIN_MEMBERS = 4;
 window.UFS_MAX_TOTAL   = 30;
-window.GROUP_DISCOUNT  = <?= (int)$GDISC ?>; // 단체 할인율(%)
+window.GROUP_DISCOUNT    = <?= (int)$GDISC ?>;      // 일괄 할인율(%) — 쿠폰 모드면 0
+window.GROUP_COUPON_MODE = <?= $GCOUPON ? 1 : 0 ?>; // 쿠폰 모드 여부(전역 100)
 </script>
 <script src="<?= asset_v('assets/js/ticket.js') ?>"></script>
 <script src="<?= asset_v('assets/js/group.js') ?>"></script>

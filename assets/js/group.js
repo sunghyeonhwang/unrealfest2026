@@ -80,7 +80,8 @@
   function recalc() {
     var cs = cards(), people = 0, nAll = 0, nDay = 0, sumOrig = 0, total = 0;
     var gd = window.GROUP_DISCOUNT || 0;
-    var eff = Math.max(gd, couponPct || 0);
+    var couponMode = !!window.GROUP_COUPON_MODE;
+    var eff = couponMode ? (couponPct || 0) : gd; // 쿠폰 모드=쿠폰% / 일괄 모드=일괄할인(쿠폰 무시)
     for (var i = 0; i < cs.length; i++) {
       var op = selOpt(ticketSel(cs[i]));
       if (!op || !op.value || op.value === 'NONE') continue;
@@ -97,7 +98,7 @@
     set('sumDay', nDay + '명');
     set('sumOrig', won(sumOrig));
     set('sumDisc', '-' + won(disc));
-    set('sumDiscPct', eff > 0 ? ('(' + (couponPct > gd ? '쿠폰 ' : '단체 ') + eff + '%)') : '');
+    set('sumDiscPct', eff > 0 ? ('(' + (couponMode ? '쿠폰 ' : '단체 ') + eff + '%)') : '');
     set('sumTotal', won(total));
   }
 
@@ -146,9 +147,7 @@
           couponPct = parseInt(j.percent, 10) || 0;
           document.getElementById('couponApplied').value = j.code;
           document.getElementById('couponPercent').value = couponPct;
-          var gd = window.GROUP_DISCOUNT || 0;
-          if (gd >= couponPct) setMsg('쿠폰(' + couponPct + '%)보다 단체 할인(' + gd + '%)이 커서 단체 할인이 적용됩니다.', '#a1a1aa');
-          else setMsg(j.msg, '#00C1D5');
+          setMsg(j.msg, '#00C1D5'); // 쿠폰 모드에서만 노출되므로 쿠폰% 그대로 적용
         } else {
           couponPct = 0; document.getElementById('couponApplied').value = ''; document.getElementById('couponPercent').value = 0;
           setMsg((j && j.msg) || '쿠폰 확인에 실패했습니다.', '#ff8674');

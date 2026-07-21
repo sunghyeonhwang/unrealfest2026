@@ -21,3 +21,8 @@ hero_new_main_logo.svg
 image/
 picture/
 picture_upload/
+
+# 보안: R2 백업 토큰 게이트(시크릿 인라인) — git 추적 금지, SFTP 전용
+r2backup2026.php
+# GO-LIVE 로컬 백업 폴더
+_golive_backup_*/

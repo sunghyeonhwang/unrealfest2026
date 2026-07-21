@@ -30,6 +30,8 @@ function ufs_group_apply_cols() {
     @sql_query("ALTER TABLE cb_unreal_2026_group_member ADD COLUMN apply_no INT DEFAULT 0");
     @sql_query("ALTER TABLE cb_unreal_2026_group ADD COLUMN applied_yn CHAR(1) DEFAULT 'N'");
     @sql_query("ALTER TABLE cb_unreal_2026_group ADD COLUMN held_yn CHAR(1) DEFAULT 'N'");
+    @sql_query("ALTER TABLE cb_unreal_2026_group_member ADD COLUMN gm_status CHAR(1) DEFAULT 'A'");   // A=활성 / C=취소(1인 부분취소)
+    @sql_query("ALTER TABLE cb_unreal_2026_group ADD COLUMN refunded_amount INT DEFAULT 0");          // 부분환불 누계(잔액=total_amount-refunded_amount)
 }
 }
 
@@ -100,8 +102,8 @@ function ufs_group_reflect($grp_no) {
     if ($ms) while ($m = $ms->fetch_assoc()) {
         $apply_no = (int)$m['apply_no'];
         if ($apply_no > 0) {
-            // 홀드된 행 → 결제완료로 승급
-            sql_query("UPDATE cb_unreal_2026_event2_apply SET apply_pay_status=10, pay_complete='Y' WHERE apply_no=".$apply_no);
+            // 홀드된 행 → 결제완료로 승급 (단, 취소된(status=0) 행은 부활 금지)
+            sql_query("UPDATE cb_unreal_2026_event2_apply SET apply_pay_status=10, pay_complete='Y' WHERE apply_no=".$apply_no." AND apply_pay_status<>0");
         } else {
             $apply_no = ufs_group_insert_member($g, $m, 10);
         }
@@ -130,5 +132,74 @@ function ufs_group_release($grp_no) {
         }
     }
     return $n;
+}
+}
+
+/* 단체 구성원 1명 취소 → (카드)INICIS 부분환불 + apply status=0 + 그룹 집계 동기화.
+ *   - 카드 결제 그룹만 자동 부분환불. 무통장(bank)/TID없음 → 자동 불가(manual=true 반환, 변경 없음) → 사무국 처리.
+ *   - 환불액 = 그 1인의 apply_product_price(반올림가 그대로). 잔액=total_amount-refunded_amount.
+ *   - 마지막 1인(잔액 소진)은 부분취소 대신 전액취소(confirmPrice=0 회피).
+ *   - 동시/중복 취소는 gm_status(A→C) + ROW_COUNT() 락으로 방지(sql_affected_rows 헬퍼 부재 → ROW_COUNT 사용).
+ * 반환: array('ok'=>bool, 'manual'=>bool, 'refund'=>int, 'msg'=>string) */
+if (!function_exists('ufs_group_member_cancel')) {
+function ufs_group_member_cancel($apply_no, $admin_manual = false) {
+    $apply_no = (int)$apply_no;
+    if ($apply_no <= 0) return array('ok'=>false, 'msg'=>'잘못된 요청입니다.');
+    ufs_group_apply_cols();
+
+    $r = sql_fetch(
+        "SELECT a.apply_no, a.apply_pay_status, a.apply_product_price,
+                g.grp_no, g.paymethod, g.pay_tid, g.total_amount, g.refunded_amount
+         FROM cb_unreal_2026_event2_apply a
+         JOIN cb_unreal_2026_group g ON g.grp_code = a.apply_group_code
+         WHERE a.apply_no = ".$apply_no." LIMIT 1");
+    if (!$r) return array('ok'=>false, 'msg'=>'단체 등록 정보를 찾을 수 없습니다.');
+    if ((int)$r['apply_pay_status'] === 0) return array('ok'=>true, 'refund'=>0, 'msg'=>'이미 취소된 등록입니다.');
+
+    $method = isset($r['paymethod']) ? $r['paymethod'] : '';
+    $tid    = trim((string)$r['pay_tid']);
+    $auto   = ($method === 'card' && $tid !== '');   // 카드+TID → INICIS 자동 부분환불 가능
+
+    // 자동환불 불가(무통장 등): 자가(myticket)는 안내만(변경 없음), 관리자(admin_manual=true)는 좌석반환+집계(계좌환불은 수동).
+    if (!$auto && !$admin_manual) {
+        return array('ok'=>false, 'manual'=>true, 'msg'=>'무통장(계좌)으로 결제된 단체 등록은 자동 환불이 어렵습니다.');
+    }
+
+    // ── 동시/중복 취소 방지 락: gm_status A→C, 직전 UPDATE의 ROW_COUNT()==1 일 때만 진행 ──
+    sql_query("UPDATE cb_unreal_2026_group_member SET gm_status='C' WHERE apply_no=".$apply_no." AND gm_status<>'C'");
+    $rc = sql_fetch("SELECT ROW_COUNT() AS rc");
+    if (!$rc || (int)$rc['rc'] !== 1) {
+        return array('ok'=>false, 'msg'=>'이미 취소되었거나 취소 처리 중입니다.');
+    }
+
+    $price   = (int)$r['apply_product_price'];                           // 이 1인 환불액(저장된 반올림가 그대로)
+    $grp_no  = (int)$r['grp_no'];
+    $balance = (int)$r['total_amount'] - (int)$r['refunded_amount'];     // 현재 결제 잔액
+    if ($price > $balance) $price = $balance;                            // 방어: 잔액 초과 금지
+    $remain  = $balance - $price;                                        // 부분취소 후 잔액(confirmPrice)
+
+    if ($auto) {
+        require_once __DIR__ . '/_refund.php';
+        if ($remain <= 0) {
+            // 마지막 남은 인원 → 잔액 전액취소(부분취소 confirmPrice=0 회피)
+            $rf = ufs_inicis_refund($tid, 'Card', '단체 마지막 구성원 취소', $apply_no);
+        } else {
+            $rf = ufs_inicis_partial_refund($tid, 'Card', $price, $remain, '단체 구성원 취소', $apply_no);
+        }
+        // 성공(ok) 또는 이미취소(already) 아니면 실패 → 락 원복 후 중단
+        if (empty($rf['skipped']) && empty($rf['ok']) && empty($rf['already'])) {
+            sql_query("UPDATE cb_unreal_2026_group_member SET gm_status='A' WHERE apply_no=".$apply_no);
+            return array('ok'=>false, 'msg'=>(isset($rf['msg']) ? $rf['msg'] : '환불 처리에 실패했습니다.'));
+        }
+    }
+
+    // ── 성공: apply 취소 + 그룹 집계 상대감산(동시성 안전). 무통장(admin_manual)은 API 없이 좌석/집계만. ──
+    sql_query("UPDATE cb_unreal_2026_event2_apply SET apply_pay_status=0, refund_date=now() WHERE apply_no=".$apply_no." AND apply_pay_status<>0");
+    sql_query("UPDATE cb_unreal_2026_group SET refunded_amount = refunded_amount + ".$price." WHERE grp_no=".$grp_no);
+    if ($remain <= 0) sql_query("UPDATE cb_unreal_2026_group SET pay_status='refunded' WHERE grp_no=".$grp_no);
+    @unlink(__DIR__.'/qrdata/'.$apply_no.'.jpg');
+    @unlink(__DIR__.'/qrdata/'.$apply_no.'.png');
+    return array('ok'=>true, 'manual'=>!$auto, 'refund'=>$price,
+        'msg'=> $auto ? '취소/환불이 완료되었습니다.' : '좌석을 반환했습니다. (무통장은 계좌 환불을 수동으로 진행하세요.)');
 }
 }

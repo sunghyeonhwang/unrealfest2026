@@ -249,7 +249,7 @@
   function initSchedule() {
     var sc = $('[data-schedule]');
     if (!sc) return;
-    var day = 'day1', view = 'track', fTopics = {}, fProducts = {};
+    var day = 'day1', view = (sc.getAttribute('data-default-view') === 'track' ? 'track' : 'grid'), fTopics = {}, fProducts = {};
     var fbtn = sc.querySelector('[data-filter-btn]'), fpanel = sc.querySelector('[data-filter-panel]'), fdot = sc.querySelector('[data-filter-dot]');
 
     function pickedKeys(obj) { var a = []; for (var k in obj) { if (obj[k]) a.push(k); } return a; }

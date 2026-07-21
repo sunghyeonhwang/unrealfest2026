@@ -114,6 +114,45 @@ function ufs_send_qr_mms($name, $phone, $apply_no, $product_code) {
 }
 }
 
+/* 단체 등록완료 — 멤버 개인별 QR jpg 첨부 MMS (무통장 입금확인/카드 결제완료 시 등록자 전원 발송) */
+if (!function_exists('ufs_send_group_qr_mms')) {
+function ufs_send_group_qr_mms($name, $phone, $apply_no, $product_code, $company) {
+    $phone = preg_replace('/[^0-9]/', '', $phone);
+    if ($phone === '') { return false; }
+    $apply_no = preg_replace('/[^0-9]/', '', (string)$apply_no);
+    if ($apply_no === '') { return false; } // QR 없으면 MMS 불가 (호출부에서 텍스트로 대체)
+
+    $call_date = ufs_sms_call_date($product_code);
+    $product_label = ufs_sms_product_label($product_code);
+    $title = "언리얼 페스트 서울 2026";
+    $message = "<언리얼 페스트 서울 2026> 단체 등록이 완료되었습니다.\n"
+             . $name . "님, 행사 참가 등록이 확정되었습니다.\n"
+             . "첨부된 QR코드를 행사장 셀프 체크인 기기에서 스캔한 후 간편하게 입장하세요.\n\n"
+             . "단체 대표: " . $company . "\n"
+             . "티켓: " . $product_label . "\n"
+             . "일시: " . $call_date . "\n"
+             . "장소: 웨스틴 서울 파르나스 (지하 1층 하모니 볼룸)\n\n"
+             . "자세한 내용은 홈페이지를 참고하세요.\n"
+             . "https://epiclounge.co.kr/unrealfest2026/\n\n"
+             . "- 언리얼 페스트 사무국";
+    $message = str_replace(' ', ' ', $message); // 유니코드 공백문자 치환 (2025 동일)
+
+    $receiver = '[{"name":"' . ufs_sms_json_escape($name) . '","mobile":"' . $phone . '"}]';
+    $attaches = json_encode(array(array('attc' => UFS_SMS_BASE_URL . '/qrdata/' . $apply_no . '.jpg')));
+
+    $postvars = '{'
+        . '"title":"' . ufs_sms_json_escape($title) . '"'
+        . ', "message":"' . ufs_sms_json_escape($message) . '"'
+        . ', "sender":"' . UFS_SMS_SENDER . '"'
+        . ', "username":"' . UFS_SMS_USERNAME . '"'
+        . ', "receiver":' . $receiver
+        . ', "key":"' . UFS_SMS_KEY . '"'
+        . ', "attaches":' . $attaches
+        . '}';
+    return ufs_directsend_post($postvars, 'group-qr-mms');
+}
+}
+
 /* 텍스트 SMS — 온라인 등록완료 / 가상계좌 입금안내 등 (첨부 없음) */
 if (!function_exists('ufs_send_text_sms')) {
 function ufs_send_text_sms($name, $phone, $title, $message, $tag = 'text') {

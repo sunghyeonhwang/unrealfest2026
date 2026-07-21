@@ -40,6 +40,7 @@ if (defined('_GNUBOARD_')) {
 #site-header.hdr-bottom #mobile-nav{ top:auto; bottom:100%; border-bottom:0; border-top:1px solid rgba(255,255,255,.1); }
 </style>
 <?php include __DIR__ . '/_wcs.php'; ?>
+<?php include __DIR__ . '/_adn.php'; ?>
 </head>
 <body class="bg-white dark:bg-black min-h-screen text-black dark:text-white font-sans selection:bg-cyan-500/30 flex flex-col">
 

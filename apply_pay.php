@@ -54,6 +54,16 @@ $apply_product_price = (string)ufs_ticket_price($apply_product_code);  // 얼리
 if ($apply_ci === '')          { exit('<script>alert("본인인증을 먼저 진행해주세요.");history.back();</script>'); }
 if ($apply_user_email === '' || $apply_user_phone === '') { exit('<script>alert("이메일/연락처를 입력해주세요.");history.back();</script>'); }
 
+// ── 만 14세 미만 오프라인 등록 차단 (온라인 등록은 예외) ──
+//   본인인증(KCB) 결과 생년월일(RSLT_BIRTHDAY, YYYYMMDD)이 세션에 보존됨.
+//   생년월일이 없거나 형식이 비정상이면 통과(정상 등록 방해 방지 = fail-open).
+$__birth = isset($_SESSION['RSLT_BIRTHDAY']) ? preg_replace('/[^0-9]/', '', $_SESSION['RSLT_BIRTHDAY']) : '';
+if (strlen($__birth) === 8) {
+    $__age = (int)date('Y') - (int)substr($__birth, 0, 4);
+    if ((int)date('md') < (int)substr($__birth, 4, 4)) { $__age--; } // 생일 안 지났으면 -1
+    if ($__age < 14) { exit('<script>alert("만 14세 미만은 보호자(법정대리인)의 동의가 필요하여 오프라인 등록이 제한됩니다.\n고객센터(info@epiclounge.co.kr)로 문의해 주세요.\n(온라인 등록은 가능합니다)");history.back();</script>'); }
+}
+
 // ── 본인인증 결과를 세션에 보존 ──
 //   결제창에서 취소하고 등록폼(closeUrl)으로 돌아와도 _ticket_init 이 세션에서 복원 →
 //   본인인증을 다시 하지 않아도 됨. (본인인증 결과가 폼 hidden 에만 있던 문제 보완)
@@ -175,6 +185,7 @@ function ev($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 <?php include __DIR__ . '/_favicon.php'; ?>
 <?php if (defined('_GNUBOARD_')) include __DIR__ . '/../inc/marketing_head.php'; /* 라운지 전역 SEO/마케팅 */ ?>
 <?php include __DIR__.'/_wcs.php'; ?>
+<?php include __DIR__.'/_adn.php'; ?>
 </head>
 <?php if ($is_mobile): ?>
 <body onload="document.getElementById('SendPayForm_mobile').submit();">

@@ -20,6 +20,7 @@ $d = (isset($_GET['d']) && $_GET['d'] === '2') ? 'DAY2' : 'DAY1';
 <?php include __DIR__ . '/_favicon.php'; ?>
 <?php if (defined('_GNUBOARD_')) include __DIR__ . '/../inc/marketing_head.php'; /* 라운지 전역 SEO/마케팅 */ ?>
 <?php include __DIR__.'/_wcs.php'; ?>
+<?php include __DIR__.'/_adn.php'; ?>
 </head>
 <body class="bg-[#09090b] text-white" style="font-family:system-ui,'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
 

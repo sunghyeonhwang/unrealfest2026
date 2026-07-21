@@ -6,7 +6,7 @@
 require __DIR__ . '/_ticket_init.php'; // common.php + e() + $UFS_TRACKS + _pricing
 require_once __DIR__ . '/_sms.php';    // 무통장 입금 안내 LMS
 
-define('UFS_BANK_INFO', '국민은행 98983000004185 (주)그리프');
+define('UFS_BANK_INFO', '국민은행 98983700004185 (주)그리프');
 define('UFS_BANK_DAYS', 5); // 입금 기한(일)
 
 function gp($k){ return isset($_POST[$k]) ? trim($_POST[$k]) : ''; }
@@ -100,11 +100,17 @@ if ($err==='') {
     }
 }
 
-// ── 금액(서버 재계산): 유효할인 = max(단체할인, 쿠폰) — 중복 안 됨
-$gdisc = ufs_group_discount();
-$cpct  = coupon_percent($coupon_code);
-$eff   = max($gdisc, $cpct);
-$disc_src = ($cpct > $gdisc && $cpct>0) ? 'coupon' : ($gdisc>0 ? 'group' : '');
+// ── 금액(서버 재계산): 전역 모드 스위치 — 일괄 모드=일괄할인(쿠폰 무시) / 쿠폰 모드=쿠폰할인
+$cpct = coupon_percent($coupon_code);
+if (ufs_group_coupon_mode()) {
+    $eff = (int)$cpct;
+    if ($cpct > 0) { $disc_src = 'coupon'; }
+    else { $disc_src = ''; $coupon_code = ''; } // 쿠폰 무효(만료/한도초과/중지) → 저장 안 함 (cp_used 유령증가 방지)
+} else {
+    $eff = ufs_group_flat_discount();
+    $disc_src = ($eff > 0) ? 'group' : '';
+    $coupon_code = ''; $cpct = 0;          // 일괄 모드: 쿠폰 저장/사용 안 함 (cp_used 오증가 방지)
+}
 $sumOrig=0; $total=0;
 foreach ($attendees as &$a){ $o=ufs_ticket_orig($a['ticket']); $p=(int)(round(($o*(100-$eff)/100)/100)*100); $a['price']=$p; $sumOrig+=$o; $total+=$p; }
 unset($a);
@@ -204,7 +210,7 @@ if ($err==='' && gp('action')==='register') {
     <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mb-6">
       <h2 class="text-lg font-bold text-white mb-4">무통장 입금 안내</h2>
       <div class="space-y-3 text-sm">
-        <div class="flex justify-between gap-4 py-1 items-center"><span class="text-[#71717a]">입금 계좌</span><span class="font-bold text-right inline-flex items-center gap-2 justify-end">국민은행 98983000004185 <button type="button" data-copy="98983000004185" class="px-2 py-0.5 text-[11px] font-bold border border-[#27272a] text-[#a1a1aa] hover:border-[#00C1D5] hover:text-[#00C1D5] rounded whitespace-nowrap transition-colors">복사</button></span></div>
+        <div class="flex justify-between gap-4 py-1 items-center"><span class="text-[#71717a]">입금 계좌</span><span class="font-bold text-right inline-flex items-center gap-2 justify-end">국민은행 98983700004185 <button type="button" data-copy="98983700004185" class="px-2 py-0.5 text-[11px] font-bold border border-[#27272a] text-[#a1a1aa] hover:border-[#00C1D5] hover:text-[#00C1D5] rounded whitespace-nowrap transition-colors">복사</button></span></div>
         <div class="flex justify-between gap-4 py-1 items-center"><span class="text-[#71717a]">예금주</span><span class="font-bold text-right">(주)그리프</span></div>
         <div class="flex justify-between gap-4 py-1 items-center"><span class="text-[#71717a]">입금 금액</span><span class="font-bold text-[#00C1D5] text-right inline-flex items-center gap-2 justify-end">₩<?= number_format($total) ?> <button type="button" data-copy="<?= (int)$total ?>" class="px-2 py-0.5 text-[11px] font-bold border border-[#27272a] text-[#a1a1aa] hover:border-[#00C1D5] hover:text-[#00C1D5] rounded whitespace-nowrap transition-colors">복사</button></span></div>
         <div class="flex justify-between gap-4 py-1"><span class="text-[#71717a]">입금 기한</span><span class="font-bold text-right"><?= date('Y년 m월 d일', strtotime('+'.UFS_BANK_DAYS.' days')) ?> (<?= UFS_BANK_DAYS ?>일 이내)</span></div>

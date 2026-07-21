@@ -1,6 +1,8 @@
 <?php
-// Unreal Fest Seoul 2026 — 홈 랜딩 (index.php). 그리드 아젠다·하이라이트 없는 버전 (2026-07-21 프리뷰→라이브 승격, 구버전=_golive_backup).
-// 순수 PHP/HTML/CSS/JS. 데이터는 data/lib.php 접근자.
+// Unreal Fest Seoul 2026 — 홈 랜딩 "프리뷰"(index.php 사본; 대체 버전 작업용). 여기서 수정하세요.
+// 원본 index.php 는 그대로 라이브 유지. 확정 시 이 파일 내용을 index.php 로 반영.
+// 순수 PHP/HTML/CSS/JS. 데이터는 data/lib.php 접근자. 디자인 기준 = 라이브 React 렌더 캡처.
+if (!headers_sent()) { header('X-Robots-Tag: noindex, nofollow'); }  // 프리뷰: 검색엔진 색인 차단
 $ufs_page = 'home';
 $ufs_el_gnb = true;                              // 에픽라운지 공통 GNB(다크) 노출 — 홈에서만
 include_once __DIR__ . '/../common.php';        // DB (sql_query)
@@ -121,6 +123,138 @@ $ov_icons = array(
     <h2 class="text-3xl md:text-5xl text-white mb-4 tracking-tight">아젠다</h2>
     <p class="text-[#90a1b9]">최신 기술과 새로운 아이디어, 다양한 산업 분야의 세션을 만나보세요.</p>
   </div>
+
+  <!-- ===== 하이라이트 슬라이더 (시안: AI/게임/아트 큐레이션, 레퍼런스 카드 디자인) ===== -->
+  <?php
+  // 시안 큐레이션 — 테마(AI/게임/아트)별 세션 자동 선별(2+2+2=6). 실제 큐레이션은 추후 조정.
+  $hl_pool = array();
+  foreach (array(1, 2) as $d) foreach (ufs_db_day_all($d) as $s) {
+      if (!empty($s['_hidden']) || $s['track'] === '키노트' || !empty($s['is_keynote'])) continue;
+      if (!empty($s['_slot_type']) && ufs_slot_is_common($s['_slot_type'])) continue;
+      $hl_pool[] = $s;
+  }
+  $hl_theme = function ($s) {
+      $t = $s['title'] . ' ' . implode(' ', ufs_session_topics($s));
+      if (preg_match('/AI|인공지능|에이전|LLM|생성형|머신러닝/iu', $t)) return 'AI';
+      if ($s['track'] === '게임: 아트') return '아트';
+      return '게임';
+  };
+  $hl_buckets = array('AI' => array(), '게임' => array(), '아트' => array());
+  foreach ($hl_pool as $s) { $th = $hl_theme($s); if (count($hl_buckets[$th]) < 2) $hl_buckets[$th][] = array($s, $th); }
+  $highlights = array();
+  foreach (array('AI', '게임', '아트') as $th) foreach ($hl_buckets[$th] as $x) $highlights[] = $x;
+  if (count($highlights) < 6) { $u = array(); foreach ($highlights as $x) $u[$x[0]['id']] = 1;
+      foreach ($hl_pool as $s) { if (count($highlights) >= 6) break; if (empty($u[$s['id']])) { $highlights[] = array($s, $hl_theme($s)); $u[$s['id']] = 1; } } }
+  $highlights = array_slice($highlights, 0, 6);
+  $hl_total = count($highlights);
+  ?>
+  <style>
+    .ufs-hl-track{display:flex;gap:1rem;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:2px;-ms-overflow-style:none;scrollbar-width:none}
+    .ufs-hl-track::-webkit-scrollbar{display:none}
+    .ufs-hl-card{position:relative;flex:0 0 100%;box-sizing:border-box;scroll-snap-align:start;background:#0e0f13;border:1px solid #1e1e26;padding:26px 28px 28px;display:flex;flex-direction:column;text-decoration:none;transition:background .25s,border-color .25s;min-height:360px}
+    .ufs-hl-top,.ufs-hl-title,.ufs-hl-chip,.ufs-hl-sp-co,.ufs-hl-sp-nm{transition:color .2s,border-color .2s}
+    /* 호버: 화이트 배경 + 텍스트 반전 + 스피커 사진 노출 */
+    .ufs-hl-card:hover{background:#fff;border-color:#fff}
+    .ufs-hl-card:hover .ufs-hl-top{color:#52525b}
+    .ufs-hl-card:hover .ufs-hl-title{color:#0a0a0a}
+    .ufs-hl-card:hover .ufs-hl-chip{color:#3f3f46;border-color:#d4d4d8}
+    .ufs-hl-card:hover .ufs-hl-sp-co{color:#0a0a0a}
+    .ufs-hl-card:hover .ufs-hl-sp-nm{color:#52525b}
+    .ufs-hl-card:hover .ufs-hl-sp-ph{opacity:1}
+    .ufs-hl-card:hover .ufs-hl-sp-ph-ph{background:#e5e5ea;color:#a1a1aa}
+    @media(min-width:768px){.ufs-hl-card{flex:0 0 calc(50% - .5rem)}}
+    @media(min-width:1024px){.ufs-hl-card{flex:0 0 calc((100% - 2rem) / 3)}}
+    .ufs-hl-top{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;color:#8a8f9c;letter-spacing:.01em;margin-bottom:14px}
+    .ufs-hl-room{white-space:nowrap}
+    .ufs-hl-title{font-size:23px;font-weight:800;color:#fff;line-height:1.3;margin:0 0 16px;letter-spacing:-.01em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .ufs-hl-kw{display:flex;flex-wrap:wrap;gap:8px}
+    .ufs-hl-chip{padding:6px 12px;font-size:13px;color:#a1a1aa;border:1px solid #2c2c35;background:transparent;white-space:nowrap}
+    .ufs-hl-sp{margin-top:auto;padding-top:22px;display:flex;gap:22px}
+    .ufs-hl-sp-col{min-width:0;flex:1 1 0;max-width:calc(50% - 11px)}
+    .ufs-hl-sp-co{font-size:16px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ufs-hl-sp-nm{font-size:13px;color:#8a8f9c;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ufs-hl-sp-ph{margin-top:14px;width:100%;max-width:140px;aspect-ratio:1/1;object-fit:cover;filter:grayscale(1) contrast(1.02);background:#17181d;display:block;opacity:0;transition:opacity .25s}
+    .ufs-hl-sp-ph-ph{display:flex;align-items:center;justify-content:center;color:#3a3b44}
+    .ufs-hl-flash{position:absolute;inset:0;z-index:3;pointer-events:none;opacity:0}
+    .ufs-hl-flash.on{animation:ufsHlFlash .7s ease-out}
+    .ufs-hl-flash.on2{animation:ufsHlFlashLoad .8s ease-out}
+    @keyframes ufsHlFlash{0%{opacity:0;background:rgba(255,255,255,0)}20%{opacity:1;background:rgba(255,255,255,.4)}100%{opacity:0;background:rgba(255,255,255,0)}}
+    @keyframes ufsHlFlashLoad{0%{opacity:0;background:rgba(255,255,255,0)}12%{opacity:1;background:rgba(255,255,255,.72)}32%{opacity:0;background:rgba(255,255,255,0)}54%{opacity:1;background:rgba(255,255,255,.72)}100%{opacity:0;background:rgba(255,255,255,0)}}
+    .ufs-hl-count{font-size:15px;color:#8a8f9c;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+    .ufs-hl-count b{color:#fff;font-weight:800}
+    .ufs-hl-arrow{width:42px;height:42px;border:1px solid #27272a;display:flex;align-items:center;justify-content:center;color:#a1a1aa;background:transparent;cursor:pointer;transition:color .15s,border-color .15s}
+    .ufs-hl-arrow:hover{color:#fff;border-color:rgba(255,255,255,.3)}
+  </style>
+  <div class="max-w-7xl mx-auto px-6 mb-14" data-hl>
+    <div class="flex items-center justify-end gap-5 mb-5">
+      <div class="ufs-hl-count"><b data-hl-cur>1</b> / <?= $hl_total ?></div>
+      <div class="flex gap-2">
+        <button type="button" data-hl-prev class="ufs-hl-arrow" aria-label="이전"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+        <button type="button" data-hl-next class="ufs-hl-arrow" aria-label="다음"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+      </div>
+    </div>
+    <div class="ufs-hl-track" data-hl-track>
+      <?php foreach ($highlights as $hx): $s = $hx[0]; $th = $hx[1];
+        $kws = ufs_session_topics($s); if (!$kws) $kws = array($th); $kws = array_slice($kws, 0, 4);
+        $sps = (isset($s['speakers']) && $s['speakers']) ? array_slice($s['speakers'], 0, 2) : array($s['speaker']);
+        $rm = ufs_track_room($s['track']); ?>
+        <a href="session.php?id=<?= e($s['id']) ?>" class="ufs-hl-card">
+          <div class="ufs-hl-top"><span><?= e(str_replace('~', '—', $s['time'])) ?></span><span class="ufs-hl-room"><?= e($rm) ?></span></div>
+          <h4 class="ufs-hl-title"><?= e($s['title']) ?></h4>
+          <div class="ufs-hl-kw">
+            <?php foreach ($kws as $kw): ?><span class="ufs-hl-chip"><?= e($kw) ?></span><?php endforeach; ?>
+          </div>
+          <div class="ufs-hl-sp">
+            <?php foreach ($sps as $sp): if (empty($sp['name']) && empty($sp['company'])) continue; ?>
+              <div class="ufs-hl-sp-col">
+                <div class="ufs-hl-sp-co"><?= e($sp['company'] !== '' ? $sp['company'] : $sp['name']) ?></div>
+                <div class="ufs-hl-sp-nm"><?= e(trim($sp['name'] . ($sp['role'] !== '' ? '  ' . $sp['role'] : ''))) ?></div>
+                <?php if ($sp['photo'] !== ''): ?>
+                  <img class="ufs-hl-sp-ph" src="<?= e($sp['photo']) ?>" alt="<?= e($sp['name']) ?>" onerror="this.style.display='none'">
+                <?php else: ?>
+                  <div class="ufs-hl-sp-ph ufs-hl-sp-ph-ph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+                <?php endif; ?>
+              </div>
+            <?php endforeach; ?>
+          </div>
+          <div class="ufs-hl-flash" data-hl-flash></div>
+        </a>
+      <?php endforeach; ?>
+    </div>
+  </div>
+  <script>
+  (function(){
+    var wrap=document.querySelector('[data-hl]'); if(!wrap) return;
+    var track=wrap.querySelector('[data-hl-track]');
+    var cards=track.querySelectorAll('.ufs-hl-card');
+    var cur=wrap.querySelector('[data-hl-cur]');
+    var total=cards.length; if(total<2) return;
+    var idx=0, paused=false, lock=false;
+    function step(){ return cards[0].offsetWidth + 16; } // gap 1rem
+    function render(){ if(cur) cur.textContent=(idx+1); }
+    function go(i, flash){
+      idx=(i%total+total)%total;
+      lock=true;
+      track.scrollTo({left: Math.round(idx*step()), behavior:'smooth'});
+      render();
+      setTimeout(function(){ lock=false; }, 600);
+      if(flash){ var fl=cards[idx].querySelector('[data-hl-flash]'); if(fl){ fl.classList.remove('on'); void fl.offsetWidth; fl.classList.add('on'); } }
+    }
+    wrap.querySelector('[data-hl-next]').addEventListener('click',function(){ go(idx+1,false); });
+    wrap.querySelector('[data-hl-prev]').addEventListener('click',function(){ go(idx-1,false); });
+    var st; track.addEventListener('scroll',function(){ if(lock) return; clearTimeout(st); st=setTimeout(function(){ idx=Math.max(0,Math.min(total-1,Math.round(track.scrollLeft/step()))); render(); },110); });
+    wrap.addEventListener('mouseenter',function(){ paused=true; });
+    wrap.addEventListener('mouseleave',function(){ paused=false; });
+    // 스크롤로 이 영역 진입 시 카드 순차 번쩍(웨이브) — 최초 1회
+    function flashCard(c){ var fl=c.querySelector('[data-hl-flash]'); if(fl){ fl.classList.remove('on2'); void fl.offsetWidth; fl.classList.add('on2'); } }
+    function runWave(){ for (var n=0;n<cards.length;n++){ (function(c,i){ setTimeout(function(){ flashCard(c); }, i*190); })(cards[n], n); } }
+    if ('IntersectionObserver' in window){
+      var io=new IntersectionObserver(function(es){ for(var e=0;e<es.length;e++){ if(es[e].isIntersecting){ runWave(); io.disconnect(); break; } } }, {threshold:.3});
+      io.observe(wrap);
+    } else { runWave(); }
+    setInterval(function(){ if(!paused) go(idx+1,true); }, 4500);
+  })();
+  </script>
 
   <!-- 타임테이블 그리드 (schedule.php 그리드뷰 형식) -->
   <style>

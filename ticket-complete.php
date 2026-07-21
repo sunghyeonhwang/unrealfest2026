@@ -31,6 +31,7 @@ if ($row) {
 <?php include __DIR__ . '/_favicon.php'; ?>
 <?php if (defined('_GNUBOARD_')) include __DIR__ . '/../inc/marketing_head.php'; /* 라운지 전역 SEO/마케팅 */ ?>
 <?php include __DIR__.'/_wcs.php'; ?>
+<?php include __DIR__.'/_adn.php'; /* 어크로스 ADN: 방문자 + 전환($ufs_conv, 금액>0). 가상계좌 발급도 집계(기존 픽셀과 동일) */ ?>
 <?php if (!empty($ufs_conv) && !empty($seo_kakao_pixel_id)): /* 카카오 전환(서비스신청) — 등록 완료 시점. 픽셀ID는 config(v3_seo_config) */ ?>
 <script type="text/javascript">if(window.kakaoPixel)kakaoPixel('<?= htmlspecialchars($seo_kakao_pixel_id, ENT_QUOTES, 'UTF-8') ?>').signUp();</script>
 <?php endif; ?>

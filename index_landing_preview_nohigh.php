@@ -1,6 +1,8 @@
 <?php
-// Unreal Fest Seoul 2026 — 홈 랜딩 (index.php). 그리드 아젠다·하이라이트 없는 버전 (2026-07-21 프리뷰→라이브 승격, 구버전=_golive_backup).
-// 순수 PHP/HTML/CSS/JS. 데이터는 data/lib.php 접근자.
+// Unreal Fest Seoul 2026 — 홈 랜딩 "프리뷰 — 하이라이트 없는 버전"(index_landing_preview.php 파생).
+// 원본 index.php 는 그대로 라이브 유지. 확정 시 이 파일 내용을 index.php 로 반영.
+// 순수 PHP/HTML/CSS/JS. 데이터는 data/lib.php 접근자. 디자인 기준 = 라이브 React 렌더 캡처.
+if (!headers_sent()) { header('X-Robots-Tag: noindex, nofollow'); }  // 프리뷰: 검색엔진 색인 차단
 $ufs_page = 'home';
 $ufs_el_gnb = true;                              // 에픽라운지 공통 GNB(다크) 노출 — 홈에서만
 include_once __DIR__ . '/../common.php';        // DB (sql_query)

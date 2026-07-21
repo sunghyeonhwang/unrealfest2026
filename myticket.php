@@ -41,19 +41,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $is_paid_row = $row['free_yn'] === 'N' && $row['apply_product_code'] !== 'ONLINE';
             if ($action === 'cancel') {
-                // 유료 결제건이면 INICIS 자동 환불 시도 (운영모드에서만 실제 환불; 테스트는 상태만)
-                $paid_cancel = ($row['free_yn']==='N' && $row['apply_product_code']!=='ONLINE' && trim((string)$row['pay_tid'])!=='');
-                if ($paid_cancel) {
-                    require_once __DIR__.'/_refund.php';
-                    $rf = ufs_inicis_refund($row['pay_tid'], isset($row['pay_paymethod'])?$row['pay_paymethod']:'', '회원요청 취소', $row['apply_no']);
-                    // 환불 성공(ok) 또는 이미 환불됨(already=기 취소거래) → 등록 취소 진행. 그 외만 차단.
-                    if (empty($rf['skipped']) && empty($rf['ok']) && empty($rf['already'])) {
-                        $rf_reason = isset($rf['msg']) ? preg_replace('/[\"\\\\\r\n]/', ' ', $rf['msg']) : '';
-                        exit('<script>alert("환불 처리에 실패했습니다.'.($rf_reason!==''?('\n사유: '.$rf_reason):'').'\n사무국(02-326-3701)으로 문의해주세요.");history.back();</script>');
+                if (trim((string)$row['apply_group_code']) !== '') {
+                    // ── 단체 구성원 취소: 부분환불 경로. 그룹 공용 TID 전액환불 금지(다른 인원까지 환불되는 사고 방지). ──
+                    require_once __DIR__ . '/_group_apply.php';
+                    $gc = ufs_group_member_cancel((int)$row['apply_no']);
+                    if (empty($gc['ok'])) {
+                        $gm = isset($gc['msg']) ? preg_replace('/["\\\\\r\n]/', ' ', $gc['msg']) : '';
+                        if (!empty($gc['manual'])) {
+                            exit('<script>alert("'.$gm.'\n취소·환불은 사무국(02-326-3701 / info@epiclounge.co.kr)으로 요청해 주세요.");history.back();</script>');
+                        }
+                        exit('<script>alert("취소 처리에 실패했습니다.'.($gm!==''?('\n사유: '.$gm):'').'\n사무국(02-326-3701)으로 문의해 주세요.");history.back();</script>');
                     }
+                    $mode = 'cancelled'; $cancelled_paid = true; $row = null;
+                } else {
+                    // 유료 결제건이면 INICIS 자동 환불 시도 (운영모드에서만 실제 환불; 테스트는 상태만)
+                    $paid_cancel = ($row['free_yn']==='N' && $row['apply_product_code']!=='ONLINE' && trim((string)$row['pay_tid'])!=='');
+                    if ($paid_cancel) {
+                        require_once __DIR__.'/_refund.php';
+                        $rf = ufs_inicis_refund($row['pay_tid'], isset($row['pay_paymethod'])?$row['pay_paymethod']:'', '회원요청 취소', $row['apply_no']);
+                        // 환불 성공(ok) 또는 이미 환불됨(already=기 취소거래) → 등록 취소 진행. 그 외만 차단.
+                        if (empty($rf['skipped']) && empty($rf['ok']) && empty($rf['already'])) {
+                            $rf_reason = isset($rf['msg']) ? preg_replace('/[\"\\\\\r\n]/', ' ', $rf['msg']) : '';
+                            exit('<script>alert("환불 처리에 실패했습니다.'.($rf_reason!==''?('\n사유: '.$rf_reason):'').'\n사무국(02-326-3701)으로 문의해주세요.");history.back();</script>');
+                        }
+                    }
+                    sql_query("UPDATE cb_unreal_2026_event2_apply SET apply_pay_status = 0, refund_date = now() WHERE apply_no = '".intval($row['apply_no'])."'");
+                    $mode = 'cancelled'; $cancelled_paid = $is_paid_row; $row = null;
                 }
-                sql_query("UPDATE cb_unreal_2026_event2_apply SET apply_pay_status = 0, refund_date = now() WHERE apply_no = '".intval($row['apply_no'])."'");
-                $mode = 'cancelled'; $cancelled_paid = $is_paid_row; $row = null;
             } else if ($action === 'edit') {
                 $mode = 'edit';
             } else if ($action === 'update') {
@@ -134,6 +148,7 @@ function ufs_opt($list,$cur){ foreach($list as $o){ echo '<option'.($o===$cur?' 
 <?php include __DIR__ . '/_favicon.php'; ?>
 <?php if (defined('_GNUBOARD_')) include __DIR__ . '/../inc/marketing_head.php'; /* 라운지 전역 SEO/마케팅 */ ?>
 <?php include __DIR__.'/_wcs.php'; ?>
+<?php include __DIR__.'/_adn.php'; ?>
 </head>
 <body class="bg-[#09090b] text-white" style="font-family:system-ui,'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
 <header class="fixed top-0 inset-x-0 z-50 bg-[#09090b]/95 backdrop-blur border-b border-[#27272a]">

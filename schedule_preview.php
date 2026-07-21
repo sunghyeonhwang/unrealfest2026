@@ -9,7 +9,8 @@ include_once __DIR__ . '/../common.php';        // DB (sql_query / sql_real_esca
 require_once __DIR__ . '/data/lib.php';
 require_once __DIR__ . '/data/agenda_db.php';
 require_once __DIR__ . '/_pricing.php';   // ufs_is_preview() — 프리뷰 시 가림 세션 실내용 렌더
-require_once __DIR__ . '/data/no_online.php';   // 온라인 중계 제외 배지/리본(리스트+그리드 공용 단일소스)
+require_once __DIR__ . '/data/no_online.php';   // [프리뷰] 온라인 중계 제외 배지/리본(리스트+그리드 공용 단일소스)
+if (!headers_sent()) { header('X-Robots-Tag: noindex, nofollow'); }   // 프리뷰: 검색엔진 색인 차단
 
 // 시간 슬롯을 등장(=ag_sort 정렬) 순서대로, 중복 제거하여 수집
 function ufs_s_sched_slots($sessions) {
@@ -264,7 +265,7 @@ $day2 = array_values(array_filter($day2, $ufs_sched_keep));
 include __DIR__ . '/_head.php';
 ?>
 
-<div class="bg-[#09090b] min-h-screen text-white" data-schedule data-default-view="track"><!-- 기본 뷰 = 리스트(트랙) -->
+<div class="bg-[#09090b] min-h-screen text-white" data-schedule data-default-view="track"><!-- [프리뷰] 기본 뷰 = 리스트(트랙) -->
   <!-- 헤딩 -->
   <section class="relative pt-24 pb-12 border-b border-[#27272a]" style="background-color:#0e0f14;">
     <div class="max-w-7xl mx-auto px-6 pt-12">

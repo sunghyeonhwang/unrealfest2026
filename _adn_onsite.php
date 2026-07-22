@@ -1,7 +1,9 @@
 <?php
-/* 어크로스 ADN 온사이트 마케팅(팝업) — 랜딩 페이지 body 끝에서만 include.
- * 적용: index.php + index_landing_preview.php + index_landing_preview_nohigh.php
- *       (등록/결제 퍼널 페이지엔 미적용 → 등록 플로우 무영향).
+/* 어크로스 ADN 온사이트 마케팅(팝업) — 공개 페이지 body 끝에서 include.
+ * 적용(중앙화): 공통 footer(_foot.php + _pf_footer.php)에서 1회 include.
+ *       → index/랜딩·schedule·sessions·sponsors·ticket(all/day/online/en/complete)·myticket 커버.
+ *       ※ 단체 등록(ticket-group*)은 제외(공유 footer 미사용 + 사용자 지시).
+ *       ※ PG 리다이렉트 브릿지(apply_pay·ticket-group-pay*)도 체류 페이지 아님 → 제외.
  * 팝업 실제 노출/디자인/타겟/빈도는 AND(어크로스) 대시보드 캠페인 설정으로 결정.
  *  → 캠페인 미설정 시 아무것도 안 뜸(스크립트는 "무장"만).
  * ui=110302. 관리자 미노출. 중복 include 가드. 벤더 원본 변수/파일명(onsight 철자) 유지 필수.

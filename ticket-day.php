@@ -110,6 +110,12 @@ $d = (isset($_GET['d']) && $_GET['d'] === '2') ? 'DAY2' : 'DAY1';
 </div>
 </form>
 
+<!-- ADN 상품패널(피드애드) 위치 태그 — 어크로스 ADN 온사이트. 반응형: PC/MO 동시 삽입(미매칭 컨테이너는 0 높이). -->
+<div class="max-w-7xl mx-auto px-6 pb-16">
+  <div id="across_adn_feedad_pc_container"></div>
+  <div id="across_adn_feedad_m_container"></div>
+</div>
+
 <?php include __DIR__ . '/_pf_footer.php'; ?>
 
 <!-- 본인인증 팝업 타깃 (2025 real/ 재사용) -->

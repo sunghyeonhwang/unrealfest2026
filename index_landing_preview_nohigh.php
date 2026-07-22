@@ -410,5 +410,4 @@ $ov_icons = array(
   setInterval(tick, 2000);
 })();
 </script>
-<?php include __DIR__ . '/_adn_onsite.php'; /* 어크로스 ADN 온사이트 팝업 — 랜딩만 */ ?>
 <?php include __DIR__ . '/_foot.php'; ?>

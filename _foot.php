@@ -84,5 +84,6 @@ if (!isset($is_home)) { $is_home = false; }
 <?php include __DIR__ . '/_sns_fixed.php'; ?>
 
 <script src="<?= e(asset_v('assets/js/app.js')) ?>" defer></script>
+<?php include __DIR__ . '/_adn_onsite.php'; /* 어크로스 ADN 온사이트 팝업 — 전 공개 페이지 공통 */ ?>
 </body>
 </html>

@@ -152,6 +152,7 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
         <button type="button" id="gAddBtn" class="flex-1 py-3 border border-dashed border-[#27272a] text-[#a1a1aa] hover:border-[#00C1D5] hover:text-[#00C1D5] transition-all text-sm font-bold">+ 1명 추가</button>
         <button type="button" id="gAdd5Btn" class="flex-1 py-3 border border-dashed border-[#27272a] text-[#a1a1aa] hover:border-[#00C1D5] hover:text-[#00C1D5] transition-all text-sm font-bold">+ 5명 추가</button>
       </div>
+      <p class="text-xs text-[#71717a] mt-2 px-1">※ 버튼으로는 최대 49명까지 추가할 수 있습니다. <b class="text-[#a1a1aa]">50명 이상 단체는 위의 ‘양식 업로드(CSV)’ 기능</b>을 이용해 주세요.</p>
 
       <!-- 결제 수단 -->
       <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mt-4">
@@ -259,7 +260,8 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
 
 <script>
 window.UFS_MIN_MEMBERS = 4;
-window.UFS_MAX_TOTAL   = 50;
+window.UFS_MAX_TOTAL   = 50;   // 총원(대표 포함) 하드 상한 — CSV 업로드 포함
+window.UFS_BTN_MAX_TOTAL = 49; // 버튼(+1/+5) 추가 상한(총원). 50명 이상은 CSV 업로드 이용
 window.GROUP_DISCOUNT    = <?= (int)$GDISC ?>;      // 일괄 할인율(%) — 쿠폰 모드면 0
 window.GROUP_COUPON_MODE = <?= $GCOUPON ? 1 : 0 ?>; // 쿠폰 모드 여부(전역 100)
 </script>

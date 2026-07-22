@@ -411,11 +411,22 @@
 
   var rep = document.querySelector('[data-rep]'); if (rep) wireCard(rep);
   for (var i = 0; i < window.UFS_MIN_MEMBERS; i++) addMember();
-  if (addBtn) addBtn.addEventListener('click', function () { addMember(); queueSave(); });
+  // 버튼 인원추가 상한: 총원(대표 포함) 49명까지. 50명 이상은 CSV 업로드 이용(정책).
+  var BTN_MAX = window.UFS_BTN_MAX_TOTAL || 49;
+  function btnCanAdd() { return (memberRows().length + 1) < BTN_MAX; }   // 현재 총원 < 49 일 때만 버튼 추가 허용
+  function btnCapAlert() { alert('버튼으로는 최대 ' + BTN_MAX + '명까지 추가할 수 있습니다.\n50명 이상 단체는 위의 ‘양식 업로드(CSV)’ 기능을 이용해 주세요.'); }
+  if (addBtn) addBtn.addEventListener('click', function () {
+    if (!btnCanAdd()) { btnCapAlert(); return; }
+    addMember(); queueSave();
+  });
   var add5Btn = document.getElementById('gAdd5Btn');
   if (add5Btn) add5Btn.addEventListener('click', function () {
     var added = 0;
-    for (var k = 0; k < 5; k++) { if (!addMember()) break; added++; } // 상한 도달 시 addMember가 alert 후 null → 중단
+    for (var k = 0; k < 5; k++) {
+      if (!btnCanAdd()) { if (added === 0) btnCapAlert(); break; }   // 버튼 상한(49) 도달 → CSV 안내
+      if (!addMember()) break;
+      added++;
+    }
     if (added > 0) queueSave();
   });
   renumber();

@@ -21,6 +21,7 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
 
 // d2-t4-s1(패널 토크) 전용 — 패널 소개
 $panel_intro = array(
+    array('role'=>'모더레이터', 'company'=>'에픽게임즈 코리아', 'name'=>'권오찬', 'bio'=>'에픽게임즈 코리아의 시니어 에반젤리스트 겸 테크니컬 어카운트 매니저로서, 다양한 산업 분야와 교육기관에서 언리얼 엔진과 에픽 에코시스템을 효과적으로 도입할 수 있도록 지원하고 있습니다. 이전에는 엔씨소프트, 넥슨, 네오위즈, 위메이드 등에서 다수의 액션 기반 게임 개발에 참여했습니다. 또한 게임을 사랑하는 게이머로서 현재도 다양한 게임을 즐기고 있습니다.'),
     array('company'=>'룸톤', 'name'=>'김동욱', 'bio'=>'언리얼 엔진을 활용한 VR 게임과 미디어 아트 제작 경험을 바탕으로, 현재는 룸톤의 대표로 스토리 어드벤처 장르의 PC·콘솔 게임 <인터스케이프> 개발을 이끌고 있습니다.'),
     array('company'=>'플라이웨이게임즈', 'name'=>'허태욱', 'bio'=>'펍지 스튜디오에서 서버 프로그래머로 근무했으며, 이후 크래프톤 챌린저스 부서를 거쳐 현재는 플라이웨이게임즈에서 <어센드투제로>의 PD를 맡고 있습니다.'),
     array('company'=>'트라이펄게임즈', 'name'=>'정만손', 'bio'=>'트라이펄게임즈의 CEO이자 PD로, <V.E.D.A>와 <레벨업 못하는 플레이어>의 개발을 이끌고 있습니다. 네오스트림 인터렉티브에서 <리틀 데빌 인사이드>의 개발 그룹장과 APD를 맡았으며, 웹젠에서는 <SUN>과 <뮤 레전드>의 PD로 활동했습니다. 또한 조이온에서 <천하제일상거상>, <거상 2>, <해상왕 장보고>의 운영 및 기획을 담당했습니다.'),
@@ -89,6 +90,7 @@ $panel_intro = array(
           <div class="space-y-5">
             <?php foreach ($panel_intro as $pi): ?>
             <div>
+              <?php if (!empty($pi['role'])): ?><div class="text-[11px] font-bold text-[#00C1D5] mb-0.5"><?= e($pi['role']) ?></div><?php endif; ?>
               <div class="text-base font-bold text-[#fafafa] mb-1"><?= e($pi['company']) ?> · <?= e($pi['name']) ?></div>
               <p class="text-sm text-[#a1a1aa] leading-relaxed"><?= e($pi['bio']) ?></p>
             </div>

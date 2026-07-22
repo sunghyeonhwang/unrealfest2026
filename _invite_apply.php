@@ -40,6 +40,7 @@ function ufs_invite_schema() {
       UNIQUE KEY uq_sc_code (sc_code)
     ) DEFAULT CHARSET=utf8");
     @sql_query("ALTER TABLE cb_unreal_2026_event2_apply ADD COLUMN apply_speaker_code VARCHAR(40) DEFAULT ''");
+    @sql_query("ALTER TABLE cb_unreal_2026_event2_apply ADD COLUMN apply_invite_oid VARCHAR(40) DEFAULT ''"); // 부분할인 결제 배치 묶음(M3)
 }
 }
 
@@ -98,8 +99,8 @@ function ufs_invite_email_dup($email) {
  *   $a: name,email,phone,job,company,depart,grade,ex1,ticket,day1,day2,tshirt,price
  *   $code: 초청코드(apply_speaker_code), $free: 100% 무료 여부(free_yn) */
 if (!function_exists('ufs_invite_insert_member')) {
-function ufs_invite_insert_member($a, $code, $status, $free) {
-    ufs_invite_schema();   // apply_speaker_code 컬럼/테이블 존재 보장(사전 code_check 미경유 방어)
+function ufs_invite_insert_member($a, $code, $status, $free, $oid = '') {
+    ufs_invite_schema();   // apply_speaker_code/apply_invite_oid 컬럼/테이블 존재 보장(사전 code_check 미경유 방어)
     $f = function($v){ return sql_real_escape_string(strip_tags((string)$v)); };
     $track = implode(',', array_filter(array(trim($a['day1']), trim($a['day2']))));
     $pw    = md5(str_replace("'","\\'", $a['email']));
@@ -110,18 +111,70 @@ function ufs_invite_insert_member($a, $code, $status, $free) {
       (apply_user_name,apply_user_email,apply_user_phone,apply_user_job,apply_user_company,
        apply_user_depart,apply_user_grade,apply_user_ex1,apply_product_code,apply_product_name,
        apply_product_price,apply_tshirt,apply_track,apply_user_event_agree,apply_password,
-       apply_ci,apply_di,apply_temp_yn,apply_pay_status,pay_complete,free_yn,apply_speaker_code,apply_reg_datetime)
+       apply_ci,apply_di,apply_temp_yn,apply_pay_status,pay_complete,free_yn,apply_speaker_code,apply_invite_oid,apply_reg_datetime)
       VALUES ('".$f($a['name'])."','".$f($a['email'])."','".$f($a['phone'])."','".$f($a['job'])."','".$f($a['company'])."',
        '".$f($a['depart'])."','".$f($a['grade'])."','".$f($a['ex1'])."','".$f($a['ticket'])."','".sql_real_escape_string($pname)."',
        '".(int)$a['price']."','".$f($a['tshirt'])."','".sql_real_escape_string($track)."','0','".sql_real_escape_string($pw)."',
-       '','','N',".(int)$status.",'".$paycomplete."','".$free_yn."','".sql_real_escape_string(strtoupper($code))."',now())";
+       '','','N',".(int)$status.",'".$paycomplete."','".$free_yn."','".sql_real_escape_string(strtoupper($code))."','".sql_real_escape_string($oid)."',now())";
     sql_query($sql);
     $row = sql_query("SELECT LAST_INSERT_ID() as idx");
     $apply_no = ($row) ? (int)$row->fetch_array()['idx'] : 0;
     if ($apply_no > 0 && (int)$status === 10) {
-        ufs_group_make_qr($apply_no, $pw);
+        ufs_group_make_qr($apply_no, $pw);   // 홀드(status 1)는 QR 미생성 → 결제완료 반영 시 생성
     }
     return $apply_no;
+}
+}
+
+/* ── 부분할인 결제(M3): 배치(oid) 금액/인원/대표 집계 ── */
+if (!function_exists('ufs_invite_oid_summary')) {
+function ufs_invite_oid_summary($oid) {
+    $oid = trim($oid);
+    if ($oid === '') return null;
+    // 홀드(1) 또는 완료(10) 행의 합계 = 이 결제 배치의 총액(행이 진실의 원천)
+    $r = sql_fetch("SELECT COALESCE(SUM(apply_product_price),0) AS amt, COUNT(*) AS cnt,
+                           MIN(apply_no) AS rep_no, MAX(apply_pay_status) AS st
+                    FROM cb_unreal_2026_event2_apply
+                    WHERE apply_invite_oid='".sql_real_escape_string($oid)."' AND apply_pay_status IN (1,10)");
+    return $r;
+}
+}
+
+/* ── 결제 승인 → 배치 홀드행(status 1) 일괄 승급 10 + QR 생성 ── 반환 승급 건수 */
+if (!function_exists('ufs_invite_reflect_oid')) {
+function ufs_invite_reflect_oid($oid) {
+    $oid = trim($oid);
+    if ($oid === '') return 0;
+    $rs = sql_query("SELECT apply_no, apply_user_email FROM cb_unreal_2026_event2_apply
+                     WHERE apply_invite_oid='".sql_real_escape_string($oid)."' AND apply_pay_status=1 ORDER BY apply_no");
+    $n = 0;
+    if ($rs) while ($r = $rs->fetch_assoc()) {
+        $no = (int)$r['apply_no'];
+        // 승급은 status=1 인 건만(경합/중복 콜백 방어)
+        sql_query("UPDATE cb_unreal_2026_event2_apply SET apply_pay_status=10, pay_complete='Y' WHERE apply_no=".$no." AND apply_pay_status=1");
+        $pw = md5(str_replace("'","\\'", $r['apply_user_email']));
+        ufs_group_make_qr($no, $pw);
+        $n++;
+    }
+    return $n;
+}
+}
+
+/* ── 결제 실패/취소 → 배치 홀드행 해제(status 0) + sc_used 원복 ── */
+if (!function_exists('ufs_invite_release_oid')) {
+function ufs_invite_release_oid($oid, $code, $n) {
+    $oid = trim($oid);
+    if ($oid === '') return false;
+    // 홀드(1)만 해제 — 이미 결제완료(10)된 건은 건드리지 않음
+    sql_query("UPDATE cb_unreal_2026_event2_apply SET apply_pay_status=0 WHERE apply_invite_oid='".sql_real_escape_string($oid)."' AND apply_pay_status=1");
+    $rc = sql_fetch("SELECT ROW_COUNT() AS rc");
+    $released = ($rc ? (int)$rc['rc'] : 0);
+    if ($released > 0 && $code !== '') {
+        // 실제 해제된 건수만큼만 sc_used 원복(과다 원복 방지)
+        sql_query("UPDATE cb_unreal_2026_speaker_code SET sc_used = GREATEST(sc_used - ".$released.", 0)
+                   WHERE sc_code='".sql_real_escape_string(strtoupper($code))."'");
+    }
+    return true;
 }
 }
 

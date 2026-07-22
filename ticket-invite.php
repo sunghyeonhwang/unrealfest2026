@@ -116,9 +116,28 @@ if ($isPost) {
       }
     }
 
-    // 무료(100%) 경로 — 부분할인은 M3
+    // 부분할인(50~99%) — 홀드 후 결제 경유(M3)
     if ($err==='' && !$free) {
-      $err = '부분할인(결제) 초청 등록은 곧 오픈됩니다. (준비 중)';
+      $n = count($attendees);
+      if (!ufs_invite_consume($code, $n)) {
+        $err = '초청 잔여 매수가 부족합니다. 새로고침 후 다시 시도해 주세요.';
+      } else {
+        $oid = 'INV'.substr(md5($code.'|'.$attendees[0]['email'].'|'.uniqid('', true)), 0, 28); // 결제 배치 토큰(추측 불가)
+        $inserted = array(); $fail = false;
+        foreach ($attendees as $a) {
+          $a['price'] = ufs_invite_price($a['ticket'], $discount); // 부분할인가(정상가×(100-할인)%)
+          $no = ufs_invite_insert_member($a, $code, 1, false, $oid); // status 1=홀드(QR 미생성)
+          if ($no > 0) { $inserted[] = $no; } else { $fail = true; break; }
+        }
+        if ($fail || !$inserted) {
+          foreach ($inserted as $no) sql_query("UPDATE cb_unreal_2026_event2_apply SET apply_pay_status=0 WHERE apply_no=".(int)$no);
+          sql_query("UPDATE cb_unreal_2026_speaker_code SET sc_used=GREATEST(sc_used-".(int)$n.",0) WHERE sc_code='".sql_real_escape_string(strtoupper($code))."'");
+          $err = '등록 처리 중 오류가 발생했습니다. 다시 시도해 주세요.';
+        } else {
+          header('Location: ticket-invite-pay.php?o='.rawurlencode($oid));
+          exit;
+        }
+      }
     }
     if ($err==='' && $free) {
       $n = count($attendees);
@@ -202,9 +221,6 @@ $companions = $valid ? max(0, $remain - 1) : 0;   // 동반자 슬롯 수(대표
         <span class="px-4 py-2 bg-[rgba(0,79,89,0.2)] border border-[#00C1D5]/40 text-[#00C1D5] text-sm font-bold"><?= $free ? '무료 초청 (100%)' : ('초청 할인 '.$discount.'%') ?></span>
         <span class="px-4 py-2 border border-[#27272a] text-[#a1a1aa] text-sm">등록 가능 <?= (int)$remain ?>명</span>
       </div>
-      <?php if (!$free): ?>
-      <div class="mb-8 px-4 py-3 bg-[rgba(255,255,255,0.04)] border border-[#3f3f46] text-[#a1a1aa] text-sm">부분할인(결제) 초청 등록은 곧 오픈됩니다. 현재는 무료(100%) 초청만 즉시 완료됩니다.</div>
-      <?php endif; ?>
 
       <form name="frm" id="frm" method="post" action="ticket-invite.php" onsubmit="return invValidate()">
       <input type="hidden" name="code" value="<?= e($code) ?>">
@@ -287,9 +303,13 @@ $companions = $valid ? max(0, $remain - 1) : 0;   // 동반자 슬롯 수(대표
         <!-- 요약 -->
         <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
           <h2 class="text-lg font-bold text-white mb-5">등록 요약</h2>
-          <div class="flex justify-between items-end"><span class="text-[#71717a]">총 결제 금액</span><span class="text-3xl font-black text-[#00C1D5]" id="sumTotal"><?= $free ? '무료' : '₩0' ?></span></div>
-          <button type="submit" class="mt-6 w-full py-4 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#090a0f] font-extrabold transition-colors"><?= $free ? '등록 완료' : '등록 정보 확인' ?></button>
-          <p class="text-xs text-[#71717a] mt-3 leading-relaxed">등록 완료 후 QR과 조회 링크가 제공됩니다. 이미 등록된 이메일은 재등록할 수 없습니다.</p>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between items-center gap-4"><span class="text-[#71717a]">정상가 합계</span><span id="sumOrig" class="text-[#a1a1aa]">₩0</span></div>
+            <?php if (!$free): ?><div class="flex justify-between items-center gap-4"><span class="text-[#71717a]">초청 할인 <?= (int)$discount ?>%</span><span id="sumDisc" class="text-[#00C1D5]">-₩0</span></div><?php endif; ?>
+          </div>
+          <div class="mt-3 flex justify-between items-end gap-4"><span class="text-[#71717a]">총 결제 금액</span><span class="text-3xl font-black text-[#00C1D5]" id="sumTotal"><?= $free ? '무료' : '₩0' ?></span></div>
+          <button type="submit" class="mt-6 w-full py-4 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#090a0f] font-extrabold transition-colors"><?= $free ? '등록 완료' : '결제하기' ?></button>
+          <p class="text-xs text-[#71717a] mt-3 leading-relaxed"><?= $free ? '등록 완료 후 QR과 조회 링크가 제공됩니다.' : '결제 완료 후 QR과 조회 링크가 제공됩니다. 무통장 입금은 준비 중입니다(카드 결제).' ?> 이미 등록된 이메일은 재등록할 수 없습니다.</p>
         </div>
       </div>
       </form>
@@ -302,6 +322,8 @@ $companions = $valid ? max(0, $remain - 1) : 0;   // 동반자 슬롯 수(대표
 <?php if ($valid): ?>
 <script>
 (function(){
+  var DISCOUNT = <?= (int)$discount ?>, IS_FREE = <?= $free ? 1 : 0 ?>;
+  function won(n){ return '₩' + (n||0).toLocaleString('ko-KR'); }
   // 티켓별 트랙(Day1/Day2) 표시 토글: data-days 에 따라 필요한 트랙만 노출
   function syncTracks(card){
     var sel = card.querySelector('[data-pick-ticket]'); if(!sel) return;
@@ -314,10 +336,25 @@ $companions = $valid ? max(0, $remain - 1) : 0;   // 동반자 슬롯 수(대표
       var s = w.querySelector('select'); if(s && !need){ s.value=''; }
     });
   }
+  // 정상가 합계 → 할인 총액
+  function recalc(){
+    var orig = 0;
+    document.querySelectorAll('[data-pick-ticket]').forEach(function(sel){
+      var o = sel.options[sel.selectedIndex];
+      if(o){ orig += parseInt(o.getAttribute('data-orig')||'0',10)||0; }
+    });
+    var so = document.getElementById('sumOrig'); if(so) so.textContent = won(orig);
+    if(!IS_FREE){
+      var pay = Math.round(orig * (100 - DISCOUNT) / 100);
+      var sd = document.getElementById('sumDisc'); if(sd) sd.textContent = '-' + won(orig - pay);
+      var st = document.getElementById('sumTotal'); if(st) st.textContent = won(pay);
+    }
+  }
   document.querySelectorAll('[data-card]').forEach(function(card){
     var sel = card.querySelector('[data-pick-ticket]');
-    if(sel){ sel.addEventListener('change', function(){ syncTracks(card); }); syncTracks(card); }
+    if(sel){ sel.addEventListener('change', function(){ syncTracks(card); recalc(); }); syncTracks(card); }
   });
+  recalc();
   // 전체 동의
   var all=document.getElementById('agree_all');
   if(all) all.addEventListener('change', function(){ document.querySelectorAll('.agree-item').forEach(function(c){ c.checked=all.checked; }); });

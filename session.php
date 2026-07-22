@@ -123,7 +123,7 @@ $speaker_bio = '에픽게임즈 스토어의 포트폴리오 전략을 총괄하
 
       <!-- 우측 -->
       <div class="space-y-6">
-        <?php if (false):   // (비활성) d2-t4-s1 패널 전용 레이아웃 — 기본(약력 표시) 레이아웃으로 되돌림. 되살리려면 조건을 $session['id'] === 'd2-t4-s1' 로 복원.
+        <?php if ($session['id'] === 'd2-t4-s1'):   // 패널 세션 전용: 모더레이터(상단) + 패널 4명 2x2, 약력보기 없음
           $sp_mod = $session['speakers'][0];
           $sp_panels = array_slice($session['speakers'], 1); ?>
         <!-- 모더레이터 -->

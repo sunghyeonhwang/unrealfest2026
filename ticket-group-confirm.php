@@ -71,7 +71,7 @@ $err = '';
 if ($rep['ci']==='') $err = '대표자 본인 인증이 필요합니다.';
 elseif ($rep['name']==='' || $rep['email']==='' || $rep['phone']==='' || $rep['company']==='' || $rep['depart']==='' || $rep['job']==='' || $rep['grade']==='' || $rep['ex1']==='') $err = '대표자 정보를 모두 입력해 주세요.';
 elseif ($member_count < 4) $err = '대표자 외 최소 4인을 입력해 주세요.';
-elseif ($member_count > 49) $err = '단체는 대표자 포함 최대 50인까지 등록할 수 있습니다.';
+elseif ($member_count > 499) $err = '한 번에 등록 가능한 최대 인원(대표자 포함 500명)을 초과했습니다. 사무국으로 문의해 주세요.';
 elseif (count($attendees) < 1) $err = '참석 인원이 없습니다.';
 if ($err==='') {
     foreach ($attendees as $i=>$a) {

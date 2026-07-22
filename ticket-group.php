@@ -86,7 +86,7 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
   <div class="gwrap px-6">
     <a href="index.php#register" class="inline-flex items-center gap-2 text-[#71717a] hover:text-white transition-colors mb-8 text-sm"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> 돌아가기</a>
     <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">단체 등록</h1>
-    <p class="text-[#a1a1aa] mb-4">5인 이상 단체로 등록하실 수 있습니다. 대표자 1인은 본인 인증 후 정보를 입력하고, 함께 참석하실 인원(최소 4인, 최대 29인 추가)을 작성해 주세요. 티켓·트랙·티셔츠는 인원별로 각각 선택합니다.</p>
+    <p class="text-[#a1a1aa] mb-4">5인 이상 단체로 등록하실 수 있습니다. 대표자 1인은 본인 인증 후 정보를 입력하고, 함께 참석하실 인원(최소 4인, 최대 49인 추가)을 작성해 주세요. 티켓·트랙·티셔츠는 인원별로 각각 선택합니다.</p>
     <?php if ($GDISC > 0): ?>
     <div class="inline-flex items-center gap-2 mb-10 px-4 py-2 bg-[rgba(0,79,89,0.2)] border border-[#00C1D5]/40 text-[#00C1D5] text-sm font-bold">단체 할인 <?= (int)$GDISC ?>% 적용 (정상가 기준)</div>
     <?php else: ?><div class="mb-10"></div><?php endif; ?>
@@ -148,7 +148,10 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
       </div>
       <p class="text-xs text-[#71717a] mb-3 px-1">※ 함께 참석하는 인원의 <b class="text-[#a1a1aa]">직업·회사명</b>은 대표자와 동일하게 자동 등록됩니다.</p>
       <div id="gMembers" class="space-y-4"></div>
-      <button type="button" id="gAddBtn" class="mt-4 w-full py-3 border border-dashed border-[#27272a] text-[#a1a1aa] hover:border-[#00C1D5] hover:text-[#00C1D5] transition-all text-sm font-bold">+ 인원 추가</button>
+      <div class="mt-4 flex flex-col sm:flex-row gap-3">
+        <button type="button" id="gAddBtn" class="flex-1 py-3 border border-dashed border-[#27272a] text-[#a1a1aa] hover:border-[#00C1D5] hover:text-[#00C1D5] transition-all text-sm font-bold">+ 1명 추가</button>
+        <button type="button" id="gAdd5Btn" class="flex-1 py-3 border border-dashed border-[#27272a] text-[#a1a1aa] hover:border-[#00C1D5] hover:text-[#00C1D5] transition-all text-sm font-bold">+ 5명 추가</button>
+      </div>
 
       <!-- 결제 수단 -->
       <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mt-4">
@@ -256,7 +259,7 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
 
 <script>
 window.UFS_MIN_MEMBERS = 4;
-window.UFS_MAX_TOTAL   = 30;
+window.UFS_MAX_TOTAL   = 50;
 window.GROUP_DISCOUNT    = <?= (int)$GDISC ?>;      // 일괄 할인율(%) — 쿠폰 모드면 0
 window.GROUP_COUPON_MODE = <?= $GCOUPON ? 1 : 0 ?>; // 쿠폰 모드 여부(전역 100)
 </script>

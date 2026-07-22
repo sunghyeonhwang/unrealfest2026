@@ -412,6 +412,12 @@
   var rep = document.querySelector('[data-rep]'); if (rep) wireCard(rep);
   for (var i = 0; i < window.UFS_MIN_MEMBERS; i++) addMember();
   if (addBtn) addBtn.addEventListener('click', function () { addMember(); queueSave(); });
+  var add5Btn = document.getElementById('gAdd5Btn');
+  if (add5Btn) add5Btn.addEventListener('click', function () {
+    var added = 0;
+    for (var k = 0; k < 5; k++) { if (!addMember()) break; added++; } // 상한 도달 시 addMember가 alert 후 null → 중단
+    if (added > 0) queueSave();
+  });
   renumber();
   restoreForm(savedRaw);
   formReady = true;

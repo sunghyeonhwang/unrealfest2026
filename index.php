@@ -314,15 +314,17 @@ $ov_icons = array(
         <div class="bg-[#131418] rounded-[6px] p-6 md:p-8 flex flex-col gap-3 min-h-[192px]">
           <span class="inline-block self-start text-[12px] font-semibold px-3 py-1 font-display text-[#0b0c10] <?= $badge ?>"><?= e($ev['type']) ?> 전용</span>
           <h3 class="text-[24px] font-extrabold text-white leading-[32px] font-display"><?= e($ev['title']) ?></h3>
-          <p class="text-[14px] text-[#90a1b9] flex-grow font-display tracking-[-0.42px]"><?= e($ev['desc']) ?></p>
+          <p class="text-[14px] text-[#90a1b9] font-display tracking-[-0.42px]"><?= e($ev['desc']) ?></p>
+          <?php if (!empty($ev['img'])): ?><img src="<?= asset_v($ev['img']) ?>" alt="<?= e($ev['title']) ?> 티셔츠" class="w-full h-auto rounded-[4px]" loading="lazy"><?php endif; ?>
           <?php if (!empty($ev['note'])): ?><p class="text-[12px] text-[#71717a] font-display"><?= e($ev['note']) ?></p><?php endif; ?>
+          <div class="flex-grow"></div>
           <div class="flex items-center gap-1.5 text-[12px] font-medium text-white font-display">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg><?= e($ev['date']) ?>
           </div>
         </div>
       <?php endforeach; ?>
     </div>
-    <p class="text-xs text-[#71717a] mt-8 text-right">· 이벤트는 사정에 따라 변경될 수 있습니다.</p>
+    <p class="text-xs text-[#71717a] mt-8 text-right">· 이벤트와 경품은 사정에 따라 변경될 수 있습니다.</p>
   </div>
 </section>
 

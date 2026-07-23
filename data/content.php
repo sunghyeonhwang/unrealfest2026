@@ -34,8 +34,8 @@ $venue = [
 
 // ── Event Benefits (이벤트) ──
 $events = [
-  ['type'=>'오프라인', 'title'=>'오프라인 등록 이벤트', 'desc'=>'현장 참석자 전원에게 한정판 굿즈 증정!', 'date'=>'8.20 (목) ~ 8.21 (금)', 'note'=>'', 'img'=>'assets/events/t-fest.png'],
-  ['type'=>'오프라인', 'title'=>'경품 추첨 이벤트', 'desc'=>'오프라인 참석자 대상, 세션 종료 후 경품 추첨! (1일 1회)', 'date'=>'8.20 (목) ~ 8.21 (금)', 'note'=>'', 'img'=>'assets/events/t-fest4.png'],
-  ['type'=>'오프라인', 'title'=>'얼리버드 체크인 이벤트', 'desc'=>'현장 체크인 선착순 300명에게 한정판 굿즈 추가 증정!', 'date'=>'8.20 (목) 한정', 'note'=>'*티셔츠 1종이 랜덤으로 지급됩니다.', 'img'=>'assets/events/t-fest2.png'],
-  ['type'=>'온라인', 'title'=>'출석 체크 이벤트', 'desc'=>'양일간 시청한 분들 중 추첨을 통해 200명에게 굿즈 증정!', 'date'=>'8.20 (목) ~ 8.21 (금)', 'note'=>'*온라인 체크인 시 자동 응모', 'img'=>'assets/events/t-fest3.png'],
+  ['type'=>'오프라인', 'title'=>'오프라인 등록 이벤트', 'desc'=>'현장 참석자 전원에게 한정판 굿즈 증정!', 'date'=>'8.20 (목) ~ 8.21 (금)', 'note'=>'', 'img'=>'https://unrealsummit16.cafe24.com/2026/ufs26/t-fest.png'],
+  ['type'=>'오프라인', 'title'=>'경품 추첨 이벤트', 'desc'=>'오프라인 참석자 대상, 세션 종료 후 경품 추첨! (1일 1회)', 'date'=>'8.20 (목) ~ 8.21 (금)', 'note'=>'', 'img'=>'https://unrealsummit16.cafe24.com/2026/ufs26/t-fest4.png'],
+  ['type'=>'오프라인', 'title'=>'얼리버드 체크인 이벤트', 'desc'=>'현장 체크인 선착순 300명에게 한정판 굿즈 추가 증정!', 'date'=>'8.20 (목) 한정', 'note'=>'*티셔츠 1종이 랜덤으로 지급됩니다.', 'img'=>'https://unrealsummit16.cafe24.com/2026/ufs26/t-fest2.png'],
+  ['type'=>'온라인', 'title'=>'출석 체크 이벤트', 'desc'=>'양일간 시청한 분들 중 추첨을 통해 200명에게 굿즈 증정!', 'date'=>'8.20 (목) ~ 8.21 (금)', 'note'=>'*온라인 체크인 시 자동 응모', 'img'=>'https://unrealsummit16.cafe24.com/2026/ufs26/t-fest3.png'],
 ];

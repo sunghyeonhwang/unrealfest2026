@@ -41,6 +41,10 @@ function ufs_invite_schema() {
     ) DEFAULT CHARSET=utf8");
     @sql_query("ALTER TABLE cb_unreal_2026_event2_apply ADD COLUMN apply_speaker_code VARCHAR(40) DEFAULT ''");
     @sql_query("ALTER TABLE cb_unreal_2026_event2_apply ADD COLUMN apply_invite_oid VARCHAR(40) DEFAULT ''"); // 부분할인 결제 배치 묶음(M3)
+    // 발송/도달 이력(M6+): Resend message id + 상태(웹훅)
+    @sql_query("ALTER TABLE cb_unreal_2026_speaker_code ADD COLUMN sc_msg_id VARCHAR(80) DEFAULT ''");
+    @sql_query("ALTER TABLE cb_unreal_2026_speaker_code ADD COLUMN sc_status VARCHAR(20) DEFAULT ''");   // sent/delivered/bounced/complained/opened/clicked/delayed
+    @sql_query("ALTER TABLE cb_unreal_2026_speaker_code ADD COLUMN sc_status_at DATETIME DEFAULT NULL");
 }
 }
 

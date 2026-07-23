@@ -62,6 +62,13 @@ $lang = ufs_inv_lang($rawLang);
 $L    = ufs_inv_dict($lang);
 $JOBS = ufs_inv_jobs($lang); $GRADES = ufs_inv_grades($lang); $EX1S = ufs_inv_ex1s($lang);
 
+// 코드가 주어졌으나 무효(만료/시작전/중지/소진/오류) → 게이트에 사유 표시(GET·POST 공통)
+if ($code !== '' && (!$chk || !$chk['ok'])) {
+    $rmap = array('invalid'=>'e_invalid','inactive'=>'e_inactive','soldout'=>'e_soldout','expired'=>'e_expired','notyet'=>'e_notyet');
+    $rz = ($chk && isset($chk['reason'])) ? $chk['reason'] : '';
+    $err = isset($rmap[$rz]) ? $L[$rmap[$rz]] : $L['e_code'];
+}
+
 // 이전 입력 복원 헬퍼(오류 재렌더용) — member_name[0] 같은 배열 표기도 지원
 function old($k,$d=''){
   $v = null;
@@ -76,11 +83,10 @@ function old($k,$d=''){
 // ── POST 처리
 if ($isPost) {
   if (!$chk || !$chk['ok']) {
-    // 코드 오류 언어화(데이터층 미변경 → 여기서 사유 추론)
-    if (!$chk || !$chk['row']) $err = $L['e_invalid'];
-    elseif ((int)$chk['remain'] <= 0) $err = $L['e_soldout'];
-    elseif ($chk['row']['sc_active'] !== 'Y') $err = $L['e_inactive'];
-    else $err = $L['e_code'];
+    // 코드 오류 언어화 — code_check의 reason 기반
+    $rmap = array('invalid'=>'e_invalid','inactive'=>'e_inactive','soldout'=>'e_soldout','expired'=>'e_expired','notyet'=>'e_notyet');
+    $rz = ($chk && isset($chk['reason'])) ? $chk['reason'] : '';
+    $err = isset($rmap[$rz]) ? $L[$rmap[$rz]] : $L['e_code'];
   } else {
     $row = $chk['row']; $discount = (int)$chk['discount']; $free = ($discount >= 100); $remain = (int)$chk['remain'];
 

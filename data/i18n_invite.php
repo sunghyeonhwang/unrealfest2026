@@ -40,7 +40,7 @@ function ufs_inv_dict($lang) {
     'note_free'=>'등록 완료 후 QR과 조회 링크가 제공됩니다.', 'note_paid'=>'결제 완료 후 QR과 조회 링크가 제공됩니다. 무통장 입금은 준비 중입니다(카드 결제).',
     'note_tail'=>' 이미 등록된 이메일은 재등록할 수 없습니다.',
     // 오류
-    'e_code'=>'초청 코드를 확인해 주세요.', 'e_invalid'=>'유효하지 않은 초청 코드입니다.', 'e_inactive'=>'사용이 중지된 초청 코드입니다.', 'e_soldout'=>'이미 모두 등록된 초청 코드입니다.',
+    'e_code'=>'초청 코드를 확인해 주세요.', 'e_invalid'=>'유효하지 않은 초청 코드입니다.', 'e_inactive'=>'사용이 중지된 초청 코드입니다.', 'e_soldout'=>'이미 모두 등록된 초청 코드입니다.', 'e_expired'=>'사용기간이 만료된 초청 코드입니다.', 'e_notyet'=>'아직 사용할 수 없는 초청 코드입니다.',
     'e_agree'=>'필수 약관에 동의해 주세요.', 'e_rep'=>'대표자(초청 당사자) 정보를 모두 입력해 주세요.',
     'e_over'=>'이 코드로 등록 가능한 인원(%d명)을 초과했습니다.',
     'e_ticket'=>'%s의 티켓을 선택해 주세요.', 'e_day1'=>'%s의 Day1 트랙을 선택해 주세요.', 'e_day2'=>'%s의 Day2 트랙을 선택해 주세요.',
@@ -77,7 +77,7 @@ function ufs_inv_dict($lang) {
     'btn_free'=>'Complete registration', 'btn_pay'=>'Proceed to payment',
     'note_free'=>'A QR code and lookup link will be provided after registration.', 'note_paid'=>'A QR code and lookup link will be provided after payment. Bank transfer is coming soon (card only).',
     'note_tail'=>' An email that is already registered cannot be used again.',
-    'e_code'=>'Please check your invitation code.', 'e_invalid'=>'Invalid invitation code.', 'e_inactive'=>'This invitation code has been deactivated.', 'e_soldout'=>'This invitation code is fully used.',
+    'e_code'=>'Please check your invitation code.', 'e_invalid'=>'Invalid invitation code.', 'e_inactive'=>'This invitation code has been deactivated.', 'e_soldout'=>'This invitation code is fully used.', 'e_expired'=>'This invitation code has expired.', 'e_notyet'=>'This invitation code is not active yet.',
     'e_agree'=>'Please agree to the required terms.', 'e_rep'=>'Please complete all registrant information.',
     'e_over'=>'You exceeded the number of seats available for this code (%d).',
     'e_ticket'=>'Please select a ticket for %s.', 'e_day1'=>'Please select a Day 1 track for %s.', 'e_day2'=>'Please select a Day 2 track for %s.',

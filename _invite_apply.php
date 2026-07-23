@@ -45,6 +45,8 @@ function ufs_invite_schema() {
     @sql_query("ALTER TABLE cb_unreal_2026_speaker_code ADD COLUMN sc_msg_id VARCHAR(80) DEFAULT ''");
     @sql_query("ALTER TABLE cb_unreal_2026_speaker_code ADD COLUMN sc_status VARCHAR(20) DEFAULT ''");   // sent/delivered/bounced/complained/opened/clicked/delayed
     @sql_query("ALTER TABLE cb_unreal_2026_speaker_code ADD COLUMN sc_status_at DATETIME DEFAULT NULL");
+    @sql_query("ALTER TABLE cb_unreal_2026_speaker_code ADD COLUMN sc_valid_from DATE DEFAULT NULL");    // 사용기간 시작(빈값=제한없음)
+    @sql_query("ALTER TABLE cb_unreal_2026_speaker_code ADD COLUMN sc_valid_until DATE DEFAULT NULL");   // 사용기간 종료(빈값=제한없음)
 }
 }
 
@@ -62,17 +64,23 @@ function ufs_invite_code_fetch($code) {
 /* ── 코드 유효성 + 잔여 매수 ── 반환: array(ok, remain, discount, row, msg) */
 if (!function_exists('ufs_invite_code_check')) {
 function ufs_invite_code_check($code) {
-    $base = array('ok'=>false, 'remain'=>0, 'discount'=>100, 'row'=>null, 'msg'=>'');
+    $base = array('ok'=>false, 'remain'=>0, 'discount'=>100, 'row'=>null, 'msg'=>'', 'reason'=>'');
     $r = ufs_invite_code_fetch($code);
-    if (!$r)                       return array_merge($base, array('msg'=>'유효하지 않은 초청 코드입니다.'));
+    if (!$r)                       return array_merge($base, array('reason'=>'invalid', 'msg'=>'유효하지 않은 초청 코드입니다.'));
     $base['row'] = $r;
     $disc = (int)$r['sc_discount']; if ($disc < 50) $disc = 50; if ($disc > 100) $disc = 100;
     $base['discount'] = $disc;
-    if ($r['sc_active'] !== 'Y')   return array_merge($base, array('msg'=>'사용이 중지된 초청 코드입니다.'));
+    if ($r['sc_active'] !== 'Y')   return array_merge($base, array('reason'=>'inactive', 'msg'=>'사용이 중지된 초청 코드입니다.'));
+    // 사용기간(시작일~종료일). 빈값/0000-00-00 = 제한 없음.
+    $today = date('Y-m-d');
+    $vf = isset($r['sc_valid_from'])  ? substr((string)$r['sc_valid_from'], 0, 10)  : '';
+    $vu = isset($r['sc_valid_until']) ? substr((string)$r['sc_valid_until'], 0, 10) : '';
+    if ($vf !== '' && $vf !== '0000-00-00' && $today < $vf) return array_merge($base, array('reason'=>'notyet', 'msg'=>'아직 사용할 수 없는 초청 코드입니다. ('.$vf.' 부터)'));
+    if ($vu !== '' && $vu !== '0000-00-00' && $today > $vu) return array_merge($base, array('reason'=>'expired', 'msg'=>'사용기간이 만료된 초청 코드입니다. ('.$vu.' 까지)'));
     $remain = (int)$r['sc_quota'] - (int)$r['sc_used'];
     $base['remain'] = ($remain > 0) ? $remain : 0;
-    if ($remain <= 0)              return array_merge($base, array('msg'=>'이미 모두 등록된 초청 코드입니다.'));
-    return array_merge($base, array('ok'=>true, 'remain'=>$remain));
+    if ($remain <= 0)              return array_merge($base, array('reason'=>'soldout', 'msg'=>'이미 모두 등록된 초청 코드입니다.'));
+    return array_merge($base, array('ok'=>true, 'remain'=>$remain, 'reason'=>'ok'));
 }
 }
 

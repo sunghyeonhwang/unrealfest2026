@@ -66,6 +66,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                     }
                     sql_query("UPDATE cb_unreal_2026_event2_apply SET apply_pay_status = 0, refund_date = now() WHERE apply_no = '".intval($row['apply_no'])."'");
+                    // 쿠폰 사용횟수 복원(-1) — 완료건에 쿠폰이 적용됐던 경우만(결제완료 시 +1 했던 것 되돌림)
+                    if ($row['pay_complete'] === 'Y' && !empty($row['apply_coupon_code'])) {
+                        @sql_query("UPDATE cb_unreal_2026_coupon SET cp_used=GREATEST(cp_used-1,0) WHERE cp_code='".sql_real_escape_string($row['apply_coupon_code'])."'");
+                    }
                     $mode = 'cancelled'; $cancelled_paid = $is_paid_row; $row = null;
                 }
             } else if ($action === 'edit') {

@@ -87,6 +87,8 @@ require __DIR__ . '/_ticket_init.php';
           <?php ufs_track_box(2, $UFS_TRACKS[2], $trackRemain); ?>
           <p class="text-xs text-[#71717a] mt-2">※ 현장 혼잡 시 선택한 트랙 참석자가 우선 입장될 수 있습니다.</p>
         </div>
+
+        <?php include __DIR__ . '/_ticket_coupon.php'; /* 개인 쿠폰(토글 ON 시에만 노출) */ ?>
       </div>
 
       <?php include __DIR__ . '/_ticket_sidebar.php'; ?>

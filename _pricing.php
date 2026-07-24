@@ -1,7 +1,9 @@
 <?php
 /* Unreal Fest Seoul 2026 — 가격/얼리버드 단일 소스 (_pricing.php)
  * 얼리버드와 정가를 날짜 기준 자동 전환. 환불 안내도 동일 기준.
- * require 처: apply_pay.php(실결제 금액) / _ticket_init.php(등록폼·myticket·sidebar) / index.php(표시가).
+ * require 처: apply_pay.php(실결제 금액) / _ticket_init.php(등록폼·myticket·sidebar) / index.php(표시가).*/
+if (is_file(__DIR__ . '/_coupon.php')) require_once __DIR__ . '/_coupon.php';   // 개인 쿠폰 헬퍼(토글 OFF 기본, 무영향)
+/*
  * ⚠️ 가격 변경은 ufs_price_table() 한 곳만 수정. PHP 7.0 호환.
  *
  * ───────── 얼리버드 연장(전체 세션 공개 기념) 전환 ─────────

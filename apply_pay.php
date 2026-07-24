@@ -50,6 +50,20 @@ if (!isset($PRODUCTS[$apply_product_code])) { exit('잘못된 상품입니다.')
 $apply_product_name  = $PRODUCTS[$apply_product_code]['name'];
 $apply_product_price = (string)ufs_ticket_price($apply_product_code);  // 얼리버드/정가 자동
 
+// ── 개인 쿠폰(토글 ON 시에만). 서버 재검증 후 할인가로 재계산(위변조 방지: 클라이언트 percent 불신) ──
+$apply_coupon_code = '';
+$apply_coupon_pct  = 0;
+if (function_exists('ufs_coupon_enabled') && ufs_coupon_enabled()) {
+    $__cc = pp('coupon_code');
+    if (trim((string)$__cc) !== '') {
+        $__ck = ufs_coupon_check($__cc);
+        if (!$__ck['ok']) { exit('<script>alert("'.addslashes($__ck['msg']).'");history.back();</script>'); }
+        $apply_coupon_code   = $__ck['code'];
+        $apply_coupon_pct    = (int)$__ck['percent'];
+        $apply_product_price = (string)ufs_coupon_apply_price((int)$apply_product_price, $apply_coupon_pct);
+    }
+}
+
 // ── 검증 ──
 if ($apply_ci === '')          { exit('<script>alert("본인인증을 먼저 진행해주세요.");history.back();</script>'); }
 if ($apply_user_email === '' || $apply_user_phone === '') { exit('<script>alert("이메일/연락처를 입력해주세요.");history.back();</script>'); }
@@ -102,7 +116,7 @@ $apply_password = md5(str_replace("'","\\'",$apply_user_email));
 $sql = "INSERT INTO cb_unreal_2026_event2_apply
   (apply_user_name, apply_user_email, apply_user_phone, apply_user_job, apply_user_company,
    apply_user_depart, apply_user_grade, apply_user_ex1, apply_product_code, apply_product_name,
-   apply_product_price, apply_tshirt, apply_track, apply_user_event_agree, apply_password,
+   apply_product_price, apply_tshirt, apply_track, apply_user_event_agree, apply_coupon_code, apply_coupon_pct, apply_password,
    apply_ci, apply_di, apply_temp_yn, apply_reg_datetime)
   VALUES (
    '".sql_real_escape_string(strip_tags($apply_user_name))."',
@@ -119,6 +133,8 @@ $sql = "INSERT INTO cb_unreal_2026_event2_apply
    '".sql_real_escape_string(strip_tags($apply_tshirt))."',
    '".sql_real_escape_string(strip_tags($apply_track))."',
    '".sql_real_escape_string($apply_event_agree)."',
+   '".sql_real_escape_string($apply_coupon_code)."',
+   ".(int)$apply_coupon_pct.",
    '".sql_real_escape_string($apply_password)."',
    '".sql_real_escape_string(strip_tags($apply_ci))."',
    '".sql_real_escape_string(strip_tags($apply_di))."',
@@ -127,6 +143,19 @@ sql_query($sql);
 $row = sql_query("SELECT LAST_INSERT_ID() as idx")->fetch_array();
 $apply_no = $row['idx'];
 $_SESSION["final_idx"] = $apply_no;
+
+// ── 100% 쿠폰 = 무료 즉시 완료 (INICIS 건너뜀, 초청장 무료 경로와 동일 방식) ──
+if ((int)$apply_product_price === 0 && $apply_coupon_code !== '') {
+    sql_query("UPDATE cb_unreal_2026_event2_apply SET
+        apply_pay_status=10, pay_complete='Y', free_yn='Y', apply_temp_yn='N',
+        pay_goodname='".sql_real_escape_string($apply_product_name)."', pay_totprice='0'
+        WHERE apply_no='".intval($apply_no)."'");
+    ufs_coupon_use($apply_coupon_code);   // 쿠폰 사용횟수 +1 (결제완료 시점)
+    if (is_file(__DIR__.'/_group_apply.php')) { require_once __DIR__.'/_group_apply.php'; if (function_exists('ufs_group_make_qr')) ufs_group_make_qr($apply_no, $apply_password); }
+    $_SESSION["final_idx"] = '';
+    header("Location: ticket-complete.php?k=".rawurlencode(base64_encode($apply_no)));
+    exit;
+}
 
 // ── INICIS 결제 요청 전문 ──
 $util       = new INIStdPayUtil();

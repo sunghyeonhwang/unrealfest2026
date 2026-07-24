@@ -140,6 +140,11 @@ if ($is_vbank) {
   header("Location: ticket-complete.php?vbank=1&k=".rawurlencode(base64_encode($apply_no))); exit;
 }
 
+// ── 쿠폰 사용횟수 +1 (카드 확정 성공 시 1회. 중복콜백=상단 temp_yn 조기반환, 정원초과=mback_alert 종료로 미도달) ──
+if (!empty($prev['apply_coupon_code'])) {
+  @sql_query("UPDATE cb_unreal_2026_coupon SET cp_used=cp_used+1 WHERE cp_code='".sql_real_escape_string($prev['apply_coupon_code'])."'");
+}
+
 // ── 카드 등 즉시완료: QR 생성 ──
 @mkdir(__DIR__."/qrdata", 0755);
 if (file_exists("../unrealfest2025/phpqrcode/qrlib.php")) {

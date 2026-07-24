@@ -17,6 +17,28 @@ if (!defined('UFS_SMS_USERNAME')) define('UFS_SMS_USERNAME', 'griff16');        
 if (!defined('UFS_SMS_KEY'))      define('UFS_SMS_KEY',      'BaIpwA1FNBOYszC');  // DirectSend API key
 if (!defined('UFS_SMS_BASE_URL')) define('UFS_SMS_BASE_URL', 'https://epiclounge.co.kr/v3/unrealfest2026'); // QR 첨부 절대경로 기준
 
+/* 수신번호 정규화 — 앞자리 0 누락 보정. 국내 휴대폰(10/11/16/17/18/19 시작)이 0 없이 저장된 경우 0을 붙인다.
+ * 예: '1036992801' → '01036992801'. 단체 멤버 번호 0 누락으로 인한 DirectSend status 104 방지. */
+if (!function_exists('ufs_normalize_phone')) {
+function ufs_normalize_phone($phone) {
+    $p = preg_replace('/[^0-9]/', '', (string)$phone);
+    if ($p === '') return '';
+    if ($p[0] !== '0' && strlen($p) >= 9 && strlen($p) <= 10 && preg_match('/^1[016789]/', $p)) {
+        $p = '0' . $p;
+    }
+    return $p;
+}
+}
+
+/* DirectSend 응답 성공 판정. true=성공(status 0) / false=실패 / null=테스트모드(미발송) */
+if (!function_exists('ufs_sms_ok')) {
+function ufs_sms_ok($resp) {
+    if ($resp === 'SMS_SKIPPED_TEST_MODE') return null;
+    if ($resp === false || $resp === '' || $resp === null) return false;
+    return (strpos((string)$resp, '"status":"0"') !== false);
+}
+}
+
 /* DirectSend POST 공통 실행 — 성공 시 응답, 실패 시 false. (발송 실패가 등록을 막지 않도록 예외 없이 반환) */
 if (!function_exists('ufs_directsend_post')) {
 function ufs_directsend_post($postvars, $tag = '') {
@@ -81,7 +103,7 @@ function ufs_sms_product_label($product_code) {
 /* 오프라인 결제완료 — QR jpg 첨부 MMS */
 if (!function_exists('ufs_send_qr_mms')) {
 function ufs_send_qr_mms($name, $phone, $apply_no, $product_code) {
-    $phone = preg_replace('/[^0-9]/', '', $phone);
+    $phone = ufs_normalize_phone($phone);   // 앞자리 0 누락 보정
     if ($phone === '') { return false; }
     $apply_no = preg_replace('/[^0-9]/', '', (string)$apply_no);
 
@@ -117,7 +139,7 @@ function ufs_send_qr_mms($name, $phone, $apply_no, $product_code) {
 /* 단체 등록완료 — 멤버 개인별 QR jpg 첨부 MMS (무통장 입금확인/카드 결제완료 시 등록자 전원 발송) */
 if (!function_exists('ufs_send_group_qr_mms')) {
 function ufs_send_group_qr_mms($name, $phone, $apply_no, $product_code, $company) {
-    $phone = preg_replace('/[^0-9]/', '', $phone);
+    $phone = ufs_normalize_phone($phone);   // 앞자리 0 누락 보정
     if ($phone === '') { return false; }
     $apply_no = preg_replace('/[^0-9]/', '', (string)$apply_no);
     if ($apply_no === '') { return false; } // QR 없으면 MMS 불가 (호출부에서 텍스트로 대체)
@@ -153,10 +175,38 @@ function ufs_send_group_qr_mms($name, $phone, $apply_no, $product_code, $company
 }
 }
 
+/* 단체 멤버 1명에게 QR 문자 발송 + 상태 기록(cb_unreal_2026_group_member.gm_sms_*).
+ * $m = group_member 행(gm_no,name,phone,apply_no,ticket 필요), $company = 대표 회사명.
+ * 반환 array('ok'=>true|false|null, 'phone'=>보정번호, 'msg'=>사유). null=테스트모드(미발송). */
+if (!function_exists('ufs_group_send_member')) {
+function ufs_group_send_member($m, $company) {
+    $phone = ufs_normalize_phone(isset($m['phone']) ? $m['phone'] : '');
+    $gm_no = (int)(isset($m['gm_no']) ? $m['gm_no'] : 0);
+    if ($phone === '')                    { $r = array('ok'=>false, 'phone'=>'',     'msg'=>'수신번호 없음'); }
+    else if ((int)$m['apply_no'] <= 0)    { $r = array('ok'=>false, 'phone'=>$phone, 'msg'=>'QR 없음(apply_no 미부여)'); }
+    else {
+        $resp = ufs_send_group_qr_mms($m['name'], $phone, $m['apply_no'], $m['ticket'], $company);
+        $ok = ufs_sms_ok($resp);
+        if ($ok === null)      { $r = array('ok'=>null,  'phone'=>$phone, 'msg'=>'테스트모드(미발송)'); }
+        else if ($ok === true) { $r = array('ok'=>true,  'phone'=>$phone, 'msg'=>'발송 성공'); }
+        else {
+            $mm = ''; if (is_string($resp) && preg_match('/"msg"\s*:\s*"([^"]*)"/u', $resp, $gmt)) $mm = $gmt[1];
+            $r = array('ok'=>false, 'phone'=>$phone, 'msg'=>'발송 실패'.($mm !== '' ? (': '.$mm) : ''));
+        }
+    }
+    if ($gm_no > 0 && function_exists('sql_query')) {
+        $st = ($r['ok'] === true) ? 'sent' : (($r['ok'] === null) ? 'test' : 'fail');
+        $msg = function_exists('mb_substr') ? mb_substr($r['msg'], 0, 180) : substr($r['msg'], 0, 180);
+        @sql_query("UPDATE cb_unreal_2026_group_member SET gm_sms_status='".$st."', gm_sms_at=now(), gm_sms_phone='".sql_real_escape_string($r['phone'])."', gm_sms_msg='".sql_real_escape_string($msg)."' WHERE gm_no=".$gm_no);
+    }
+    return $r;
+}
+}
+
 /* 텍스트 SMS — 온라인 등록완료 / 가상계좌 입금안내 등 (첨부 없음) */
 if (!function_exists('ufs_send_text_sms')) {
 function ufs_send_text_sms($name, $phone, $title, $message, $tag = 'text') {
-    $phone = preg_replace('/[^0-9]/', '', $phone);
+    $phone = ufs_normalize_phone($phone);   // 앞자리 0 누락 보정
     if ($phone === '') { return false; }
     $message = str_replace(' ', ' ', $message);
     $receiver = '[{"name":"' . ufs_sms_json_escape($name) . '","mobile":"' . $phone . '"}]';

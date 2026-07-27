@@ -30,7 +30,7 @@ function ufs_invite_mail($row, $lang) {
     } else {
         $subject   = '[언리얼 페스트 서울 2026] 초대합니다';
         $preheader = $inviter.'의 초대로 언리얼 페스트 서울 2026에 초대합니다.';
-        $title     = '언리얼 페스트 서울 2026 초대';
+        $title     = '언리얼 페스트 서울 2026 초대 안내';
         $disc_line = ($disc >= 100)
             ? '본 초대는 <strong class="inter-bold700" style="font-weight:700;">무료 등록</strong>입니다. 아래 버튼으로 등록을 완료해 주세요.'
             : '<strong class="inter-bold700" style="font-weight:700;">초대 할인('.$disc.'%)</strong>이 적용됩니다. 아래 버튼으로 등록을 진행해 주세요.';

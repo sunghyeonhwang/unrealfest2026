@@ -34,7 +34,7 @@ $L = array(
     'title_edit'=>'등록 정보 수정','sub_edit'=>'이름·이메일·연락처는 본인인증 정보로 변경할 수 없습니다.',
     'select'=>'선택해 주세요','tshirt_size'=>'티셔츠 사이즈',
     'day1_label'=>'Day 1 트랙 (8.20 목)','day2_label'=>'Day 2 트랙 (8.21 금)',
-    'mkt_opt'=>'광고 수신 동의 (선택)','btn_discard'=>'수정 취소하기','btn_save'=>'저장하기','full'=>'마감',
+    'mkt_opt'=>'광고 수신 동의 (선택)','btn_discard'=>'수정 취소하기','btn_save'=>'저장하기','full'=>'마감','nearfull'=>'마감 임박',
     'title_cancelled'=>'등록이 취소되었습니다',
     'cancelled_paid'=>'유료 등록 건의 환불은 영업일 기준 최대 5일 이내 처리됩니다.',
     'cancelled_free'=>'온라인 등록은 별도의 환불 절차가 없습니다. 다시 시청을 원하시면 행사 페이지에서 재등록해 주세요.',
@@ -70,7 +70,7 @@ $L = array(
     'title_edit'=>'Edit registration','sub_edit'=>'Name, email and phone cannot be changed.',
     'select'=>'Select','tshirt_size'=>'T-shirt size',
     'day1_label'=>'Day 1 track (Aug 20, Thu)','day2_label'=>'Day 2 track (Aug 21, Fri)',
-    'mkt_opt'=>'Marketing consent (optional)','btn_discard'=>'Discard','btn_save'=>'Save','full'=>'Full',
+    'mkt_opt'=>'Marketing consent (optional)','btn_discard'=>'Discard','btn_save'=>'Save','full'=>'Full','nearfull'=>'Almost full',
     'title_cancelled'=>'Registration cancelled',
     'cancelled_paid'=>'Paid registrations are refunded within up to 5 business days.',
     'cancelled_free'=>'Online registration has no separate refund process. Please register again from the event page if needed.',
@@ -106,11 +106,14 @@ function ufs_track_select($day, $tracks, $trackRemain, $current, $lang='ko'){
     echo '<select name="'.$field.'" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none">';
     echo '<option value="">'.e(t('select')).'</option>';
     foreach ($tracks as $v=>$l) {
-        $full = isset($trackRemain[$v]) && $trackRemain[$v] <= 0;
+        $rem  = isset($trackRemain[$v]) ? $trackRemain[$v] : null;
+        $full = ($rem !== null && $rem <= 0);
+        $near = (!$full && $rem !== null && $rem > 0 && $rem <= 10);   // 마감 임박(잔여 10석 이하) — 정확한 수는 미노출
         $sel  = ($v === $current);
         $dis  = ($full && !$sel) ? ' disabled' : '';
         $lab  = ($lang==='en') ? mt_track_en($v) : $l;
-        echo '<option value="'.e($v).'"'.($sel?' selected':'').$dis.'>'.e($lab).($full?' ('.t('full').')':'').'</option>';
+        $tag  = $full ? (' ('.t('full').')') : ($near ? (' ('.t('nearfull').')') : '');
+        echo '<option value="'.e($v).'"'.($sel?' selected':'').$dis.'>'.e($lab).$tag.'</option>';
     }
     echo '</select>';
 }

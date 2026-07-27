@@ -58,13 +58,25 @@ include __DIR__ . '/_head.php';
 @media (prefers-reduced-motion: reduce){ .ufs-beam::after{ animation:none; } }
 .ufs-cd-num{ font-variant-numeric:tabular-nums; font-family:ui-monospace,monospace; }
 /* 판촉 배지: 80% 폭, 좌정렬, 여유 패딩, 빔(z:2) 위 */
-.promo-badge{ width:80%; padding:7px 24px; text-align:left; z-index:5; }
+.promo-badge{ width:62%; padding:7px 16px; text-align:center; color:#ffffff !important; z-index:5; }
 /* 오프라인 등록 버튼(양일권·1일권) — 극적 hover: 부양 + 시안 글로우 + 밝기 */
 .btn-off{ transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease, filter .2s ease; }
 .btn-off:hover{ background-color:#00d9ef !important; transform:translateY(-3px); box-shadow:0 12px 34px rgba(0,193,213,.6); filter:brightness(1.06); }
 /* 온라인 등록 버튼 — hover 반전(채워짐) */
 .btn-on{ transition: background-color .2s ease, color .2s ease, border-color .2s ease; }
 .btn-on:hover{ background-color:#ffffff !important; color:#09090b !important; border-color:#ffffff !important; }
+/* 할인 혜택 보기 버튼 */
+.btn-disc{ border:1px solid #00C1D5; color:#00C1D5; background:transparent; cursor:pointer; transition: background-color .2s ease, color .2s ease; }
+.btn-disc:hover{ background:#00C1D5; color:#09090b; }
+/* 단체 할인율 모달 */
+.modal-ov{ position:fixed; inset:0; background:rgba(0,0,0,.72); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); z-index:1000; display:none; align-items:center; justify-content:center; padding:20px; }
+.modal-ov.open{ display:flex; }
+.modal-box{ background:#0e0f14; border:1px solid #27272a; width:100%; max-width:760px; max-height:86vh; overflow:auto; padding:28px; }
+.modal-box table{ width:100%; border-collapse:collapse; font-size:14px; margin-top:16px; }
+.modal-box th,.modal-box td{ border:1px solid #27272a; padding:11px 12px; text-align:center; color:#e4e4e7; white-space:nowrap; }
+.modal-box thead th{ background:#111115; color:#a1a1aa; font-weight:700; }
+.modal-box .disc{ color:#00C1D5; font-weight:800; }
+.modal-box .save{ color:#ff8674; }
 </style>
 <section id="hero" class="relative h-screen overflow-hidden">
   <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover object-bottom" style="object-position: calc(50% + 200px) bottom;">
@@ -284,10 +296,37 @@ $ov_icons = array(
         <h3 class="text-xl font-bold text-[#fafafa] mb-2">단체 등록 및 기업 결제</h3>
         <p class="text-sm text-[#a1a1aa]">5인 이상 단체 등록 시 세금계산서 발행 및 무통장 입금을 지원합니다. 관련 문의는 운영 사무국으로 연락해 주세요.</p>
       </div>
-      <a href="mailto:info@epiclounge.co.kr" class="flex-shrink-0 inline-flex items-center gap-2 px-6 py-2.5 bg-white text-black text-sm font-bold hover:bg-white/90 transition-colors whitespace-nowrap clip-btn-8">
-        문의하기
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-      </a>
+      <div class="flex-shrink-0 flex flex-wrap gap-3">
+        <button type="button" onclick="document.getElementById('groupDiscModal').classList.add('open')" class="btn-disc inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold whitespace-nowrap clip-btn-8">할인 혜택 보기</button>
+        <a href="mailto:info@epiclounge.co.kr" class="inline-flex items-center gap-2 px-6 py-2.5 bg-white text-black text-sm font-bold hover:bg-white/90 transition-colors whitespace-nowrap clip-btn-8">
+          문의하기
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+    <!-- 단체 규모별 할인율 모달 -->
+    <div class="modal-ov" id="groupDiscModal" onclick="if(event.target===this)this.classList.remove('open')">
+      <div class="modal-box">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+          <div>
+            <h3 style="font-size:20px;font-weight:800;color:#fff;margin:0">규모별 할인율</h3>
+            <p style="color:#a1a1aa;font-size:13px;margin:6px 0 0">5인 이상 단체 등록 시 규모에 따라 할인이 적용됩니다. (정상가 기준)</p>
+          </div>
+          <button type="button" onclick="document.getElementById('groupDiscModal').classList.remove('open')" aria-label="닫기" style="color:#a1a1aa;font-size:26px;line-height:1;background:none;border:0;cursor:pointer;flex-shrink:0">&times;</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>단체 인원</th><th>할인율</th><th>양일권</th><th>양일권 할인</th><th>1일권</th><th>1일권 할인</th></tr></thead>
+            <tbody>
+              <tr><td>5 ~ 9인</td><td class="disc">10%</td><td>₩108,000</td><td class="save">-₩12,000</td><td>₩54,000</td><td class="save">-₩6,000</td></tr>
+              <tr><td>10 ~ 19인</td><td class="disc">20%</td><td>₩96,000</td><td class="save">-₩24,000</td><td>₩48,000</td><td class="save">-₩12,000</td></tr>
+              <tr><td>20 ~ 30인</td><td class="disc">30%</td><td>₩84,000</td><td class="save">-₩36,000</td><td>₩42,000</td><td class="save">-₩18,000</td></tr>
+              <tr><td>31 ~ 49인</td><td class="disc">40%</td><td>₩72,000</td><td class="save">-₩48,000</td><td>₩36,000</td><td class="save">-₩24,000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="color:#71717a;font-size:12px;margin-top:14px">· 정상가: 양일권 ₩120,000 / 1일권 ₩60,000 기준. 단체 등록·기업 결제 문의는 운영 사무국으로 연락해 주세요.</p>
+      </div>
     </div>
   </div>
 </section>

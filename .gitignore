@@ -28,3 +28,4 @@ picture_upload/
 r2backup2026.php
 # GO-LIVE 로컬 백업 폴더
 _golive_backup_*/
+dodo_webhook.log

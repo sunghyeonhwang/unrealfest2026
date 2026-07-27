@@ -30,7 +30,7 @@ function ufs_track_box_en($day, $tracks, $trackRemain) {
     echo '</div></div>';
 }
 
-$eb = ufs_is_earlybird();
+$eb = false;   // 해외(Dodo) 등록은 얼리버드 없이 항상 정상가(KRW) 결제
 ?>
 <!DOCTYPE html>
 <html lang="en" class="dark">
@@ -54,8 +54,7 @@ $eb = ufs_is_earlybird();
   </div>
 </header>
 
-<!-- ⚠️ SKELETON: 결제(INICIS Global) 미연동. 제출 시 실제 등록/결제 안 됨. -->
-<form name="frm" id="frm" method="post" action="#" onsubmit="alert('Payment integration is in progress. This is a preview page.'); return false;">
+<form name="frm" id="frm" method="post" action="apply_pay_en.php" onsubmit="return validateEnForm()">
 <input type="hidden" name="apply_product_code" id="apply_product_code" value="">
 <input type="hidden" name="apply_product_name" id="apply_product_name" value="">
 <input type="hidden" name="apply_product_price" id="apply_product_price" value="">
@@ -100,7 +99,7 @@ $eb = ufs_is_earlybird();
               array('code'=>'DAY2', 'pcode'=>'NORMAL_21', 'sub'=>'1-Day Pass · Aug 21','label'=>'1-Day Pass — Aug 21 (Fri)'),
             );
             foreach ($opts as $o):
-              $price = ufs_ticket_price($o['pcode']); $orig = ufs_ticket_orig($o['pcode']); ?>
+              $price = ufs_ticket_orig($o['pcode']); $orig = $price; ?>
             <label class="ticket-en relative p-5 border cursor-pointer transition-all border-[#27272a] hover:border-white/20 block"
                    data-pcode="<?= e($o['pcode']) ?>" data-price="<?= $price ?>" data-sub="<?= e($o['sub']) ?>">
               <input type="radio" name="ticket" value="<?= e($o['code']) ?>" class="sr-only">
@@ -196,14 +195,15 @@ $eb = ufs_is_earlybird();
           </div>
           <div class="flex justify-between items-end"><span class="text-[#a1a1aa] font-medium">Total</span><span class="text-3xl font-black text-white" id="sumTotal">&nbsp;</span></div>
 
-          <!-- Payment (placeholder) -->
-          <div class="border border-dashed border-[#3f3f46] bg-[#111115] p-4 text-xs text-[#a1a1aa] leading-relaxed">
-            <div class="font-bold text-[#e4e4e7] mb-1">Payment method: Overseas card</div>
-            Overseas card payment (INICIS Global) is being set up. Online checkout will be available shortly.
+          <!-- Payment -->
+          <div class="border border-[#27272a] bg-[#111115] p-4 text-xs text-[#a1a1aa] leading-relaxed">
+            <div class="font-bold text-[#e4e4e7] mb-1">Payment method: International card</div>
+            Secure checkout by <strong class="text-[#e4e4e7]">Dodo Payments</strong> (Merchant of Record). Charged in KRW; your bank may convert to your local currency.
           </div>
-          <button type="submit" disabled class="w-full bg-[#27272a] text-[#71717a] py-4 font-bold text-lg flex items-center justify-center gap-2 cursor-not-allowed">
-            Proceed to Payment (coming soon)
+          <button type="submit" class="w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all">
+            Proceed to Payment
           </button>
+          <p class="text-xs text-[#71717a]">By continuing you agree to our <a href="legal-en.php#refund" target="_blank" rel="noopener" class="underline text-[#a1a1aa]">Refund Policy</a>. A QR code will be emailed after payment.</p>
         </div>
       </div>
     </div>
@@ -214,7 +214,7 @@ $eb = ufs_is_earlybird();
 <?php include __DIR__ . '/_pf_footer.php'; ?>
 
 <script>
-// 뼈대용 최소 스크립트: 티켓 선택 → 주문 요약 갱신
+// 티켓 선택 → 주문 요약(정상가) 갱신
 (function(){
   var won='₩';
   function fmt(n){ return won + n.toLocaleString('en-US'); }
@@ -224,10 +224,8 @@ $eb = ufs_is_earlybird();
       card.classList.add('border-[#00C1D5]');
       card.querySelector('input[type=radio]').checked = true;
       var price=parseInt(card.getAttribute('data-price'),10)||0;
-      var orig=price*2; // early bird 50%
       document.getElementById('sumSub').textContent=card.getAttribute('data-sub');
-      document.getElementById('sumPrice').textContent=fmt(orig);
-      var d=document.getElementById('sumDiscount'); if(d) d.textContent='-'+fmt(orig-price);
+      document.getElementById('sumPrice').textContent=fmt(price);
       document.getElementById('sumTotal').textContent=fmt(price);
       document.getElementById('apply_product_code').value=card.getAttribute('data-pcode');
       document.getElementById('apply_product_price').value=price;
@@ -236,6 +234,19 @@ $eb = ufs_is_earlybird();
   var all=document.getElementById('agree_all');
   if(all) all.addEventListener('change', function(){ document.querySelectorAll('.agree-item').forEach(function(c){ c.checked=all.checked; }); });
 })();
-</script>
+function validateEnForm(){
+  var t=document.querySelector('input[name="ticket"]:checked');
+  if(!t){ alert('Please select a ticket.'); return false; }
+  var req=['apply_user_name','apply_user_email','apply_user_phone','apply_user_job','apply_user_company','apply_user_depart','apply_user_grade','apply_user_ex1'];
+  for(var i=0;i<req.length;i++){ var el=document.querySelector('[name="'+req[i]+'"]'); if(!el||!(''+el.value).trim()){ alert('Please complete all required fields.'); if(el) el.focus(); return false; } }
+  if(!document.querySelector('input[name="tshirt"]:checked')){ alert('Please select a T-shirt size.'); return false; }
+  var code=(document.getElementById('apply_product_code')||{}).value||'';
+  var needD1=(code==='NORMAL_ALL'||code==='NORMAL_20'), needD2=(code==='NORMAL_ALL'||code==='NORMAL_21');
+  if(needD1 && !document.querySelector('input[name="day1track"]:checked')){ alert('Please select a Day 1 track.'); return false; }
+  if(needD2 && !document.querySelector('input[name="day2track"]:checked')){ alert('Please select a Day 2 track.'); return false; }
+  if(!document.querySelector('input[name="agree_req"]').checked){ alert('Please agree to the required terms.'); return false; }
+  return true;
+}
+
 </body>
 </html>

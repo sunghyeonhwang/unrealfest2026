@@ -21,7 +21,7 @@ function ufs_coupon_mail($row, $lang = 'ko') {
     if ($lang === 'en') {
         $subject   = '[Unreal Fest Seoul 2026] Your registration discount coupon';
         $preheader = 'A discount coupon for Unreal Fest Seoul 2026 registration has been issued.';
-        $title     = 'Unreal Fest Seoul 2026 — Registration coupon';
+        $title     = 'Unreal Fest Seoul 2026 — Registration';
         $disc_line = ($pct >= 100)
             ? 'This coupon covers <strong class="inter-bold700" style="font-weight:700;">100% (free registration)</strong>.'
             : 'A <strong class="inter-bold700" style="font-weight:700;">'.$pct.'% discount</strong> applies at checkout.';

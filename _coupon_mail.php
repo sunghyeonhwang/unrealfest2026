@@ -37,7 +37,7 @@ function ufs_coupon_mail($row, $lang = 'ko') {
     } else {
         $subject   = '[언리얼 페스트 서울 2026] 참가 등록 할인 쿠폰 안내';
         $preheader = '언리얼 페스트 서울 2026 참가 등록에 사용할 수 있는 할인 쿠폰이 발급되었습니다.';
-        $title     = '언리얼 페스트 서울 2026 등록 할인 쿠폰';
+        $title     = '언리얼 페스트 서울 2026 등록 안내';
         $disc_line = ($pct >= 100)
             ? '본 쿠폰은 <strong class="inter-bold700" style="font-weight:700;">100%(무료 등록)</strong> 쿠폰입니다.'
             : '결제 시 <strong class="inter-bold700" style="font-weight:700;">'.$pct.'% 할인</strong>이 적용됩니다.';
@@ -124,7 +124,7 @@ a { color: #157EAF; }
 <p dir="ltr" style="text-align: center; margin: 0; padding: 0; font: inherit;">에픽 라운지 (Epic Lounge)&nbsp;|&nbsp;사업자 등록번호 859-88-00263</p>
 </td></tr>
 <tr><td align="center" valign="top" class="gray-65" style="color: #595959; font-family: 'Inter',Arial,sans-serif; font-size: 12px; font-weight: 400; line-height: 18px; margin: 0; padding: 0 0 24px;">
-<p dir="ltr" style="text-align: center; margin: 0; padding: 0; font: inherit;">본 메일은 언리얼 페스트 서울 2026 등록 할인 쿠폰 안내를 위해 발송되었습니다.</p>
+<p dir="ltr" style="text-align: center; margin: 0; padding: 0; font: inherit;">본 메일은 언리얼 페스트 서울 2026 등록 안내를 위해 발송되었습니다.</p>
 </td></tr>
 <tr><td align="center" valign="top" class="gray-65" style="color: #595959; font-family: 'Inter',Arial,sans-serif; font-size: 12px; font-weight: 400; line-height: 18px; margin: 0; padding: 0;">
 <p dir="ltr" style="text-align: center; margin: 0; padding: 0; font: inherit;">

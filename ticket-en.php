@@ -80,7 +80,7 @@ $eb = ufs_is_earlybird();
             <div class="h-px bg-[#27272a]"></div>
             <label class="flex items-start gap-3 px-3 py-2 cursor-pointer">
               <input type="checkbox" name="agree_req" class="agree-item mt-0.5 accent-[#00C1D5]">
-              <span class="text-sm text-[#a1a1aa]">I agree to the <a href="#" class="underline text-[#00C1D5]">Terms of Service</a> and <a href="#" class="underline text-[#00C1D5]">Privacy Policy</a><span class="ml-1 text-xs text-[#00C1D5]">(required)</span></span>
+              <span class="text-sm text-[#a1a1aa]">I agree to the <a href="legal-en.php#terms" target="_blank" rel="noopener" class="underline text-[#00C1D5]">Terms of Service</a>, <a href="legal-en.php#refund" target="_blank" rel="noopener" class="underline text-[#00C1D5]">Refund Policy</a> and <a href="legal-en.php#privacy" target="_blank" rel="noopener" class="underline text-[#00C1D5]">Privacy Policy</a><span class="ml-1 text-xs text-[#00C1D5]">(required)</span></span>
             </label>
             <label class="flex items-start gap-3 px-3 py-2 cursor-pointer">
               <input type="checkbox" name="agree_mkt" class="agree-item mt-0.5 accent-[#00C1D5]">
@@ -166,7 +166,7 @@ $eb = ufs_is_earlybird();
         <!-- T-shirt -->
         <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
           <h2 class="text-lg font-bold text-white mb-2">T-shirt size <span class="text-[#00C1D5]">*</span></h2>
-          <p class="text-xs text-[#71717a] mb-4">Your selected size may not be available depending on on-site stock.</p>
+          <p class="text-xs text-[#71717a] mb-4">The event T-shirt and goods are <span class="text-[#a1a1aa]">picked up on-site at the venue during the event (not shipped)</span>. Your selected size may not be available depending on on-site stock.</p>
           <div class="flex flex-wrap gap-3">
             <?php foreach (array('M','L','XL','XXL') as $size): ?>
             <label class="relative cursor-pointer"><input type="radio" name="tshirt" value="<?= $size ?>" class="peer sr-only">

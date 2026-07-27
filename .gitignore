@@ -15,6 +15,7 @@ public/*.mp4
 _secret_kakao.php
 _secret_meta.php
 _secret_resend.php
+_secret_dodo.php
 
 # repo 관리 대상 아님(업로드 자산/임시)
 _agfix.php

@@ -52,6 +52,8 @@ include __DIR__ . '/_head.php';
   -webkit-mask-composite: xor; mask-composite: exclude;
   animation: ufs-beam-rot 4.5s linear infinite;
 }
+.ufs-beam.spd-a::after{ animation-duration: 6s; }     /* 양일권: 느리게 */
+.ufs-beam.spd-b::after{ animation-duration: 3s; }     /* 1일권: 빠르게 */
 @keyframes ufs-beam-rot { to { --ufs-beam:360deg; } }
 @media (prefers-reduced-motion: reduce){ .ufs-beam::after{ animation:none; } }
 .ufs-cd-num{ font-variant-numeric:tabular-nums; font-family:ui-monospace,monospace; }
@@ -220,39 +222,39 @@ $ov_icons = array(
       <h2 class="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">티켓</h2>
       <p class="text-base text-[#90a1b9]">오프라인과 온라인으로 언리얼 페스트 서울 2026을 경험해 보세요.</p>
     </div>
-    <!-- 판촉: 행사 실시간 카운트다운 -->
-    <div class="mt-7 flex justify-center md:justify-end">
-      <div class="inline-flex items-center gap-3 bg-[#0e0f14] border border-[#27272a] px-5 py-3" data-ev-countdown data-deadline="2026-08-20T00:00:00+09:00">
-        <span class="text-sm font-bold text-[#00C1D5] whitespace-nowrap">행사 시작까지</span>
-        <span class="flex items-baseline gap-1 text-white">
-          <span class="ufs-cd-num text-xl font-bold" data-cd-days>00</span><span class="text-[#71717a] text-xs mr-1">일</span>
-          <span class="ufs-cd-num text-xl font-bold" data-cd-hours>00</span><span class="text-[#3f3f46]">:</span>
-          <span class="ufs-cd-num text-xl font-bold" data-cd-mins>00</span><span class="text-[#3f3f46]">:</span>
-          <span class="ufs-cd-num text-xl font-bold" data-cd-secs>00</span>
-        </span>
-      </div>
-    </div>
     <div class="grid md:grid-cols-3 gap-[26px] pt-[35px]">
       <!-- 양일권 -->
-      <div class="ufs-beam relative bg-[#0e0f14] border border-[#27272a] p-9 flex flex-col items-center text-center">
-        <?php if (ufs_is_earlybird()): ?><div class="absolute -top-[13px] left-0 bg-[#00C1D5] text-[#090a0f] font-bold whitespace-nowrap <?= ufs_promo_is_ext() ? 'text-[12px] px-[14px] py-[7px]' : 'text-[14px] px-[18px] py-[7px]' ?>"><?= e(ufs_promo_card_badge()) ?></div><?php else: ?><div class="absolute -top-[13px] left-0 bg-[#00C1D5] text-[#090a0f] font-bold whitespace-nowrap text-[13px] px-[16px] py-[7px]">한정 수량 · 조기 마감</div><?php endif; ?>
+      <div class="ufs-beam spd-a relative bg-[#0e0f14] border border-[#27272a] p-9 flex flex-col items-center text-center">
+        <?php if (ufs_is_earlybird()): ?><div class="absolute -top-[13px] left-0 bg-[#00C1D5] text-[#090a0f] font-bold whitespace-nowrap <?= ufs_promo_is_ext() ? 'text-[12px] px-[14px] py-[7px]' : 'text-[14px] px-[18px] py-[7px]' ?>"><?= e(ufs_promo_card_badge()) ?></div><?php else: ?><div class="absolute -top-[13px] left-1/2 -translate-x-1/2 w-[80%] text-center z-[5] bg-[#00C1D5] text-[#090a0f] font-bold text-[13px] px-[12px] py-[7px]">한정 수량 · 조기 마감</div><?php endif; ?>
         <h3 class="text-[38px] text-white mt-[18px] mb-[26px] leading-[46px] font-jamjil font-medium">오프라인 양일권</h3>
         <?php if (ufs_is_earlybird()): ?><div class="mb-1"><span class="text-[18px] text-[#71717a] line-through tracking-tight">₩ <?= number_format(ufs_ticket_orig('NORMAL_ALL')) ?></span></div><?php endif; ?>
         <div class="mb-2"><span class="text-[40px] font-bold text-white tracking-tight">₩ <?= number_format(ufs_ticket_price('NORMAL_ALL')) ?></span></div>
-        <?php if (ufs_is_earlybird()): ?><p class="text-[13px] text-[#9adbe8] mb-auto"><?= e(ufs_promo_card_note()) ?></p><?php elseif ($ufs_track_nearfull): ?><p class="text-[13px] text-[#ffb4a2] font-bold mb-auto">인기 트랙 마감 임박</p><?php else: ?><p class="text-[13px] text-[#9adbe8] mb-auto">행사까지 <span class="font-bold">D-<?= $ufs_dday ?></span></p><?php endif; ?>
-        <a href="ticket-all.php" class="mt-[35px] w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 transition-colors font-jamjil">
+        <?php if (ufs_is_earlybird()): ?><p class="text-[13px] text-[#9adbe8] mb-auto"><?= e(ufs_promo_card_note()) ?></p><?php elseif ($ufs_track_nearfull): ?><p class="text-[13px] text-[#ffb4a2] font-bold mb-auto">인기 트랙 마감 임박</p><?php else: ?><div class="mb-auto"></div><?php endif; ?>
+        <div class="flex items-baseline justify-center gap-1 mt-2 text-[#9adbe8]" data-ev-cd data-deadline="2026-08-20T00:00:00+09:00">
+          <span class="ufs-cd-num text-lg font-bold" data-cd-days>00</span><span class="text-[10px] text-[#71717a] mr-1">일</span>
+          <span class="ufs-cd-num text-lg font-bold" data-cd-hours>00</span><span class="text-[#3f3f46]">:</span>
+          <span class="ufs-cd-num text-lg font-bold" data-cd-mins>00</span><span class="text-[#3f3f46]">:</span>
+          <span class="ufs-cd-num text-lg font-bold" data-cd-secs>00</span>
+        </div>
+        <a href="ticket-all.php" class="mt-[16px] w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 transition-colors font-jamjil">
           양일권 등록하기
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </a>
       </div>
       <!-- 1일권 (featured) -->
-      <div class="ufs-beam relative bg-[#0e0f14] border border-[rgba(0,193,213,0.5)] p-9 flex flex-col items-center text-center shadow-[0_0_11px_rgba(0,193,213,0.1)]">
-        <?php if (ufs_is_earlybird()): ?><div class="absolute -top-[13px] left-0 bg-[#00C1D5] text-[#090a0f] font-bold whitespace-nowrap <?= ufs_promo_is_ext() ? 'text-[12px] px-[14px] py-[7px]' : 'text-[14px] px-[18px] py-[7px]' ?>"><?= e(ufs_promo_card_badge()) ?></div><?php else: ?><div class="absolute -top-[13px] left-0 bg-[#00C1D5] text-[#090a0f] font-bold whitespace-nowrap text-[13px] px-[16px] py-[7px]">한정 수량 · 조기 마감</div><?php endif; ?>
+      <div class="ufs-beam spd-b relative bg-[#0e0f14] border border-[rgba(0,193,213,0.5)] p-9 flex flex-col items-center text-center shadow-[0_0_11px_rgba(0,193,213,0.1)]">
+        <?php if (ufs_is_earlybird()): ?><div class="absolute -top-[13px] left-0 bg-[#00C1D5] text-[#090a0f] font-bold whitespace-nowrap <?= ufs_promo_is_ext() ? 'text-[12px] px-[14px] py-[7px]' : 'text-[14px] px-[18px] py-[7px]' ?>"><?= e(ufs_promo_card_badge()) ?></div><?php else: ?><div class="absolute -top-[13px] left-1/2 -translate-x-1/2 w-[80%] text-center z-[5] bg-[#00C1D5] text-[#090a0f] font-bold text-[13px] px-[12px] py-[7px]">한정 수량 · 조기 마감</div><?php endif; ?>
         <h3 class="text-[38px] text-white mt-[18px] mb-[26px] leading-[46px] font-jamjil font-medium">오프라인 1일권</h3>
         <?php if (ufs_is_earlybird()): ?><div class="mb-1"><span class="text-[18px] text-[#71717a] line-through tracking-tight">₩ <?= number_format(ufs_ticket_orig('NORMAL_20')) ?></span></div><?php endif; ?>
         <div class="mb-2"><span class="text-[40px] font-bold text-white tracking-tight">₩ <?= number_format(ufs_ticket_price('NORMAL_20')) ?></span></div>
-        <?php if (ufs_is_earlybird()): ?><p class="text-[13px] text-[#9adbe8] mb-auto"><?= e(ufs_promo_card_note()) ?></p><?php elseif ($ufs_track_nearfull): ?><p class="text-[13px] text-[#ffb4a2] font-bold mb-auto">인기 트랙 마감 임박</p><?php else: ?><p class="text-[13px] text-[#9adbe8] mb-auto">행사까지 <span class="font-bold">D-<?= $ufs_dday ?></span></p><?php endif; ?>
-        <a href="ticket-day.php" class="mt-[35px] w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 transition-colors font-jamjil">
+        <?php if (ufs_is_earlybird()): ?><p class="text-[13px] text-[#9adbe8] mb-auto"><?= e(ufs_promo_card_note()) ?></p><?php elseif ($ufs_track_nearfull): ?><p class="text-[13px] text-[#ffb4a2] font-bold mb-auto">인기 트랙 마감 임박</p><?php else: ?><div class="mb-auto"></div><?php endif; ?>
+        <div class="flex items-baseline justify-center gap-1 mt-2 text-[#9adbe8]" data-ev-cd data-deadline="2026-08-20T00:00:00+09:00">
+          <span class="ufs-cd-num text-lg font-bold" data-cd-days>00</span><span class="text-[10px] text-[#71717a] mr-1">일</span>
+          <span class="ufs-cd-num text-lg font-bold" data-cd-hours>00</span><span class="text-[#3f3f46]">:</span>
+          <span class="ufs-cd-num text-lg font-bold" data-cd-mins>00</span><span class="text-[#3f3f46]">:</span>
+          <span class="ufs-cd-num text-lg font-bold" data-cd-secs>00</span>
+        </div>
+        <a href="ticket-day.php" class="mt-[16px] w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 transition-colors font-jamjil">
           1일권 등록하기
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </a>
@@ -262,7 +264,13 @@ $ov_icons = array(
         <h3 class="text-[38px] text-white mt-[18px] mb-[26px] leading-[46px] font-jamjil font-medium">온라인</h3>
         <div class="mb-2"><span class="text-[26px] font-bold text-[#a1a1aa]">무료</span></div>
         <p class="text-[15px] text-[#71717a] mb-auto">(일부 세션 생중계)</p>
-        <a href="ticket-online.php" class="mt-[35px] w-full border border-[#27272a] text-[#a1a1aa] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 hover:border-white/30 hover:text-white transition-colors font-jamjil">
+        <div class="flex items-baseline justify-center gap-1 mt-2 text-[#9adbe8]" data-ev-cd data-deadline="2026-08-20T00:00:00+09:00">
+          <span class="ufs-cd-num text-lg font-bold" data-cd-days>00</span><span class="text-[10px] text-[#71717a] mr-1">일</span>
+          <span class="ufs-cd-num text-lg font-bold" data-cd-hours>00</span><span class="text-[#3f3f46]">:</span>
+          <span class="ufs-cd-num text-lg font-bold" data-cd-mins>00</span><span class="text-[#3f3f46]">:</span>
+          <span class="ufs-cd-num text-lg font-bold" data-cd-secs>00</span>
+        </div>
+        <a href="ticket-online.php" class="mt-[16px] w-full border border-[#27272a] text-[#a1a1aa] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 hover:border-white/30 hover:text-white transition-colors font-jamjil">
           무료 등록하기
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </a>
@@ -474,18 +482,20 @@ $ov_icons = array(
   });
 })();
 </script>
-<!-- 판촉: 행사 실시간 카운트다운 구동 -->
+<!-- 판촉: 행사 실시간 카운트다운 구동 (카드별 [data-ev-cd]) -->
 <script>
 (function(){
-  var el=document.querySelector('[data-ev-countdown]'); if(!el) return;
-  var dl=new Date(el.getAttribute('data-deadline')).getTime();
-  var d=el.querySelector('[data-cd-days]'),h=el.querySelector('[data-cd-hours]'),m=el.querySelector('[data-cd-mins]'),s=el.querySelector('[data-cd-secs]');
+  var els=document.querySelectorAll('[data-ev-cd]'); if(!els.length) return;
   function pad(n){return (n<10?'0':'')+n;}
   function tick(){
-    var diff=dl-Date.now(); if(diff<0) diff=0;
-    var t=Math.floor(diff/1000);
-    if(d)d.textContent=Math.floor(t/86400); if(h)h.textContent=pad(Math.floor(t%86400/3600));
-    if(m)m.textContent=pad(Math.floor(t%3600/60)); if(s)s.textContent=pad(t%60);
+    var now=Date.now();
+    els.forEach(function(el){
+      var dl=new Date(el.getAttribute('data-deadline')).getTime();
+      var diff=dl-now; if(diff<0) diff=0; var t=Math.floor(diff/1000);
+      var d=el.querySelector('[data-cd-days]'),h=el.querySelector('[data-cd-hours]'),m=el.querySelector('[data-cd-mins]'),s=el.querySelector('[data-cd-secs]');
+      if(d)d.textContent=Math.floor(t/86400); if(h)h.textContent=pad(Math.floor(t%86400/3600));
+      if(m)m.textContent=pad(Math.floor(t%3600/60)); if(s)s.textContent=pad(t%60);
+    });
   }
   tick(); setInterval(tick,1000);
 })();

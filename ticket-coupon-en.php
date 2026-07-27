@@ -150,14 +150,15 @@ $eb = ufs_is_earlybird();
           <h2 class="text-lg font-bold text-white mb-5">Ticket</h2>
           <div class="grid gap-4" id="ticketGroup">
             <?php $opts = array(
-              array('code'=>'ALL','label'=>'2-Day Pass — Aug 20 (Thu) & 21 (Fri)'),
-              array('code'=>'DAY1','label'=>'1-Day Pass — Aug 20 (Thu)'),
-              array('code'=>'DAY2','label'=>'1-Day Pass — Aug 21 (Fri)'));
-            foreach ($opts as $o): ?>
-            <label class="ticket-en relative p-5 border cursor-pointer transition-all border-[#27272a] hover:border-white/20 block" data-code="<?= e($o['code']) ?>">
+              array('code'=>'ALL','pcode'=>'NORMAL_ALL','label'=>'2-Day Pass — Aug 20 (Thu) & 21 (Fri)'),
+              array('code'=>'DAY1','pcode'=>'NORMAL_20','label'=>'1-Day Pass — Aug 20 (Thu)'),
+              array('code'=>'DAY2','pcode'=>'NORMAL_21','label'=>'1-Day Pass — Aug 21 (Fri)'));
+            foreach ($opts as $o): $price=(int)ufs_ticket_orig($o['pcode']); ?>
+            <label class="ticket-en relative p-5 border cursor-pointer transition-all border-[#27272a] hover:border-white/20 block" data-code="<?= e($o['code']) ?>" data-price="<?= $price ?>">
               <input type="radio" name="ticket" value="<?= e($o['code']) ?>" class="sr-only">
               <div class="tk-label text-base font-bold text-white mb-1"><?= e($o['label']) ?></div>
-              <div class="text-lg font-black text-[#00C1D5]">FREE <span class="text-xs text-[#71717a] font-normal">(with 100% coupon)</span></div>
+              <div class="text-2xl font-black text-white">&#8361;<?= number_format($price) ?></div>
+              <div class="text-xs text-[#71717a] mt-1">Free with a 100% coupon</div>
             </label>
             <?php endforeach; ?>
           </div>
@@ -242,7 +243,7 @@ $eb = ufs_is_earlybird();
             <div class="text-[#00C1D5] font-bold text-sm mb-1" id="sumSub">&nbsp;</div>
             <div class="flex justify-between items-center"><span class="text-sm text-[#a1a1aa]">Coupon</span><span class="text-sm text-[#a1a1aa]" id="sumCoupon">—</span></div>
           </div>
-          <div class="flex justify-between items-end"><span class="text-[#a1a1aa] font-medium">Total</span><span class="text-3xl font-black text-white" id="sumTotal">FREE</span></div>
+          <div class="flex justify-between items-end"><span class="text-[#a1a1aa] font-medium">Total</span><span class="text-3xl font-black text-white" id="sumTotal">&mdash;</span></div>
           <button type="submit" class="w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all">Complete free registration</button>
           <p class="text-xs text-[#71717a]">A QR code and lookup link will be provided after registration.</p>
         </div>
@@ -255,6 +256,12 @@ $eb = ufs_is_earlybird();
 <?php include __DIR__ . '/_pf_footer.php'; ?>
 
 <script>
+var ppSelPrice=0, ppCoupon100=false;   // 정상가에서 시작 → 100% 쿠폰 시 FREE
+function ppUpdateTotal(){
+  var t=document.getElementById('sumTotal');
+  if(ppCoupon100){ t.textContent='FREE'; }
+  else { t.textContent = ppSelPrice ? ('₩'+ppSelPrice.toLocaleString('en-US')) : '—'; }
+}
 (function(){
   document.querySelectorAll('.ticket-en').forEach(function(card){
     card.addEventListener('click', function(){
@@ -263,6 +270,8 @@ $eb = ufs_is_earlybird();
       card.style.setProperty('background-color','rgba(0,79,89,0.2)','important');
       card.querySelector('input[type=radio]').checked = true;
       var l=card.querySelector('.tk-label'); if(l) document.getElementById('sumSub').textContent=l.textContent;
+      ppSelPrice = parseInt(card.getAttribute('data-price'),10)||0;
+      ppUpdateTotal();
     });
   });
   var all=document.getElementById('agree_all');
@@ -288,11 +297,12 @@ function couponEnApply(){
   if(!code){ box.style.color='#ff8674'; box.textContent='Please enter a coupon code.'; return; }
   box.style.color='#a1a1aa'; box.textContent='Checking…';
   fetch('group-coupon-check.php?code='+encodeURIComponent(code)).then(function(r){return r.json();}).then(function(d){
-    if(!d.ok){ box.style.color='#ff8674'; box.textContent='Invalid or unavailable coupon.'; document.getElementById('sumCoupon').textContent='—'; return; }
+    if(!d.ok){ box.style.color='#ff8674'; box.textContent='Invalid or unavailable coupon.'; document.getElementById('sumCoupon').textContent='—'; ppCoupon100=false; ppUpdateTotal(); return; }
     var pct=parseInt(d.percent,10)||0;
     document.getElementById('sumCoupon').textContent=pct+'%';
-    if(pct<100){ box.style.color='#ff8674'; box.textContent='This is a '+pct+'% partial-discount coupon. Please use the Korean registration page (payment required).'; }
-    else { box.style.color='#00C1D5'; box.textContent='100% complimentary coupon applied — registration is free.'; }
+    if(pct<100){ box.style.color='#ff8674'; box.textContent='This is a '+pct+'% partial-discount coupon. Please use the Korean registration page (payment required).'; ppCoupon100=false; }
+    else { box.style.color='#00C1D5'; box.textContent='100% complimentary coupon applied — registration is free.'; ppCoupon100=true; }
+    ppUpdateTotal();
   }).catch(function(){ box.style.color='#ff8674'; box.textContent='Error checking the coupon.'; });
 }
 function couponEnSubmit(){

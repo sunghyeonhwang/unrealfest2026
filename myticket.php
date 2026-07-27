@@ -43,8 +43,8 @@ $L = array(
     'confirm_free'=>'등록을 취소하시겠습니까?',
     'a_refundfail'=>'환불 처리에 실패했습니다.','a_reason'=>'사유','a_office'=>'사무국(02-326-3701)으로 문의해주세요.',
     'a_cancelfail'=>'취소 처리에 실패했습니다.','a_cancel_office'=>'취소·환불은 사무국(02-326-3701 / info@epiclounge.co.kr)으로 요청해 주세요.',
-    'a_refund_over'=>'이 티켓의 취소·환불 가능 기간이 종료되었습니다.\\n취소·환불은 고객센터(02-326-3701 / info@epiclounge.co.kr)로 문의해 주세요.',
-    'refund_over_note'=>'취소·환불 가능 기간이 종료되어 온라인 취소가 불가합니다. 취소·환불은 고객센터(02-326-3701 / info@epiclounge.co.kr)로 문의해 주세요.',
+    'a_refund_over'=>'얼리버드 취소/환불 가능 기간이 종료되어 취소가 불가능합니다.\\n고객센터(02-326-3701 / info@epiclounge.co.kr)로 문의해 주세요',
+    'refund_over_note'=>'얼리버드 취소/환불 가능 기간이 종료되어 취소가 불가능합니다. 고객센터(02-326-3701 / info@epiclounge.co.kr)로 문의해 주세요',
     'toggle'=>'EN','doc_title'=>'등록 확인 — Unreal Fest Seoul 2026',
   ),
   'en' => array(

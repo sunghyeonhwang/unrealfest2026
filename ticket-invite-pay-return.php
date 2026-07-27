@@ -1,5 +1,5 @@
 <?php
-/* Unreal Fest Seoul 2026 — 초청(부분할인) 카드결제 승인 콜백 (ticket-invite-pay-return.php) [M3]
+/* Unreal Fest Seoul 2026 — 초대(부분할인) 카드결제 승인 콜백 (ticket-invite-pay-return.php) [M3]
  * INICIS 승인 → 배치(oid) 홀드행 status 1→10 승급 + QR. 실패/취소 → 홀드 해제 + sc_used 원복.
  * 단체 결제 콜백(ticket-group-pay-return.php) 구조 재사용. PHP 7.0 호환.
  */

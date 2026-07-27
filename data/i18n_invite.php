@@ -1,5 +1,5 @@
 <?php
-/* Unreal Fest Seoul 2026 — 초청 등록 i18n (KO/EN) [M4]
+/* Unreal Fest Seoul 2026 — 초대 등록 i18n (KO/EN) [M4]
  * 스코프 변경: 4개국어 → KO + EN 만(사용자 지시 "영어만"). ZH/JA 미포함.
  * 셀렉트 옵션 텍스트(직업/직무/산업)는 언어별 문자열로 저장됨(외국인 페이지 ticket-en.php와 동일 정책).
  * 트랙/티켓 코드는 키(DAY1_TR1/NORMAL_ALL) → 언어 무관 저장. PHP 7.0 호환.
@@ -17,11 +17,11 @@ function ufs_inv_dict($lang) {
   $D = array();
   $D['ko'] = array(
     'html_lang'=>'ko', 'home'=>'홈으로',
-    'title'=>'초청 등록',
-    'gate_desc'=>'초청 이메일에 포함된 <b class="text-white">초청 코드</b>를 입력해 주세요.',
-    'code_label'=>'초청 코드', 'code_ph'=>'예: UFS-XXXX-XXXX', 'confirm'=>'확인',
-    'invited_by'=>'<b class="text-white">%s</b>의 초청으로 등록합니다. 등록 정보를 입력해 주세요.',
-    'free_badge'=>'무료 초청 (100%)', 'disc_badge'=>'초청 할인 %d%%', 'remain'=>'등록 가능 %d명',
+    'title'=>'초대 등록',
+    'gate_desc'=>'초대장에 포함된 <b class="text-white">초대 코드</b>를 입력해 주세요.',
+    'code_label'=>'초대 코드', 'code_ph'=>'예: UFS-XXXX-XXXX', 'confirm'=>'확인',
+    'invited_by'=>'<b class="text-white">%s</b>의 초대로 등록합니다. 등록 정보를 입력해 주세요.',
+    'free_badge'=>'무료 초대 (100%)', 'disc_badge'=>'초대 할인 %d%%', 'remain'=>'등록 가능 %d명',
     'agree_title'=>'약관 동의', 'agree_all'=>'전체 동의',
     'agree_req_a'=>'이용약관', 'agree_req_b'=>'개인정보처리방침', 'agree_req_join'=>' 및 ', 'agree_req_tail'=>'에 동의합니다', 'req'=>'(필수)',
     'agree_mkt'=>'마케팅 정보 수신에 동의합니다', 'opt'=>'(선택)',
@@ -30,26 +30,26 @@ function ufs_inv_dict($lang) {
     'f_depart'=>'부서', 'f_grade'=>'직무', 'f_ex1'=>'산업/관심 분야',
     'ph_name'=>'이름', 'ph_email'=>'email@example.com', 'ph_phone'=>'01012345678', 'ph_company'=>'에픽게임즈', 'ph_depart'=>'개발팀',
     'sel'=>'선택해 주세요', 'sel_short'=>'선택',
-    'attend'=>'1. 등록자 참석 선택',
+    'attend'=>'참가 정보',
     'companion_note'=>'※ 동반자의 <b class="text-[#a1a1aa]">직업·회사명</b>은 등록자와 동일하게 자동 등록됩니다. 동반 없이 1인만 등록하려면 비워 두세요.',
     'companion'=>'동반자',
-    'l_ticket'=>'티켓', 'l_day1'=>'Day1 트랙', 'l_day2'=>'Day2 트랙', 'l_tshirt'=>'티셔츠',
+    'l_ticket'=>'티켓 종류', 'l_day1'=>'Day1 트랙', 'l_day2'=>'Day2 트랙', 'l_tshirt'=>'티셔츠 사이즈',
     'ticket_ph'=>'티켓 선택', 'day1_ph'=>'Day1 트랙', 'day2_ph'=>'Day2 트랙', 'closed'=>'마감',
-    'summary'=>'등록 요약', 'orig_sum'=>'정상가 합계', 'disc_line'=>'초청 할인 %d%%', 'total'=>'총 결제 금액', 'free_word'=>'무료',
+    'summary'=>'등록 요약', 'orig_sum'=>'정상가 합계', 'disc_line'=>'초대 할인 %d%%', 'total'=>'총 결제 금액', 'free_word'=>'무료',
     'btn_free'=>'등록 완료', 'btn_pay'=>'결제하기',
     'note_free'=>'등록 완료 후 QR과 조회 링크가 제공됩니다.', 'note_paid'=>'결제 완료 후 QR과 조회 링크가 제공됩니다. 무통장 입금은 준비 중입니다(카드 결제).',
     'note_tail'=>' 이미 등록된 이메일은 재등록할 수 없습니다.',
     // 오류
-    'e_code'=>'초청 코드를 확인해 주세요.', 'e_invalid'=>'유효하지 않은 초청 코드입니다.', 'e_inactive'=>'사용이 중지된 초청 코드입니다.', 'e_soldout'=>'이미 모두 등록된 초청 코드입니다.', 'e_expired'=>'사용기간이 만료된 초청 코드입니다.', 'e_notyet'=>'아직 사용할 수 없는 초청 코드입니다.',
-    'e_agree'=>'필수 약관에 동의해 주세요.', 'e_rep'=>'대표자(초청 당사자) 정보를 모두 입력해 주세요.',
+    'e_code'=>'초대 코드를 확인해 주세요.', 'e_invalid'=>'유효하지 않은 초대 코드입니다.', 'e_inactive'=>'사용이 중지된 초대 코드입니다.', 'e_soldout'=>'이미 모두 등록된 초대 코드입니다.', 'e_expired'=>'사용기간이 만료된 초대 코드입니다.', 'e_notyet'=>'아직 사용할 수 없는 초대 코드입니다.',
+    'e_agree'=>'필수 약관에 동의해 주세요.', 'e_rep'=>'대표자(초대 당사자) 정보를 모두 입력해 주세요.',
     'e_over'=>'이 코드로 등록 가능한 인원(%d명)을 초과했습니다.',
     'e_ticket'=>'%s의 티켓을 선택해 주세요.', 'e_day1'=>'%s의 Day1 트랙을 선택해 주세요.', 'e_day2'=>'%s의 Day2 트랙을 선택해 주세요.',
     'e_tshirt'=>'%s의 티셔츠를 선택해 주세요.', 'e_contact'=>'%s의 이메일/연락처를 입력해 주세요.',
     'e_dup_in'=>'동일한 이메일이 중복되었습니다: %s', 'e_dup'=>'%s 은(는) 이미 등록된 이메일입니다.',
-    'e_soldout2'=>'초청 잔여 매수가 부족합니다. 새로고침 후 다시 시도해 주세요.', 'e_insert'=>'등록 처리 중 오류가 발생했습니다. 다시 시도해 주세요.',
+    'e_soldout2'=>'초대 잔여 매수가 부족합니다. 새로고침 후 다시 시도해 주세요.', 'e_insert'=>'등록 처리 중 오류가 발생했습니다. 다시 시도해 주세요.',
     'rep_label'=>'대표자', 'companion_n'=>'%d번 동반자',
     // 완료 페이지
-    'c_title'=>'초청 등록이 완료되었습니다', 'c_invited'=>'<b class="text-white">%s</b>의 초청으로 등록되었습니다.',
+    'c_title'=>'초대 등록이 완료되었습니다', 'c_invited'=>'<b class="text-white">%s</b>의 초대로 등록되었습니다.',
     'c_qr_title'=>'입장 QR 보관 안내', 'c_qr_body'=>'위 QR을 캡처해 두시거나, <a href="myticket.php" class="underline text-[#00C1D5]">티켓 조회</a>에서 등록하신 <b>이메일 + 연락처</b>로 언제든 다시 확인할 수 있습니다.',
     'c_track'=>'트랙', 'c_qr_alt'=>'입장 QR', 'bad'=>'잘못된 접근입니다.',
   );
@@ -68,10 +68,10 @@ function ufs_inv_dict($lang) {
     'f_depart'=>'Department', 'f_grade'=>'Role', 'f_ex1'=>'Industry',
     'ph_name'=>'Full name', 'ph_email'=>'email@example.com', 'ph_phone'=>'+1 234 567 8900', 'ph_company'=>'Epic Games', 'ph_depart'=>'Dev Team',
     'sel'=>'Select', 'sel_short'=>'Select',
-    'attend'=>'1. Registrant — session selection',
+    'attend'=>'Registration info',
     'companion_note'=>'※ A companion’s <b class="text-[#a1a1aa]">occupation & company</b> are auto-filled from the registrant. Leave blank to register alone.',
     'companion'=>'Companion',
-    'l_ticket'=>'Ticket', 'l_day1'=>'Day 1 track', 'l_day2'=>'Day 2 track', 'l_tshirt'=>'T-shirt',
+    'l_ticket'=>'Ticket type', 'l_day1'=>'Day 1 track', 'l_day2'=>'Day 2 track', 'l_tshirt'=>'T-shirt size',
     'ticket_ph'=>'Select a ticket', 'day1_ph'=>'Day 1 track', 'day2_ph'=>'Day 2 track', 'closed'=>'Full',
     'summary'=>'Registration Summary', 'orig_sum'=>'Subtotal (regular)', 'disc_line'=>'Invitation discount %d%%', 'total'=>'Total', 'free_word'=>'Free',
     'btn_free'=>'Complete registration', 'btn_pay'=>'Proceed to payment',
@@ -111,8 +111,8 @@ function ufs_inv_ex1s($lang){ return $lang==='en'
 if (!function_exists('ufs_inv_ticket_label')) {
 function ufs_inv_ticket_label($code,$lang){
   $m = ($lang==='en')
-    ? array('NORMAL_ALL'=>'2-Day Pass (Aug 20–21)','NORMAL_20'=>'1-Day Pass · Day 1','NORMAL_21'=>'1-Day Pass · Day 2')
-    : array('NORMAL_ALL'=>'양일권 (8.20~21)','NORMAL_20'=>'1일권 · Day 1','NORMAL_21'=>'1일권 · Day 2');
+    ? array('NORMAL_ALL'=>'2-Day Pass (Aug 20–21)','NORMAL_20'=>'1-Day Pass (Aug 20)','NORMAL_21'=>'1-Day Pass (Aug 21)')
+    : array('NORMAL_ALL'=>'양일권 (8월 20일~21일)','NORMAL_20'=>'1일권 (8월 20일)','NORMAL_21'=>'1일권 (8월 21일)');
   return isset($m[$code]) ? $m[$code] : $code;
 }
 }

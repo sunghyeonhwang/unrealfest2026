@@ -1,6 +1,6 @@
 <?php
-/* Unreal Fest Seoul 2026 — 초청장 발송 등록 (ticket-invite.php) [M2/M3/M4]
- * 초청 코드(?code=) 게이트 → 무인증 등록폼(대표 + 동반, 최대 sc_quota) → 무료(100%) 즉시완료 / 부분할인(50~99%) 카드결제.
+/* Unreal Fest Seoul 2026 — 초대장 발송 등록 (ticket-invite.php) [M2/M3/M4]
+ * 초대 코드(?code=) 게이트 → 무인증 등록폼(대표 + 동반, 최대 sc_quota) → 무료(100%) 즉시완료 / 부분할인(50~99%) 카드결제.
  * M4: 언어 KO/EN (sc_lang 또는 ?lang=). 데이터층 = _invite_apply.php(리뷰 완료), i18n = data/i18n_invite.php.
  * 오케스트레이션(코드검증·중복차단·소진→삽입·롤백)은 이 파일. PHP 7.0 호환.
  */
@@ -22,7 +22,7 @@ $TKT = array(
   array('code'=>'NORMAL_21', 'orig'=>(int)ufs_ticket_orig('NORMAL_21'), 'days'=>'2'),
 );
 
-/* 참석 선택 한 줄(티켓·Day1·Day2·티셔츠) — 초청용(NONE 없음), 언어별 라벨 */
+/* 참석 선택 한 줄(티켓·Day1·Day2·티셔츠) — 초대용(NONE 없음), 언어별 라벨 */
 function inv_attend_row($nTicket,$nD1,$nD2,$nTshirt,$TKT,$TR,$lang,$L){
   global $SEL_CLS,$trackRemain;
   $remain = is_array($trackRemain) ? $trackRemain : array();
@@ -90,7 +90,7 @@ if ($isPost) {
   } else {
     $row = $chk['row']; $discount = (int)$chk['discount']; $free = ($discount >= 100); $remain = (int)$chk['remain'];
 
-    // 대표(초청 당사자) — 항상 참석
+    // 대표(초대 당사자) — 항상 참석
     $rep = array(
       'role'=>'rep','name'=>gp('apply_user_name'),'email'=>gp('apply_user_email'),'phone'=>gp('apply_user_phone'),
       'job'=>gp('apply_user_job'),'company'=>gp('apply_user_company'),'depart'=>gp('apply_user_depart'),
@@ -231,12 +231,7 @@ $companions = $valid ? max(0, $remain - 1) : 0;   // 동반자 슬롯 수(대표
         <button type="submit" class="mt-4 w-full py-3 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#090a0f] font-extrabold transition-colors"><?= e($L['confirm']) ?></button>
       </form>
     <?php else: ?>
-      <!-- 초청 안내 배지 -->
-      <p class="text-[#a1a1aa] mb-4"><?= sprintf($L['invited_by'], e($inviter)) ?></p>
-      <div class="inline-flex flex-wrap items-center gap-2 mb-8">
-        <span class="px-4 py-2 bg-[rgba(0,79,89,0.2)] border border-[#00C1D5]/40 text-[#00C1D5] text-sm font-bold"><?= $free ? e($L['free_badge']) : e(sprintf($L['disc_badge'],$discount)) ?></span>
-        <span class="px-4 py-2 border border-[#27272a] text-[#a1a1aa] text-sm"><?= e(sprintf($L['remain'],(int)$remain)) ?></span>
-      </div>
+      <p class="text-[#a1a1aa] mb-8"><?= sprintf($L['invited_by'], e($inviter)) ?></p>
 
       <form name="frm" id="frm" method="post" action="ticket-invite.php" onsubmit="return invValidate()">
       <input type="hidden" name="code" value="<?= e($code) ?>">
@@ -259,7 +254,7 @@ $companions = $valid ? max(0, $remain - 1) : 0;   // 동반자 슬롯 수(대표
           </div>
         </div>
 
-        <!-- 대표(초청 당사자) 정보 -->
+        <!-- 대표(초대 당사자) 정보 -->
         <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
           <h2 class="text-lg font-bold text-white mb-5"><?= e($L['reg_info']) ?></h2>
           <div class="grid md:grid-cols-3 gap-6 mb-6">

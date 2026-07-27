@@ -1,6 +1,6 @@
 <?php
-/* Unreal Fest Seoul 2026 — 초청 등록 완료 (ticket-invite-complete.php) [M2/M4]
- * ?a=<대표 apply_no> & t=<md5(email)=apply_password> 검증 → 이 초청코드 배치의 참석자 QR·조회링크 표시.
+/* Unreal Fest Seoul 2026 — 초대 등록 완료 (ticket-invite-complete.php) [M2/M4]
+ * ?a=<대표 apply_no> & t=<md5(email)=apply_password> 검증 → 이 초대코드 배치의 참석자 QR·조회링크 표시.
  * 언어(KO/EN) = ?lang 또는 코드 sc_lang. QR = qrdata/<apply_no>.jpg. PHP 7.0 호환.
  */
 require __DIR__ . '/_ticket_init.php';          // common.php, e(), asset_v(), $UFS_TRACKS(트랙 KO 라벨)
@@ -22,7 +22,7 @@ if (!$rep || $t === '' || $rep['apply_password'] !== $t) { exit($L['bad']); }
 
 $inviter = ($sc && $sc['sc_inviter'] !== '') ? $sc['sc_inviter'] : '에픽게임즈';
 
-// 이 초청코드로 등록된 활성 참석자 전체(이번 배치)
+// 이 초대코드로 등록된 활성 참석자 전체(이번 배치)
 $att = array();
 if ($code !== '') {
   $rs = sql_query("SELECT apply_no, apply_user_name, apply_user_company, apply_product_code, apply_product_name, apply_track

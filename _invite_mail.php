@@ -1,7 +1,7 @@
 <?php
-/* Unreal Fest Seoul 2026 — 초청장 이메일 템플릿 (_invite_mail.php) [M6]
+/* Unreal Fest Seoul 2026 — 초대장 이메일 템플릿 (_invite_mail.php) [M6]
  * ufs_invite_mail($row, $lang) -> array('subject','html','text'). $row = cb_unreal_2026_speaker_code 행.
- * 베이스: UE/에픽라운지 공식 메일(헤더·히어로·푸터 유지) + 초청 문구/개인화/등록 CTA/KO·EN.
+ * 베이스: UE/에픽라운지 공식 메일(헤더·히어로·푸터 유지) + 초대 문구/개인화/등록 CTA/KO·EN.
  * 이메일 클라이언트 호환(테이블+인라인, MSO 조건부, 다크모드 대응). PHP 7.0.
  */
 if (!function_exists('ufs_invite_mail')) {
@@ -28,18 +28,18 @@ function ufs_invite_mail($row, $lang) {
         $cta = 'Register now';
         $textbody = 'You are invited to Unreal Fest Seoul 2026 (invited by '.$inviter.").\nRegister: ".$link;
     } else {
-        $subject   = '[언리얼 페스트 서울 2026] 초청합니다';
-        $preheader = $inviter.'의 초청으로 언리얼 페스트 서울 2026에 초대합니다.';
-        $title     = '언리얼 페스트 서울 2026 초청';
+        $subject   = '[언리얼 페스트 서울 2026] 초대합니다';
+        $preheader = $inviter.'의 초대로 언리얼 페스트 서울 2026에 초대합니다.';
+        $title     = '언리얼 페스트 서울 2026 초대';
         $disc_line = ($disc >= 100)
-            ? '본 초청은 <strong class="inter-bold700" style="font-weight:700;">무료 등록</strong>입니다. 아래 버튼으로 등록을 완료해 주세요.'
-            : '<strong class="inter-bold700" style="font-weight:700;">초청 할인('.$disc.'%)</strong>이 적용됩니다. 아래 버튼으로 등록을 진행해 주세요.';
+            ? '본 초대는 <strong class="inter-bold700" style="font-weight:700;">무료 등록</strong>입니다. 아래 버튼으로 등록을 완료해 주세요.'
+            : '<strong class="inter-bold700" style="font-weight:700;">초대 할인('.$disc.'%)</strong>이 적용됩니다. 아래 버튼으로 등록을 진행해 주세요.';
         $body = ($name !== '' ? $e($name).'님, ' : '').'안녕하세요.<br><br>'
-              . '<strong class="inter-bold700" style="font-weight:700;">'.$e($inviter).'</strong>의 초청으로 <strong class="inter-bold700" style="font-weight:700;">언리얼 페스트 서울 2026</strong>에 초대합니다. '
+              . '<strong class="inter-bold700" style="font-weight:700;">'.$e($inviter).'</strong>의 초대로 <strong class="inter-bold700" style="font-weight:700;">언리얼 페스트 서울 2026</strong>에 초대합니다. '
               . '언리얼 엔진과 에픽 에코시스템의 최신 기술, 그리고 게임·영화 및 TV·애니메이션·자동차·시뮬레이션 등 다양한 산업 분야 전문가들의 실제 프로젝트 경험과 노하우를 현장에서 만나보세요. '
               . $disc_line;
         $cta = '지금 등록하기';
-        $textbody = $inviter."의 초청으로 언리얼 페스트 서울 2026에 초대합니다.\n등록: ".$link;
+        $textbody = $inviter."의 초대로 언리얼 페스트 서울 2026에 초대합니다.\n등록: ".$link;
     }
 
     $tpl = <<<'HTML'
@@ -114,7 +114,7 @@ a { color: #157EAF; }
 <p dir="ltr" style="text-align: center; margin: 0; padding: 0; font: inherit;">에픽 라운지 (Epic Lounge)&nbsp;|&nbsp;사업자 등록번호 859-88-00263</p>
 </td></tr>
 <tr><td align="center" valign="top" class="gray-65" style="color: #595959; font-family: 'Inter',Arial,sans-serif; font-size: 12px; font-weight: 400; line-height: 18px; margin: 0; padding: 0 0 24px;">
-<p dir="ltr" style="text-align: center; margin: 0; padding: 0; font: inherit;">본 메일은 언리얼 페스트 서울 2026 초청 안내를 위해 발송되었습니다.</p>
+<p dir="ltr" style="text-align: center; margin: 0; padding: 0; font: inherit;">본 메일은 언리얼 페스트 서울 2026 초대 안내를 위해 발송되었습니다.</p>
 </td></tr>
 <tr><td align="center" valign="top" class="gray-65" style="color: #595959; font-family: 'Inter',Arial,sans-serif; font-size: 12px; font-weight: 400; line-height: 18px; margin: 0; padding: 0;">
 <p dir="ltr" style="text-align: center; margin: 0; padding: 0; font: inherit;">

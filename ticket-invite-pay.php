@@ -1,5 +1,5 @@
 <?php
-/* Unreal Fest Seoul 2026 — 초청(부분할인) 카드 결제 요청 (ticket-invite-pay.php) [M3]
+/* Unreal Fest Seoul 2026 — 초대(부분할인) 카드 결제 요청 (ticket-invite-pay.php) [M3]
  * 홀드 배치(?o=oid, status 1)의 합계로 INICIS 결제 요청. 승인 콜백 = ticket-invite-pay-return.php.
  * 단체 결제(ticket-group-pay.php) 구조 재사용. PHP 7.0 호환.
  */
@@ -21,7 +21,7 @@ if ((int)$sm['st'] === 10) { header('Location: ticket-invite-complete.php?a='.(i
 $price      = (int)$sm['amt'];
 if ($price <= 0) { exit('결제 금액이 올바르지 않습니다. 사무국으로 문의해 주세요.'); }
 $buyername  = $rep['apply_user_name']; $buyertel = $rep['apply_user_phone']; $buyeremail = $rep['apply_user_email'];
-$goods      = '언리얼 페스트 서울 2026 초청등록 '.(int)$sm['cnt'].'명';
+$goods      = '언리얼 페스트 서울 2026 초대등록 '.(int)$sm['cnt'].'명';
 
 $util       = new INIStdPayUtil();
 $timestamp  = $util->getTimestamp();

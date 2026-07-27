@@ -412,4 +412,26 @@ $ov_icons = array(
   setInterval(tick, 2000);
 })();
 </script>
+<!-- 문의 메일 버튼: 기본 메일앱이 없어도 이메일 주소 복사 + 안내(mailto 병행) -->
+<script>
+(function(){
+  var toast;
+  function showToast(msg){
+    if(!toast){ toast=document.createElement('div');
+      toast.style.cssText='position:fixed;left:50%;bottom:32px;transform:translateX(-50%);background:#00C1D5;color:#09090b;font-weight:700;font-size:14px;line-height:1.4;padding:12px 20px;border-radius:6px;z-index:99999;box-shadow:0 6px 24px rgba(0,0,0,.35);opacity:0;transition:opacity .2s;max-width:90vw;text-align:center';
+      document.body.appendChild(toast); }
+    toast.textContent=msg; toast.style.opacity='1';
+    clearTimeout(toast._t); toast._t=setTimeout(function(){ toast.style.opacity='0'; },2800);
+  }
+  document.querySelectorAll('a[href^="mailto:"]').forEach(function(a){
+    a.addEventListener('click', function(){
+      var mail=(a.getAttribute('href')||'').replace(/^mailto:/i,'').split('?')[0];
+      if(!mail) return;
+      try{ if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(mail); } }catch(e){}
+      showToast('문의 이메일 주소가 복사되었습니다 · '+mail);
+      // mailto는 기본 동작으로 시도됨(메일앱 있으면 작성창 열림)
+    });
+  });
+})();
+</script>
 <?php include __DIR__ . '/_foot.php'; ?>

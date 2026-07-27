@@ -14,6 +14,7 @@ if (!function_exists('ufs_coupon_enabled') || !ufs_coupon_enabled()) return;
   <p class="text-xs text-[#71717a] mb-4">보유하신 쿠폰 코드가 있다면 입력 후 적용해 주세요.</p>
   <div class="flex gap-2">
     <input type="text" name="coupon_code" id="coupon_code" placeholder="쿠폰 코드 (예: UE2026...)" autocomplete="off"
+           value="<?= isset($_GET['coupon']) ? e(strtoupper(trim($_GET['coupon']))) : '' ?>"
            class="flex-1 bg-[#09090b] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm uppercase">
     <button type="button" onclick="ufsApplyCoupon()" class="px-6 py-3 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] font-bold text-sm transition-all whitespace-nowrap">적용</button>
     <button type="button" onclick="ufsClearCoupon(true)" class="px-4 py-3 border border-[#27272a] text-[#a1a1aa] hover:text-white text-sm transition-all whitespace-nowrap">해제</button>
@@ -67,5 +68,7 @@ function ufsApplyCoupon(){
   }).catch(function(){ box.style.display=''; box.style.color='#f87171'; box.textContent='쿠폰 확인 중 오류가 발생했습니다.'; });
 }
 document.addEventListener('change', function(e){ if(e.target && e.target.name==='ticket'){ setTimeout(_ufsSidebar, 0); } });
+/* 메일 링크(?coupon=코드)로 진입 시 자동 적용 */
+(function(){ var el=document.getElementById('coupon_code'); if(el && (el.value||'').trim()!==''){ setTimeout(ufsApplyCoupon, 60); } })();
 </script>
 <?php /* 파일 끝 */ ?>

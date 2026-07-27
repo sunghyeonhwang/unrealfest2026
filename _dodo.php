@@ -83,6 +83,27 @@ function ufs_dodo_get_payment($payment_id) {
     return $r['ok'] ? $r['json'] : null;
 }}
 
+/* 전액 환불. POST /refunds {payment_id, reason}. 반환 shape은 ufs_inicis_refund 과 호환(ok/already/msg).
+ * Dodo는 30일 이내·원결제수단 환불. test 모드는 sandbox 실호출(실과금 없음). */
+if (!function_exists('ufs_dodo_refund')) {
+function ufs_dodo_refund($payment_id, $reason = '', $apply_no = 0) {
+    $payment_id = trim((string)$payment_id);
+    if ($payment_id === '') return array('ok'=>false, 'msg'=>'결제 ID가 없습니다.');
+    $body = array('payment_id' => $payment_id);
+    if ($reason !== '') $body['reason'] = $reason;
+    $r = ufs_dodo_api('POST', '/refunds', $body);
+    if ($apply_no > 0 && function_exists('sql_query')) {
+        @sql_query("insert into 2025_event_log(log_idx,log_text,rdate) values('".(int)$apply_no."','[DODO REFUND pid=".str_replace("'","`",$payment_id)."] HTTP ".$r['code']." ".str_replace("'","`",substr((string)$r['raw'],0,300))."',now())");
+    }
+    if ($r['ok']) {
+        $st = isset($r['json']['status']) ? strtolower($r['json']['status']) : '';
+        return array('ok'=>true, 'status'=>$st, 'refund_id'=>(isset($r['json']['refund_id'])?$r['json']['refund_id']:''), 'raw'=>$r['raw']);
+    }
+    $msg = isset($r['json']['message']) ? $r['json']['message'] : ('HTTP '.$r['code']);
+    $already = (stripos($msg,'already')!==false || stripos($msg,'refunded')!==false);
+    return array('ok'=>false, 'already'=>$already, 'msg'=>$msg, 'raw'=>$r['raw']);
+}}
+
 /* Standard Webhooks 서명검증 (HMAC-SHA256). 헤더: webhook-id, webhook-timestamp, webhook-signature.
  * 서명대상 = "{id}.{timestamp}.{body}". 시크릿 whsec_<base64>. 반환 bool. */
 if (!function_exists('ufs_dodo_verify_webhook')) {

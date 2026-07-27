@@ -57,8 +57,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // 유료 결제건이면 INICIS 자동 환불 시도 (운영모드에서만 실제 환불; 테스트는 상태만)
                     $paid_cancel = ($row['free_yn']==='N' && $row['apply_product_code']!=='ONLINE' && trim((string)$row['pay_tid'])!=='');
                     if ($paid_cancel) {
-                        require_once __DIR__.'/_refund.php';
-                        $rf = ufs_inicis_refund($row['pay_tid'], isset($row['pay_paymethod'])?$row['pay_paymethod']:'', '회원요청 취소', $row['apply_no']);
+                        if (isset($row['pay_paymethod']) && $row['pay_paymethod']==='dodo') {
+                            require_once __DIR__.'/_dodo.php';   // 해외 Dodo 결제 → Dodo 전액환불
+                            $rf = ufs_dodo_refund($row['pay_tid'], '회원요청 취소', $row['apply_no']);
+                        } else {
+                            require_once __DIR__.'/_refund.php';
+                            $rf = ufs_inicis_refund($row['pay_tid'], isset($row['pay_paymethod'])?$row['pay_paymethod']:'', '회원요청 취소', $row['apply_no']);
+                        }
                         // 환불 성공(ok) 또는 이미 환불됨(already=기 취소거래) → 등록 취소 진행. 그 외만 차단.
                         if (empty($rf['skipped']) && empty($rf['ok']) && empty($rf['already'])) {
                             $rf_reason = isset($rf['msg']) ? preg_replace('/[\"\\\\\r\n]/', ' ', $rf['msg']) : '';

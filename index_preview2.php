@@ -326,6 +326,12 @@ $ov_icons = array(
           </table>
         </div>
         <p style="color:#71717a;font-size:12px;margin-top:14px">· 정상가: 양일권 ₩120,000 / 1일권 ₩60,000 기준. 단체 등록·기업 결제 문의는 운영 사무국으로 연락해 주세요.</p>
+        <div style="margin-top:20px;display:flex;justify-content:center">
+          <a href="mailto:info@epiclounge.co.kr" class="inline-flex items-center gap-2 px-8 py-3 bg-white text-black text-sm font-bold hover:bg-white/90 transition-colors clip-btn-8">
+            문의하기
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+        </div>
       </div>
     </div>
   </div>

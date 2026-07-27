@@ -19,7 +19,7 @@ function ufs_coupon_mail($row, $lang = 'ko') {
              . 'font-family:\'Inter\',monospace;font-size:20px;font-weight:800;letter-spacing:2px;color:#000001;">'.$e($code).'</div>';
 
     if ($lang === 'en') {
-        $subject   = '[Unreal Fest Seoul 2026] Your registration discount coupon';
+        $subject   = '[Unreal Fest Seoul 2026] Registration';
         $preheader = 'A discount coupon for Unreal Fest Seoul 2026 registration has been issued.';
         $title     = 'Unreal Fest Seoul 2026 — Registration';
         $disc_line = ($pct >= 100)
@@ -35,7 +35,7 @@ function ufs_coupon_mail($row, $lang = 'ko') {
         $cta = 'Register now';
         $textbody = "Unreal Fest Seoul 2026 registration coupon: ".$code." (".$pct."% off)\nRegister: ".$link;
     } else {
-        $subject   = '[언리얼 페스트 서울 2026] 참가 등록 할인 쿠폰 안내';
+        $subject   = '[언리얼 페스트 서울 2026] 등록 안내';
         $preheader = '언리얼 페스트 서울 2026 참가 등록에 사용할 수 있는 할인 쿠폰이 발급되었습니다.';
         $title     = '언리얼 페스트 서울 2026 등록 안내';
         $disc_line = ($pct >= 100)

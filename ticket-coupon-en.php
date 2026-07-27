@@ -21,7 +21,7 @@ function ufs_track_box_en($day, $tracks, $trackRemain) {
     echo '<div class="mb-6"><h3 class="text-sm font-bold text-white mb-3">'.e($dlabel).' — Select a track <span class="text-[#00C1D5]">*</span></h3><div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">';
     foreach ($tracks as $v=>$l) {
         $full = isset($trackRemain[$v]) && $trackRemain[$v] <= 0;
-        echo '<label class="'.($full?'opacity-40 cursor-not-allowed':'cursor-pointer hover:border-white/20').' p-3 border text-center text-sm font-medium transition-all border-[#27272a] text-[#71717a]">';
+        echo '<label class="track-en '.($full?'opacity-40 cursor-not-allowed':'cursor-pointer hover:border-white/20').' p-3 border text-center text-sm font-medium transition-all border-[#27272a] text-[#71717a]">';
         echo '<input type="radio" name="'.$field.'" value="'.e($v).'" class="sr-only" '.($full?'disabled':'').'>'.e(ufs_track_label_en($v));
         if ($full) echo ' <span class="text-[#ff8674] text-xs">(Full)</span>';
         echo '</label>';
@@ -258,14 +258,29 @@ $eb = ufs_is_earlybird();
 (function(){
   document.querySelectorAll('.ticket-en').forEach(function(card){
     card.addEventListener('click', function(){
-      document.querySelectorAll('.ticket-en').forEach(function(c){ c.classList.remove('border-[#00C1D5]'); });
-      card.classList.add('border-[#00C1D5]');
+      document.querySelectorAll('.ticket-en').forEach(function(c){ c.style.removeProperty('border-color'); c.style.removeProperty('background-color'); });
+      card.style.setProperty('border-color','#00C1D5','important');   // T셔츠 선택과 동일: 시안 테두리 + 배경틴트 (Tailwind !important 대응)
+      card.style.setProperty('background-color','rgba(0,79,89,0.2)','important');
       card.querySelector('input[type=radio]').checked = true;
       var l=card.querySelector('.tk-label'); if(l) document.getElementById('sumSub').textContent=l.textContent;
     });
   });
   var all=document.getElementById('agree_all');
   if(all) all.addEventListener('change', function(){ document.querySelectorAll('.agree-item').forEach(function(c){ c.checked=all.checked; }); });
+  // 트랙 선택 하이라이트 (같은 요일 그룹 내 토글, Tailwind !important 대응)
+  document.querySelectorAll('.track-en').forEach(function(lbl){
+    lbl.addEventListener('click', function(){
+      var radio=lbl.querySelector('input[type=radio]');
+      if(!radio || radio.disabled) return;
+      document.querySelectorAll('.track-en').forEach(function(l){
+        var r=l.querySelector('input[type=radio]');
+        if(r && r.name===radio.name){ l.style.removeProperty('border-color'); l.style.removeProperty('background-color'); l.style.removeProperty('color'); }
+      });
+      lbl.style.setProperty('border-color','#00C1D5','important');
+      lbl.style.setProperty('background-color','rgba(0,79,89,0.2)','important');
+      lbl.style.setProperty('color','#00C1D5','important');
+    });
+  });
 })();
 function couponEnApply(){
   var el=document.getElementById('coupon_code'); var code=(el.value||'').trim().toUpperCase(); el.value=code;

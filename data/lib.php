@@ -83,6 +83,7 @@ function ufs_footer_legal_links() {
     return array(
         '이용약관' => 'https://epiclounge.co.kr/v3/contents/v4/ode.php',
         '개인정보처리방침' => 'https://epiclounge.co.kr/v3/contents/v4/personal.php',
+        '쿠키 정책' => 'https://epiclounge.co.kr/v3/contents/v4/cookie.php',
     );
 }
 

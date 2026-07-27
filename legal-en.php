@@ -57,7 +57,7 @@ $anchor = isset($_GET['s']) ? preg_replace('/[^a-z]/','',$_GET['s']) : '';
   <div class="note">
     <p style="color:#e4e4e7;margin:0"><strong>What you are purchasing.</strong> Registration on this page grants <strong>admission to Unreal Fest Seoul 2026</strong>, an in-person developer conference held on <strong>August 20–21, 2026</strong> at COEX, Seoul, Republic of Korea. This is a <strong>digital registration/admission service</strong>. Any merchandise included with certain ticket types (event T-shirt, limited-edition goods) is provided for <strong>on-site pickup at the venue only and is not shipped</strong>.</p>
   </div>
-  <p style="font-size:13px;color:#71717a">Payments on this page are processed by <strong>Dodo Payments</strong>, acting as the Merchant of Record (reseller) for this transaction. Prices are charged in <strong>USD</strong>. The Merchant of Record name may appear on your card statement.</p>
+  <p style="font-size:13px;color:#71717a">Payments on this page are processed by <strong>Dodo Payments</strong>, acting as the Merchant of Record (reseller) for this transaction. Prices are charged in <strong>Korean Won (KRW)</strong>; your card issuer may convert to your local currency. The Merchant of Record name may appear on your card statement.</p>
 
   <h2 id="about">1. Product &amp; Service Description</h2>
   <ul>

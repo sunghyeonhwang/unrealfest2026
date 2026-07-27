@@ -43,6 +43,8 @@ $L = array(
     'confirm_free'=>'등록을 취소하시겠습니까?',
     'a_refundfail'=>'환불 처리에 실패했습니다.','a_reason'=>'사유','a_office'=>'사무국(02-326-3701)으로 문의해주세요.',
     'a_cancelfail'=>'취소 처리에 실패했습니다.','a_cancel_office'=>'취소·환불은 사무국(02-326-3701 / info@epiclounge.co.kr)으로 요청해 주세요.',
+    'a_refund_over'=>'이 티켓의 취소·환불 가능 기간이 종료되었습니다.\\n취소·환불은 고객센터(02-326-3701 / info@epiclounge.co.kr)로 문의해 주세요.',
+    'refund_over_note'=>'취소·환불 가능 기간이 종료되어 온라인 취소가 불가합니다. 취소·환불은 고객센터(02-326-3701 / info@epiclounge.co.kr)로 문의해 주세요.',
     'toggle'=>'EN','doc_title'=>'등록 확인 — Unreal Fest Seoul 2026',
   ),
   'en' => array(
@@ -75,6 +77,8 @@ $L = array(
     'confirm_free'=>'Cancel your registration?',
     'a_refundfail'=>'Refund failed.','a_reason'=>'Reason','a_office'=>'Please contact the office (+82-2-326-3701).',
     'a_cancelfail'=>'Cancellation failed.','a_cancel_office'=>'Please contact the office (+82-2-326-3701 / info@epiclounge.co.kr) for cancellation and refund.',
+    'a_refund_over'=>'The cancellation/refund period for this ticket has ended.\\nPlease contact our customer center (+82-2-326-3701 / info@epiclounge.co.kr) to cancel.',
+    'refund_over_note'=>'The cancellation/refund period has ended. Please contact our customer center (+82-2-326-3701 / info@epiclounge.co.kr) to cancel or request a refund.',
     'toggle'=>'한국어','doc_title'=>'My registration — Unreal Fest Seoul 2026',
   ),
 );
@@ -107,6 +111,15 @@ function ufs_track_select($day, $tracks, $trackRemain, $current, $lang='ko'){
     echo '</select>';
 }
 
+// 환불 마감 판정 (정책 A) — 유료건만. 얼리버드 구매(등록시각≤얼리버드마감)=7/27 23:59, 정상가=8/18 23:59. 무료/온라인=마감없음.
+function ufs_refund_deadline_ts($row){
+    if (!$row || $row['free_yn']==='Y' || $row['apply_product_code']==='ONLINE') return 0;
+    $reg = (isset($row['apply_reg_datetime']) && $row['apply_reg_datetime'] && strpos((string)$row['apply_reg_datetime'],'0000')!==0) ? strtotime($row['apply_reg_datetime']) : 0;
+    $eb_end = function_exists('ufs_earlybird_end_ts') ? ufs_earlybird_end_ts() : strtotime('2026-07-27 23:59:59 +0900');
+    $is_eb_ticket = ($reg > 0 && $reg <= $eb_end);
+    return $is_eb_ticket ? $eb_end : strtotime('2026-08-18 23:59:59 +0900');
+}
+
 $row = null; $error = ''; $mode = 'lookup'; $saved = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -123,6 +136,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $is_paid_row = $row['free_yn'] === 'N' && $row['apply_product_code'] !== 'ONLINE';
             if ($action === 'cancel') {
+                // 환불 마감 강제(정책 A) — 얼리버드 티켓 7/28~, 정상가 티켓 8/19~ 셀프취소 차단 → 고객센터 안내
+                $__dl = ufs_refund_deadline_ts($row);
+                if ($__dl > 0 && time() > $__dl) {
+                    exit('<script>alert("'.t('a_refund_over').'");history.back();</script>');
+                }
                 if (trim((string)$row['apply_group_code']) !== '') {
                     // ── 단체 구성원 취소: 부분환불 경로. 그룹 공용 TID 전액환불 금지(다른 인원까지 환불되는 사고 방지). ──
                     require_once __DIR__ . '/_group_apply.php';
@@ -214,6 +232,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $is_paid = $row && $row['free_yn'] === 'N' && $row['apply_product_code'] !== 'ONLINE';
+$refund_dl = $row ? ufs_refund_deadline_ts($row) : 0;
+$refund_blocked = ($refund_dl > 0 && time() > $refund_dl);   // 마감 지남 → 셀프취소 차단(고객센터)
 $qr_jpg = ($row && $is_paid && file_exists(__DIR__."/qrdata/".$row['apply_no'].".jpg")) ? "qrdata/".$row['apply_no'].".jpg" : '';
 // 현재 트랙 분해 (view/edit 공용)
 $cur_d1=''; $cur_d2='';
@@ -433,6 +453,9 @@ $other_lang = ($lang === 'en') ? 'ko' : 'en';
         <input type="hidden" name="lang" value="<?= $lang ?>">
         <button type="submit" class="w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-3 font-bold transition-all"><?= e(t('btn_edit')) ?></button>
       </form>
+      <?php if ($refund_blocked): ?>
+      <div class="flex-1 border border-[#27272a] text-[#71717a] py-3 font-bold text-center opacity-60" title="<?= e(t('refund_over_note')) ?>"><?= e(t('btn_cancel')) ?></div>
+      <?php else: ?>
       <form method="post" class="flex-1" onsubmit="return confirm('<?= $is_paid ? t('confirm_paid') : t('confirm_free') ?>');">
         <input type="hidden" name="email" value="<?= e($row['apply_user_email']) ?>">
         <input type="hidden" name="phone" value="<?= e($row['apply_user_phone']) ?>">
@@ -440,7 +463,11 @@ $other_lang = ($lang === 'en') ? 'ko' : 'en';
         <input type="hidden" name="lang" value="<?= $lang ?>">
         <button type="submit" class="w-full border border-[#27272a] text-[#71717a] py-3 font-bold hover:text-[#a1a1aa] hover:border-white/20 transition-all"><?= e(t('btn_cancel')) ?></button>
       </form>
+      <?php endif; ?>
     </div>
+    <?php if ($refund_blocked): ?>
+    <p class="text-xs text-[#71717a] mt-3 leading-relaxed"><?= e(t('refund_over_note')) ?></p>
+    <?php endif; ?>
   <?php endif; ?>
   </div>
 </main>

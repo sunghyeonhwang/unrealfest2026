@@ -225,7 +225,7 @@ $ov_icons = array(
     <div class="grid md:grid-cols-3 gap-[26px] pt-[35px]">
       <!-- 양일권 -->
       <div class="ufs-beam spd-a relative bg-[#0e0f14] border border-[#27272a] p-9 flex flex-col items-center text-center">
-        <?php if (ufs_is_earlybird()): ?><div class="absolute -top-[13px] left-0 bg-[#00C1D5] text-[#090a0f] font-bold whitespace-nowrap <?= ufs_promo_is_ext() ? 'text-[12px] px-[14px] py-[7px]' : 'text-[14px] px-[18px] py-[7px]' ?>"><?= e(ufs_promo_card_badge()) ?></div><?php else: ?><div class="absolute -top-[13px] left-1/2 -translate-x-1/2 w-[80%] text-center z-[5] bg-[#00C1D5] text-[#090a0f] font-bold text-[13px] px-[12px] py-[7px]">한정 수량 · 조기 마감</div><?php endif; ?>
+        <?php if (ufs_is_earlybird()): ?><div class="absolute -top-[13px] left-0 bg-[#00C1D5] text-[#090a0f] font-bold whitespace-nowrap <?= ufs_promo_is_ext() ? 'text-[12px] px-[14px] py-[7px]' : 'text-[14px] px-[18px] py-[7px]' ?>"><?= e(ufs_promo_card_badge()) ?></div><?php else: ?><div class="absolute -top-[13px] left-0 w-[80%] text-left z-[5] bg-[#00C1D5] text-[#090a0f] font-bold text-[13px] px-[24px] py-[7px]">한정 수량 · 조기 마감</div><?php endif; ?>
         <h3 class="text-[38px] text-white mt-[18px] mb-[26px] leading-[46px] font-jamjil font-medium">오프라인 양일권</h3>
         <?php if (ufs_is_earlybird()): ?><div class="mb-1"><span class="text-[18px] text-[#71717a] line-through tracking-tight">₩ <?= number_format(ufs_ticket_orig('NORMAL_ALL')) ?></span></div><?php endif; ?>
         <div class="mb-2"><span class="text-[40px] font-bold text-white tracking-tight">₩ <?= number_format(ufs_ticket_price('NORMAL_ALL')) ?></span></div>
@@ -236,14 +236,14 @@ $ov_icons = array(
           <span class="ufs-cd-num text-lg font-bold" data-cd-mins>00</span><span class="text-[#3f3f46]">:</span>
           <span class="ufs-cd-num text-lg font-bold" data-cd-secs>00</span>
         </div>
-        <a href="ticket-all.php" class="mt-[16px] w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 transition-colors font-jamjil">
+        <a href="ticket-all.php" class="mt-[16px] w-full bg-[#00C1D5] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 transition-all duration-200 hover:bg-[#00d9ef] hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(0,193,213,0.55)] hover:brightness-105 font-jamjil">
           양일권 등록하기
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </a>
       </div>
       <!-- 1일권 (featured) -->
       <div class="ufs-beam spd-b relative bg-[#0e0f14] border border-[rgba(0,193,213,0.5)] p-9 flex flex-col items-center text-center shadow-[0_0_11px_rgba(0,193,213,0.1)]">
-        <?php if (ufs_is_earlybird()): ?><div class="absolute -top-[13px] left-0 bg-[#00C1D5] text-[#090a0f] font-bold whitespace-nowrap <?= ufs_promo_is_ext() ? 'text-[12px] px-[14px] py-[7px]' : 'text-[14px] px-[18px] py-[7px]' ?>"><?= e(ufs_promo_card_badge()) ?></div><?php else: ?><div class="absolute -top-[13px] left-1/2 -translate-x-1/2 w-[80%] text-center z-[5] bg-[#00C1D5] text-[#090a0f] font-bold text-[13px] px-[12px] py-[7px]">한정 수량 · 조기 마감</div><?php endif; ?>
+        <?php if (ufs_is_earlybird()): ?><div class="absolute -top-[13px] left-0 bg-[#00C1D5] text-[#090a0f] font-bold whitespace-nowrap <?= ufs_promo_is_ext() ? 'text-[12px] px-[14px] py-[7px]' : 'text-[14px] px-[18px] py-[7px]' ?>"><?= e(ufs_promo_card_badge()) ?></div><?php else: ?><div class="absolute -top-[13px] left-0 w-[80%] text-left z-[5] bg-[#00C1D5] text-[#090a0f] font-bold text-[13px] px-[24px] py-[7px]">한정 수량 · 조기 마감</div><?php endif; ?>
         <h3 class="text-[38px] text-white mt-[18px] mb-[26px] leading-[46px] font-jamjil font-medium">오프라인 1일권</h3>
         <?php if (ufs_is_earlybird()): ?><div class="mb-1"><span class="text-[18px] text-[#71717a] line-through tracking-tight">₩ <?= number_format(ufs_ticket_orig('NORMAL_20')) ?></span></div><?php endif; ?>
         <div class="mb-2"><span class="text-[40px] font-bold text-white tracking-tight">₩ <?= number_format(ufs_ticket_price('NORMAL_20')) ?></span></div>
@@ -254,7 +254,7 @@ $ov_icons = array(
           <span class="ufs-cd-num text-lg font-bold" data-cd-mins>00</span><span class="text-[#3f3f46]">:</span>
           <span class="ufs-cd-num text-lg font-bold" data-cd-secs>00</span>
         </div>
-        <a href="ticket-day.php" class="mt-[16px] w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 transition-colors font-jamjil">
+        <a href="ticket-day.php" class="mt-[16px] w-full bg-[#00C1D5] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 transition-all duration-200 hover:bg-[#00d9ef] hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(0,193,213,0.55)] hover:brightness-105 font-jamjil">
           1일권 등록하기
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </a>
@@ -270,7 +270,7 @@ $ov_icons = array(
           <span class="ufs-cd-num text-lg font-bold" data-cd-mins>00</span><span class="text-[#3f3f46]">:</span>
           <span class="ufs-cd-num text-lg font-bold" data-cd-secs>00</span>
         </div>
-        <a href="ticket-online.php" class="mt-[16px] w-full border border-[#27272a] text-[#a1a1aa] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 hover:border-white/30 hover:text-white transition-colors font-jamjil">
+        <a href="ticket-online.php" class="mt-[16px] w-full border border-[#a1a1aa] text-[#a1a1aa] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 transition-all duration-200 hover:bg-white hover:text-[#09090b] hover:border-white font-jamjil">
           무료 등록하기
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </a>

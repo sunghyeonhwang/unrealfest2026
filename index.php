@@ -50,6 +50,7 @@ include __DIR__ . '/_head.php';
       <button type="button" data-scroll="agenda" class="bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 text-white px-8 py-4 font-bold text-lg flex items-center justify-center transition-all">아젠다 보기</button>
     </div>
   </div>
+  <?php if (ufs_is_earlybird()): /* 얼리버드 종료 카운터: 얼리버드 기간에만 표시(종료 후 자동 숨김) */ ?>
   <!-- 카운트다운: 도킹 헤더에 안 가리도록 위로(bottom-20), 본문(max-w-7xl) 우측에 정렬 -->
   <div class="absolute inset-x-0 bottom-20 z-10 pointer-events-none">
     <div class="max-w-7xl mx-auto px-6 flex justify-end">
@@ -81,6 +82,7 @@ include __DIR__ . '/_head.php';
       </div>
     </div>
   </div>
+  <?php endif; ?>
 </section>
 
 <!-- ===== Overview ===== -->

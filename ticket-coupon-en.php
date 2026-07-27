@@ -102,7 +102,7 @@ $eb = ufs_is_earlybird();
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Coupon Registration — Unreal Fest Seoul 2026</title>
+<title>Registration — Unreal Fest Seoul 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= asset_v('assets/style.css') ?>">
@@ -122,25 +122,12 @@ $eb = ufs_is_earlybird();
 <div class="pt-32 pb-24 min-h-screen bg-[#09090b]">
   <div class="max-w-7xl mx-auto px-6">
     <a href="index.php" class="inline-flex items-center gap-2 text-[#71717a] hover:text-white transition-colors mb-8 text-sm"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Back</a>
-    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">Coupon Registration</h1>
-    <p class="text-[#a1a1aa] mb-6">Register with your <b class="text-white">complimentary (100%) coupon</b> — no payment or identity verification required.</p>
+    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">Registration</h1>
+    <p class="text-[#a1a1aa] mb-6">Please fill in the details below to complete your registration. No identity verification required.</p>
     <?php if ($err!==''): ?><div class="mb-8 px-4 py-3 border border-[#ff8674]/50 bg-[rgba(255,134,116,0.12)] text-[#ff8674] text-sm"><?= e($err) ?></div><?php endif; ?>
 
     <div class="grid lg:grid-cols-12 gap-8 items-start">
       <div class="lg:col-span-7 xl:col-span-8 space-y-4">
-
-        <!-- Coupon -->
-        <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
-          <h2 class="text-lg font-bold text-white mb-2">Coupon <span class="text-[#00C1D5]">*</span></h2>
-          <p class="text-xs text-[#71717a] mb-4">Enter your coupon code. Only 100% (complimentary) coupons can be used on this page.</p>
-          <div class="flex gap-2">
-            <input type="text" name="coupon_code" id="coupon_code" placeholder="e.g. UECPN-XXXX-XXXX" autocomplete="off"
-                   value="<?= isset($_GET['coupon']) ? e(strtoupper(trim($_GET['coupon']))) : e(strtoupper($gp('coupon_code'))) ?>"
-                   class="flex-1 bg-[#09090b] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm uppercase">
-            <button type="button" onclick="couponEnApply()" class="px-6 py-3 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] font-bold text-sm whitespace-nowrap">Apply</button>
-          </div>
-          <div id="coupon_result" class="mt-3 text-sm" style="display:none"></div>
-        </div>
 
         <!-- Terms -->
         <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
@@ -231,6 +218,19 @@ $eb = ufs_is_earlybird();
           <?php ufs_track_box_en(1, $UFS_TRACKS[1], $trackRemain); ?>
           <?php ufs_track_box_en(2, $UFS_TRACKS[2], $trackRemain); ?>
           <p class="text-xs text-[#71717a] mt-2">※ For a 2-Day Pass, select a track for each day. For a 1-Day Pass, select the track for that day.</p>
+        </div>
+
+        <!-- Coupon (bottom) -->
+        <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
+          <h2 class="text-lg font-bold text-white mb-2">Coupon <span class="text-[#00C1D5]">*</span></h2>
+          <p class="text-xs text-[#71717a] mb-4">Enter your coupon code. Only 100% (complimentary) coupons can be used on this page.</p>
+          <div class="flex gap-2">
+            <input type="text" name="coupon_code" id="coupon_code" placeholder="e.g. UECPN-XXXX-XXXX" autocomplete="off"
+                   value="<?= isset($_GET['coupon']) ? e(strtoupper(trim($_GET['coupon']))) : e(strtoupper($gp('coupon_code'))) ?>"
+                   class="flex-1 bg-[#09090b] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm uppercase">
+            <button type="button" onclick="couponEnApply()" class="px-6 py-3 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] font-bold text-sm whitespace-nowrap">Apply</button>
+          </div>
+          <div id="coupon_result" class="mt-3 text-sm" style="display:none"></div>
         </div>
       </div>
 

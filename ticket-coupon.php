@@ -1,7 +1,8 @@
 <?php
 /* Unreal Fest Seoul 2026 — 쿠폰 등록 전용(한국어·본인인증) (ticket-coupon.php)
- * ticket-all.php 기반. 쿠폰 패널 항상 노출($ufs_force_coupon)·?coupon= 프리필·coupon_flow=1로 토글 무관 적용.
- * 양일권(NORMAL_ALL) · 본인인증 + 카드. 처리=apply_pay.php. noindex.
+ * 양일권/1일권(Day1·Day2) 모두 선택. 쿠폰 패널 최하단·항상 노출($ufs_force_coupon)·?coupon= 프리필·
+ * coupon_flow=1로 토글 무관 적용. 본인인증+카드. 처리=apply_pay.php. noindex.
+ * 공통 partial + assets/js/ticket.js 공유(트랙 토글). 문구는 표준 등록 페이지 톤.
  */
 require __DIR__ . '/_ticket_init.php';
 $ufs_force_coupon = true;   // 토글과 무관하게 쿠폰 패널 노출/적용
@@ -12,7 +13,7 @@ $ufs_force_coupon = true;   // 토글과 무관하게 쿠폰 패널 노출/적�
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>쿠폰 등록 — Unreal Fest Seoul 2026</title>
+<title>등록 — Unreal Fest Seoul 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= asset_v('assets/style.css') ?>">
@@ -41,8 +42,8 @@ $ufs_force_coupon = true;   // 토글과 무관하게 쿠폰 패널 노출/적�
 <div class="pt-32 pb-24 min-h-screen bg-[#09090b]">
   <div class="max-w-7xl mx-auto px-6">
     <a href="index.php" class="inline-flex items-center gap-2 text-[#71717a] hover:text-white transition-colors mb-8 text-sm"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> 돌아가기</a>
-    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">쿠폰 등록</h1>
-    <p class="text-[#a1a1aa] mb-10">발급받으신 <b class="text-white">쿠폰 할인</b>이 적용된 등록 페이지입니다. 아래 정보를 입력하고 본인인증 후 등록을 완료해 주세요. (양일권 · 8월 20일~21일)</p>
+    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">참가 등록</h1>
+    <p class="text-[#a1a1aa] mb-10">8월 20일(목)~21일(금) 진행되는 프로그램에 참여할 수 있습니다. 티켓을 선택하고 아래 정보를 입력해 주세요.</p>
 
     <div class="grid lg:grid-cols-12 gap-8 items-start">
       <!-- 좌측 폼 -->
@@ -50,15 +51,13 @@ $ufs_force_coupon = true;   // 토글과 무관하게 쿠폰 패널 노출/적�
 
         <?php include __DIR__ . '/_ticket_agree.php'; ?>
 
-        <?php include __DIR__ . '/_ticket_coupon.php'; /* 전용 페이지: 항상 노출 + ?coupon= 프리필 */ ?>
-
-        <!-- 티켓(양일권 고정) -->
+        <!-- 티켓 선택 (양일권 / 1일권 Day1 / Day2) -->
         <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
-          <h2 class="text-lg font-bold text-white mb-5">티켓</h2>
+          <h2 class="text-lg font-bold text-white mb-5">티켓 선택</h2>
           <div class="grid gap-4 mb-8" id="ticketGroup">
-            <label class="ticket-card relative p-5 border transition-all border-[#27272a]"
-                   data-code="ALL" data-price="<?= ufs_ticket_price('NORMAL_ALL') ?>" data-orig="<?= ufs_ticket_orig('NORMAL_ALL') ?>" data-sub="양일권 (8월 20일-21일)" data-pcode="NORMAL_ALL" data-days="1,2">
-              <input type="radio" name="ticket" value="ALL" class="sr-only" checked>
+            <label class="ticket-card relative p-5 border cursor-pointer transition-all border-[#27272a] hover:border-white/20"
+                   data-code="ALL" data-price="<?= ufs_ticket_price('NORMAL_ALL') ?>" data-orig="<?= ufs_ticket_orig('NORMAL_ALL') ?>" data-sub="양일권 (8월 20일-21일)" data-benefit="양일간 전체 세션 참여" data-pcode="NORMAL_ALL" data-days="1,2">
+              <input type="radio" name="ticket" value="ALL" class="sr-only">
               <div class="text-base font-bold text-white mb-3">양일권 - 8월 20일(목)~21일(금)</div>
               <div class="mb-1">
                 <?php if (ufs_is_earlybird()): ?>
@@ -69,11 +68,40 @@ $ufs_force_coupon = true;   // 토글과 무관하게 쿠폰 패널 노출/적�
               </div>
               <div class="tk-check absolute top-3 right-3 hidden"><svg class="w-5 h-5 text-[#00C1D5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg></div>
             </label>
+            <div class="grid md:grid-cols-2 gap-4">
+            <label class="ticket-card relative p-5 border cursor-pointer transition-all border-[#27272a] hover:border-white/20"
+                   data-code="DAY1" data-price="<?= ufs_ticket_price('NORMAL_20') ?>" data-orig="<?= ufs_ticket_orig('NORMAL_20') ?>" data-sub="1일권 - 8월 20일(목)" data-benefit="8월 20일 전체 세션 참여" data-pcode="NORMAL_20" data-days="1">
+              <input type="radio" name="ticket" value="DAY1" class="sr-only">
+              <div class="text-base font-bold text-white mb-3">1일권 - 8월 20일(목)</div>
+              <div class="mb-1">
+                <?php if (ufs_is_earlybird()): ?>
+                <div class="text-base text-[#71717a] line-through">₩<?= number_format(ufs_ticket_orig('NORMAL_20')) ?></div>
+                <div class="text-xs font-bold text-[#00C1D5] my-0.5"><?= e(ufs_promo_ticket_note()) ?></div>
+                <?php endif; ?>
+                <div class="text-2xl font-black text-white">₩<?= number_format(ufs_ticket_price('NORMAL_20')) ?></div>
+              </div>
+              <div class="tk-check absolute top-3 right-3 hidden"><svg class="w-5 h-5 text-[#00C1D5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg></div>
+            </label>
+            <label class="ticket-card relative p-5 border cursor-pointer transition-all border-[#27272a] hover:border-white/20"
+                   data-code="DAY2" data-price="<?= ufs_ticket_price('NORMAL_21') ?>" data-orig="<?= ufs_ticket_orig('NORMAL_21') ?>" data-sub="1일권 - 8월 21일(금)" data-benefit="8월 21일 전체 세션 참여" data-pcode="NORMAL_21" data-days="2">
+              <input type="radio" name="ticket" value="DAY2" class="sr-only">
+              <div class="text-base font-bold text-white mb-3">1일권 - 8월 21일(금)</div>
+              <div class="mb-1">
+                <?php if (ufs_is_earlybird()): ?>
+                <div class="text-base text-[#71717a] line-through">₩<?= number_format(ufs_ticket_orig('NORMAL_21')) ?></div>
+                <div class="text-xs font-bold text-[#00C1D5] my-0.5"><?= e(ufs_promo_ticket_note()) ?></div>
+                <?php endif; ?>
+                <div class="text-2xl font-black text-white">₩<?= number_format(ufs_ticket_price('NORMAL_21')) ?></div>
+              </div>
+              <div class="tk-check absolute top-3 right-3 hidden"><svg class="w-5 h-5 text-[#00C1D5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg></div>
+            </label>
+            </div>
           </div>
           <div class="bg-[#111115] p-5 border border-[#27272a]">
             <h4 class="text-sm font-bold text-[#a1a1aa] mb-3">혜택</h4>
             <div class="grid sm:grid-cols-2 gap-2 text-sm text-[#a1a1aa]">
-              <?php foreach (array('양일간 전체 세션 참여','한정판 굿즈 제공','Q&A 참여','전시 및 체험존 이용','이벤트 및 경품 참여') as $b): ?>
+              <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-[#00C1D5]"></span><span id="benefitSession">양일간 전체 세션 참여</span></div>
+              <?php foreach (array('한정판 굿즈 제공','Q&A 참여','전시 및 체험존 이용','이벤트 및 경품 참여') as $b): ?>
               <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-[#00C1D5]"></span><?= e($b) ?></div>
               <?php endforeach; ?>
             </div>
@@ -82,12 +110,14 @@ $ufs_force_coupon = true;   // 토글과 무관하게 쿠폰 패널 노출/적�
 
         <?php include __DIR__ . '/_ticket_fields.php'; ?>
 
-        <!-- 트랙 선택 (양일권: Day1 + Day2 모두) -->
+        <!-- 트랙 선택 (선택 티켓에 따라 ticket.js가 토글) -->
         <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
           <?php ufs_track_box(1, $UFS_TRACKS[1], $trackRemain); ?>
           <?php ufs_track_box(2, $UFS_TRACKS[2], $trackRemain); ?>
           <p class="text-xs text-[#71717a] mt-2">※ 현장 혼잡 시 선택한 트랙 참석자가 우선 입장될 수 있습니다.</p>
         </div>
+
+        <?php include __DIR__ . '/_ticket_coupon.php'; /* 전용 페이지: 항상 노출 + ?coupon= 프리필 · 최하단 */ ?>
       </div>
 
       <?php include __DIR__ . '/_ticket_sidebar.php'; ?>

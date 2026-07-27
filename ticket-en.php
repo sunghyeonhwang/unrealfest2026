@@ -39,7 +39,7 @@ $eb = false;   // 해외(Dodo) 등록은 얼리버드 없이 항상 정상가(KR
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Registration (Overseas) — Unreal Fest Seoul 2026</title>
+<title>Registration — Unreal Fest Seoul 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= asset_v('assets/style.css') ?>">
@@ -215,9 +215,9 @@ $eb = false;   // 해외(Dodo) 등록은 얼리버드 없이 항상 정상가(KR
 (function(){
   document.querySelectorAll('.ticket-en').forEach(function(card){
     card.addEventListener('click', function(){
-      document.querySelectorAll('.ticket-en').forEach(function(c){ c.style.removeProperty('border-color'); c.style.removeProperty('box-shadow'); });
-      card.style.setProperty('border-color','#00C1D5','important');   // Tailwind가 !important라 인라인도 important 필요
-      card.style.setProperty('box-shadow','0 0 0 1px #00C1D5','important');
+      document.querySelectorAll('.ticket-en').forEach(function(c){ c.style.removeProperty('border-color'); c.style.removeProperty('background-color'); });
+      card.style.setProperty('border-color','#00C1D5','important');   // T셔츠 선택과 동일: 시안 테두리 + 시안 배경틴트 (Tailwind !important 대응)
+      card.style.setProperty('background-color','rgba(0,79,89,0.2)','important');
       card.querySelector('input[type=radio]').checked = true;
       var price=card.getAttribute('data-price')||'';
       document.getElementById('sumSub').textContent=card.getAttribute('data-sub');
@@ -236,11 +236,11 @@ $eb = false;   // 해외(Dodo) 등록은 얼리버드 없이 항상 정상가(KR
       if(!radio || radio.disabled) return;
       document.querySelectorAll('.track-en').forEach(function(l){
         var r=l.querySelector('input[type=radio]');
-        if(r && r.name===radio.name){ l.style.removeProperty('border-color'); l.style.removeProperty('color'); l.style.removeProperty('box-shadow'); }
+        if(r && r.name===radio.name){ l.style.removeProperty('border-color'); l.style.removeProperty('background-color'); l.style.removeProperty('color'); }
       });
       lbl.style.setProperty('border-color','#00C1D5','important');
-      lbl.style.setProperty('color','#ffffff','important');
-      lbl.style.setProperty('box-shadow','0 0 0 1px #00C1D5','important');
+      lbl.style.setProperty('background-color','rgba(0,79,89,0.2)','important');
+      lbl.style.setProperty('color','#00C1D5','important');
     });
   });
 })();

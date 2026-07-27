@@ -23,7 +23,7 @@ function ufs_track_box_en($day, $tracks, $trackRemain) {
     echo '<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">';
     foreach ($tracks as $v=>$l) {
         $full = isset($trackRemain[$v]) && $trackRemain[$v] <= 0;
-        echo '<label class="'.($full?'opacity-40 cursor-not-allowed':'cursor-pointer hover:border-white/20').' p-3 border text-center text-sm font-medium transition-all border-[#27272a] text-[#71717a]">';
+        echo '<label class="track-en '.($full?'opacity-40 cursor-not-allowed':'cursor-pointer hover:border-white/20').' p-3 border text-center text-sm font-medium transition-all border-[#27272a] text-[#71717a]">';
         echo '<input type="radio" name="'.$field.'" value="'.e($v).'" class="sr-only" '.($full?'disabled':'').'>'.e(ufs_track_label_en($v));
         if ($full) echo ' <span class="text-[#ff8674] text-xs">(Full)</span>';
         echo '</label>';
@@ -63,7 +63,7 @@ $eb = false;   // 해외(Dodo) 등록은 얼리버드 없이 항상 정상가(KR
 <div class="pt-32 pb-24 min-h-screen bg-[#09090b]">
   <div class="max-w-7xl mx-auto px-6">
     <a href="index.php#register" class="inline-flex items-center gap-2 text-[#71717a] hover:text-white transition-colors mb-8 text-sm"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Back</a>
-    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">Registration (Overseas Attendees)</h1>
+    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">Registration</h1>
     <p class="text-[#a1a1aa] mb-10">For attendees paying with an internationally-issued card. No Korean identity verification required. Please fill in the details below.</p>
 
     <div class="grid lg:grid-cols-12 gap-8 items-start">
@@ -229,6 +229,20 @@ $eb = false;   // 해외(Dodo) 등록은 얼리버드 없이 항상 정상가(KR
   });
   var all=document.getElementById('agree_all');
   if(all) all.addEventListener('change', function(){ document.querySelectorAll('.agree-item').forEach(function(c){ c.checked=all.checked; }); });
+  // 트랙 선택 하이라이트 (같은 요일 그룹 내 토글, Tailwind !important 대응)
+  document.querySelectorAll('.track-en').forEach(function(lbl){
+    lbl.addEventListener('click', function(){
+      var radio=lbl.querySelector('input[type=radio]');
+      if(!radio || radio.disabled) return;
+      document.querySelectorAll('.track-en').forEach(function(l){
+        var r=l.querySelector('input[type=radio]');
+        if(r && r.name===radio.name){ l.style.removeProperty('border-color'); l.style.removeProperty('color'); l.style.removeProperty('box-shadow'); }
+      });
+      lbl.style.setProperty('border-color','#00C1D5','important');
+      lbl.style.setProperty('color','#ffffff','important');
+      lbl.style.setProperty('box-shadow','0 0 0 1px #00C1D5','important');
+    });
+  });
 })();
 function validateEnForm(){
   var t=document.querySelector('input[name="ticket"]:checked');

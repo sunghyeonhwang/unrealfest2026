@@ -242,6 +242,7 @@ function validateEnForm(){
   if(!document.querySelector('input[name="agree_req"]').checked){ alert('Please agree to the required terms.'); return false; }
   return true;
 }
+</script>
 
 </body>
 </html>

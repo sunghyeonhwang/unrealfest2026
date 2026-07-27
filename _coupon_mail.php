@@ -12,7 +12,8 @@ function ufs_coupon_mail($row, $lang = 'ko') {
     $name = isset($row['cp_recipient_name']) ? trim($row['cp_recipient_name']) : '';
     $expire = (isset($row['cp_expire']) && $row['cp_expire'] && $row['cp_expire'] !== '0000-00-00') ? $row['cp_expire'] : '';
     $e = function($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); };
-    $link = 'https://epiclounge.co.kr/unrealfest2026/ticket-all.php?coupon='.rawurlencode($code);
+    $page = ($lang === 'en') ? 'ticket-coupon-en.php' : 'ticket-coupon.php';   // 쿠폰 등록 전용 페이지(KO=본인인증, EN=무료 전용)
+    $link = 'https://epiclounge.co.kr/unrealfest2026/'.$page.'?coupon='.rawurlencode($code);
 
     // 쿠폰 코드 강조 박스
     $codebox = '<div style="margin:8px 0 4px;padding:14px 18px;background:#f4f7f8;border:1px dashed #00C1D5;text-align:center;'

@@ -3,7 +3,8 @@
  * ticket-all.php / ticket-day.php 좌측 폼 최하단에 include. 토글 ON(ufs_coupon_enabled)일 때만 렌더.
  * 서버 최종 적용은 apply_pay.php(coupon_code 재검증). 여기 JS는 표시(사이드바 총액) 미리보기용.
  */
-if (!function_exists('ufs_coupon_enabled') || !ufs_coupon_enabled()) return;
+// 전용 쿠폰 페이지(ticket-coupon.php)는 $ufs_force_coupon=true 로 토글과 무관하게 항상 노출.
+if (empty($ufs_force_coupon) && (!function_exists('ufs_coupon_enabled') || !ufs_coupon_enabled())) return;
 ?>
 <!-- 쿠폰 입력 (개인) -->
 <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">

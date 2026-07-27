@@ -50,10 +50,11 @@ if (!isset($PRODUCTS[$apply_product_code])) { exit('잘못된 상품입니다.')
 $apply_product_name  = $PRODUCTS[$apply_product_code]['name'];
 $apply_product_price = (string)ufs_ticket_price($apply_product_code);  // 얼리버드/정가 자동
 
-// ── 개인 쿠폰(토글 ON 시에만). 서버 재검증 후 할인가로 재계산(위변조 방지: 클라이언트 percent 불신) ──
+// ── 개인 쿠폰. 토글 ON 이거나 전용 쿠폰 페이지(coupon_flow=1)면 적용. 서버 재검증 후 할인가로 재계산(클라이언트 percent 불신) ──
 $apply_coupon_code = '';
 $apply_coupon_pct  = 0;
-if (function_exists('ufs_coupon_enabled') && ufs_coupon_enabled()) {
+$__coupon_active = (function_exists('ufs_coupon_enabled') && ufs_coupon_enabled()) || (pp('coupon_flow') === '1');
+if ($__coupon_active) {
     $__cc = pp('coupon_code');
     if (trim((string)$__cc) !== '') {
         $__ck = ufs_coupon_check($__cc);

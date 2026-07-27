@@ -12,7 +12,7 @@ function ufs_dodo_confirm_mail($row) {
     $price = isset($row['apply_product_price']) ? (int)$row['apply_product_price'] : 0;
     $base  = 'https://epiclounge.co.kr/unrealfest2026/';
     $qr    = $base.'qrdata/'.$apply_no.'.jpg';
-    $link  = $base.'myticket.php';
+    $link  = $base.'myticket.php?lang=en';
 
     $subject   = '[Unreal Fest Seoul 2026] Registration Confirmed';
     $preheader = 'Your registration for Unreal Fest Seoul 2026 is confirmed. Your QR admission code is inside.';

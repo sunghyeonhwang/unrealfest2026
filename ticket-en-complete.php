@@ -85,7 +85,7 @@ $qr_url = ($row && $state==='done' && file_exists(__DIR__.'/qrdata/'.$apply_no.'
         <div class="flex justify-between"><span class="text-[#71717a]">Amount</span><span>&#8361;<?= number_format((int)$row['apply_product_price']) ?> (KRW)</span></div>
         <div class="flex justify-between"><span class="text-[#71717a]">T-shirt</span><span><?= e($row['apply_tshirt']) ?> <span class="text-[#71717a]">(on-site pickup)</span></span></div>
       </div>
-      <a href="myticket.php" class="inline-block bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] px-8 py-3 font-bold">View my ticket</a>
+      <a href="myticket.php?lang=en" class="inline-block bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] px-8 py-3 font-bold">View my ticket</a>
     </div>
   <?php elseif ($state === 'pending'): ?>
     <div class="text-center">
@@ -96,7 +96,7 @@ $qr_url = ($row && $state==='done' && file_exists(__DIR__.'/qrdata/'.$apply_no.'
       <p class="text-[#a1a1aa] mb-8">We're finalizing your registration. If your payment succeeded, you'll receive a confirmation email with your QR code shortly. You can also look up your ticket below.</p>
       <div class="flex gap-3 justify-center">
         <a href="javascript:location.reload()" class="inline-block border border-[#27272a] hover:border-white/30 text-white px-6 py-3 font-bold">Refresh</a>
-        <a href="myticket.php" class="inline-block bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] px-6 py-3 font-bold">Look up my ticket</a>
+        <a href="myticket.php?lang=en" class="inline-block bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] px-6 py-3 font-bold">Look up my ticket</a>
       </div>
     </div>
   <?php elseif ($state === 'failed'): ?>

@@ -157,8 +157,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // 유료 결제건이면 자동 환불 시도 (Dodo=Dodo환불 / 그외=INICIS; 운영모드에서만 실제)
                     $paid_cancel = ($row['free_yn']==='N' && $row['apply_product_code']!=='ONLINE' && trim((string)$row['pay_tid'])!=='');
                     if ($paid_cancel) {
-                        if (isset($row['pay_paymethod']) && $row['pay_paymethod']==='dodo') {
-                            require_once __DIR__.'/_dodo.php';   // 해외 Dodo 결제 → Dodo 전액환불
+                        if (isset($row['pay_paymethod']) && $row['pay_paymethod']==='paypal') {
+                            require_once __DIR__.'/_paypal.php';   // 해외 PayPal 결제 → PayPal 전액환불(capture_id=pay_tid)
+                            $rf = ufs_pp_refund($row['pay_tid'], '회원요청 취소', $row['apply_no']);
+                        } else if (isset($row['pay_paymethod']) && $row['pay_paymethod']==='dodo') {
+                            require_once __DIR__.'/_dodo.php';
                             $rf = ufs_dodo_refund($row['pay_tid'], '회원요청 취소', $row['apply_no']);
                         } else {
                             require_once __DIR__.'/_refund.php';

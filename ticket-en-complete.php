@@ -5,12 +5,12 @@
  * → 웹훅 시크릿 미설정 상태에서도 완료가 동작. noindex. PHP 7.0.
  */
 require __DIR__ . '/_ticket_init.php';
-require_once __DIR__ . '/_dodo.php';        // ufs_dodo_get_payment
-require_once __DIR__ . '/_dodo_apply.php';  // ufs_dodo_finalize_apply
+require_once __DIR__ . '/_paypal.php';        // ufs_pp_capture_order
+require_once __DIR__ . '/_paypal_apply.php';  // ufs_paypal_finalize_apply
 
-$apply_no   = isset($_GET['apply_no']) ? (int)$_GET['apply_no'] : 0;
-$payment_id = isset($_GET['payment_id']) ? preg_replace('/[^A-Za-z0-9_\-]/','',$_GET['payment_id']) : '';
-$g_status   = isset($_GET['status']) ? strtolower(preg_replace('/[^a-z]/i','',$_GET['status'])) : '';
+$apply_no = isset($_GET['apply_no']) ? (int)$_GET['apply_no'] : 0;
+$order_id = isset($_GET['token']) ? preg_replace('/[^A-Za-z0-9\-]/','',$_GET['token']) : '';   // PayPal 승인 후 order id
+$cancelled = isset($_GET['paypal']) && $_GET['paypal'] === 'cancel';
 
 $row = $apply_no > 0 ? sql_fetch("SELECT * FROM cb_unreal_2026_event2_apply WHERE apply_no=".$apply_no) : null;
 $state = 'pending';   // pending | done | failed | notfound
@@ -19,29 +19,21 @@ if (!$row) {
     $state = 'notfound';
 } elseif ($row['pay_complete'] === 'Y' && (int)$row['apply_pay_status'] !== 0) {
     $state = 'done';
-} else {
-    // 미확정 → 결제상태 재확인(폴백). payment_id 우선, 없으면 status 파라미터 참고.
-    $paid = false; $amount = null;
-    if ($payment_id !== '') {
-        $pay = ufs_dodo_get_payment($payment_id);
-        if (is_array($pay)) {
-            $st = isset($pay['status']) ? strtolower($pay['status']) : '';
-            if ($st === 'succeeded' || $st === 'paid' || $st === 'completed') { $paid = true; }
-            if (isset($pay['total_amount'])) $amount = $pay['total_amount'];
-        }
-    }
-    if (!$paid && ($g_status === 'succeeded' || $g_status === 'active' || $g_status === 'paid')) {
-        $paid = true;   // 파라미터 성공 신호(웹훅이 곧 확정). 아래 finalize가 멱등이라 안전.
-    }
-    if ($paid) {
-        $fr = ufs_dodo_finalize_apply($apply_no, $payment_id, $amount);
+} elseif ($cancelled) {
+    $state = 'failed';
+} elseif ($order_id !== '') {
+    // 승인 후 복귀 → 주문 캡처(결제 확정) → finalize(멱등)
+    $cap = ufs_pp_capture_order($order_id);
+    if (!empty($cap['ok'])) {
+        $fr = ufs_paypal_finalize_apply($apply_no, $cap['capture_id'], $cap['amount']);
         if (!empty($fr['ok'])) { $state = 'done'; if (!empty($fr['row'])) $row = $fr['row']; }
         else { $state = 'pending'; }
-    } elseif ($g_status === 'failed' || $g_status === 'cancelled' || $g_status === 'canceled') {
-        $state = 'failed';
     } else {
-        $state = 'pending';
+        // 캡처 실패(거절/보류) — 결제 안 됨
+        $state = 'failed';
     }
+} else {
+    $state = 'pending';
 }
 
 $PRODNAME = array('NORMAL_ALL'=>'2-Day Pass (Aug 20-21)','NORMAL_20'=>'1-Day Pass (Aug 20)','NORMAL_21'=>'1-Day Pass (Aug 21)');
@@ -82,7 +74,7 @@ $qr_url = ($row && $state==='done' && file_exists(__DIR__.'/qrdata/'.$apply_no.'
       <div class="bg-[#0e0f14] border border-[#27272a] p-6 text-left text-sm space-y-2 mb-8">
         <div class="flex justify-between"><span class="text-[#71717a]">Name</span><span><?= e($row['apply_user_name']) ?></span></div>
         <div class="flex justify-between"><span class="text-[#71717a]">Ticket</span><span><?= e(isset($PRODNAME[$row['apply_product_code']])?$PRODNAME[$row['apply_product_code']]:$row['apply_product_code']) ?></span></div>
-        <div class="flex justify-between"><span class="text-[#71717a]">Amount</span><span>&#8361;<?= number_format((int)$row['apply_product_price']) ?> (KRW)</span></div>
+        <div class="flex justify-between"><span class="text-[#71717a]">Amount</span><span><?= ($row['pay_totprice']!=='' ? '$'.e($row['pay_totprice']).' USD' : '&#8361;'.number_format((int)$row['apply_product_price'])) ?></span></div>
         <div class="flex justify-between"><span class="text-[#71717a]">T-shirt</span><span><?= e($row['apply_tshirt']) ?> <span class="text-[#71717a]">(on-site pickup)</span></span></div>
       </div>
       <a href="myticket.php?lang=en" class="inline-block bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] px-8 py-3 font-bold">View my ticket</a>

@@ -6,6 +6,7 @@
  * 데이터/가격/트랙 정원은 _ticket_init.php 재사용. PHP 7.0 호환.
  */
 require __DIR__ . '/_ticket_init.php';   // common.php, e(), asset_v(), ufs_ticket_price/orig, $UFS_TRACKS, $trackRemain
+require_once __DIR__ . '/_paypal.php';   // ufs_pp_price (USD 가격)
 
 // 트랙 영문 라벨 (요일별)
 function ufs_track_label_en($v) {
@@ -99,16 +100,12 @@ $eb = false;   // 해외(Dodo) 등록은 얼리버드 없이 항상 정상가(KR
               array('code'=>'DAY2', 'pcode'=>'NORMAL_21', 'sub'=>'1-Day Pass · Aug 21','label'=>'1-Day Pass — Aug 21 (Fri)'),
             );
             foreach ($opts as $o):
-              $price = ufs_ticket_orig($o['pcode']); $orig = $price; ?>
+              $usd = ufs_pp_price($o['pcode']); ?>
             <label class="ticket-en relative p-5 border cursor-pointer transition-all border-[#27272a] hover:border-white/20 block"
-                   data-pcode="<?= e($o['pcode']) ?>" data-price="<?= $price ?>" data-sub="<?= e($o['sub']) ?>">
+                   data-pcode="<?= e($o['pcode']) ?>" data-price="<?= e($usd) ?>" data-sub="<?= e($o['sub']) ?>">
               <input type="radio" name="ticket" value="<?= e($o['code']) ?>" class="sr-only">
               <div class="text-base font-bold text-white mb-2"><?= e($o['label']) ?></div>
-              <?php if ($eb): ?>
-              <div class="text-base text-[#71717a] line-through">&#8361;<?= number_format($orig) ?></div>
-              <div class="text-xs font-bold text-[#00C1D5] my-0.5">Early Bird 50% OFF</div>
-              <?php endif; ?>
-              <div class="text-2xl font-black text-white">&#8361;<?= number_format($price) ?></div>
+              <div class="text-2xl font-black text-white">$<?= e($usd) ?> <span class="text-sm text-[#71717a] font-normal">USD</span></div>
             </label>
             <?php endforeach; ?>
           </div>
@@ -197,8 +194,8 @@ $eb = false;   // 해외(Dodo) 등록은 얼리버드 없이 항상 정상가(KR
 
           <!-- Payment -->
           <div class="border border-[#27272a] bg-[#111115] p-4 text-xs text-[#a1a1aa] leading-relaxed">
-            <div class="font-bold text-[#e4e4e7] mb-1">Payment method: International card</div>
-            Secure checkout by <strong class="text-[#e4e4e7]">Dodo Payments</strong> (Merchant of Record). Charged in KRW; your bank may convert to your local currency.
+            <div class="font-bold text-[#e4e4e7] mb-1">Payment: PayPal / International card</div>
+            Secure checkout by <strong class="text-[#e4e4e7]">PayPal</strong>. Pay with your PayPal account or any international credit/debit card. Charged in <strong class="text-[#e4e4e7]">USD</strong>.
           </div>
           <button type="submit" class="w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all">
             Proceed to Payment
@@ -216,17 +213,15 @@ $eb = false;   // 해외(Dodo) 등록은 얼리버드 없이 항상 정상가(KR
 <script>
 // 티켓 선택 → 주문 요약(정상가) 갱신
 (function(){
-  var won='₩';
-  function fmt(n){ return won + n.toLocaleString('en-US'); }
   document.querySelectorAll('.ticket-en').forEach(function(card){
     card.addEventListener('click', function(){
       document.querySelectorAll('.ticket-en').forEach(function(c){ c.classList.remove('border-[#00C1D5]'); });
       card.classList.add('border-[#00C1D5]');
       card.querySelector('input[type=radio]').checked = true;
-      var price=parseInt(card.getAttribute('data-price'),10)||0;
+      var price=card.getAttribute('data-price')||'';
       document.getElementById('sumSub').textContent=card.getAttribute('data-sub');
-      document.getElementById('sumPrice').textContent=fmt(price);
-      document.getElementById('sumTotal').textContent=fmt(price);
+      document.getElementById('sumPrice').textContent='$'+price;
+      document.getElementById('sumTotal').textContent='$'+price;
       document.getElementById('apply_product_code').value=card.getAttribute('data-pcode');
       document.getElementById('apply_product_price').value=price;
     });

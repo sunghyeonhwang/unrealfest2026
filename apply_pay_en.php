@@ -4,7 +4,7 @@
  * 확정은 결제완료 후 웹훅/완료페이지에서 (_dodo_apply.php). 정상가(KRW) 고정. PHP 7.0.
  */
 require __DIR__ . '/_ticket_init.php';     // common, $UFS_TRACKS, $trackRemain, ufs_ticket_orig
-require_once __DIR__ . '/_dodo.php';       // ufs_dodo_create_checkout
+require_once __DIR__ . '/_paypal.php';     // ufs_pp_create_order (PayPal Orders v2)
 
 $SITE = 'https://epiclounge.co.kr/unrealfest2026/';
 $PRODNAME = array('NORMAL_ALL'=>'2-Day Pass (Aug 20-21)','NORMAL_20'=>'1-Day Pass (Aug 20)','NORMAL_21'=>'1-Day Pass (Aug 21)');
@@ -66,18 +66,19 @@ sql_query("INSERT INTO cb_unreal_2026_event2_apply
     apply_password,apply_ci,apply_di,apply_pay_status,pay_complete,free_yn,apply_temp_yn,apply_group_code,pay_paymethod,apply_reg_datetime)
    VALUES ('".$f($name)."','".$f($email)."','".$f($phone)."','".$f($job)."','".$f($company)."','".$f($depart)."','".$f($grade)."','".$f($ex1)."',
     '".$f($pcode)."','".$f($PRODNAME[$pcode])."','".$price."','".$f($tshirt)."','".$f($track_str)."','".$mkt."','',0,
-    '".sql_real_escape_string($pw)."','','',0,'N','N','Y','','dodo_pending',now())");
+    '".sql_real_escape_string($pw)."','','',0,'N','N','Y','','paypal_pending',now())");
 $r = sql_query("SELECT LAST_INSERT_ID() as idx")->fetch_array();
 $apply_no = (int)$r['idx'];
 if ($apply_no <= 0) pay_en_fail('Registration failed. Please try again.');
 
-// ── Dodo 체크아웃 생성 → 리다이렉트 ──
-$return_url = $SITE.'ticket-en-complete.php?apply_no='.$apply_no;
-$co = ufs_dodo_create_checkout($pcode, $email, $name, $return_url, array('apply_no'=>$apply_no));
-if (empty($co['ok']) || $co['url']==='') {
-    // 체크아웃 실패 → 대기건 정리
+// ── PayPal 주문 생성 → 승인 페이지로 리다이렉트 ──
+$return_url = $SITE.'ticket-en-complete.php?apply_no='.$apply_no;   // 승인 후 PayPal이 ?token=&PayerID= 부착
+$cancel_url = $SITE.'ticket-en.php?paypal=cancel';
+$od = ufs_pp_create_order($pcode, $email, $name, $return_url, $cancel_url, $apply_no);
+if (empty($od['ok']) || $od['approve_url']==='') {
+    // 주문 생성 실패 → 대기건 정리
     sql_query("DELETE FROM cb_unreal_2026_event2_apply WHERE apply_no=".$apply_no." AND apply_temp_yn='Y' AND pay_complete='N'");
-    pay_en_fail('Payment could not be started. Please try again later. ('.$co['msg'].')');
+    pay_en_fail('Payment could not be started. Please try again later. ('.$od['msg'].')');
 }
-header('Location: '.$co['url']);
+header('Location: '.$od['approve_url']);
 exit;

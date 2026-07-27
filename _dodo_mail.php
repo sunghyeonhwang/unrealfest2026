@@ -4,12 +4,14 @@
  * 영문. QR 이미지(공개 URL) + myticket 조회 링크. 브랜디드 셸은 _coupon_mail 과 동일. PHP 7.0.
  */
 if (!function_exists('ufs_dodo_confirm_mail')) {
-function ufs_dodo_confirm_mail($row) {
+function ufs_dodo_confirm_mail($row, $amount_label = '') {
     $e = function($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); };
     $apply_no = (int)$row['apply_no'];
     $name  = isset($row['apply_user_name']) ? trim($row['apply_user_name']) : '';
     $prod  = isset($row['apply_product_name']) ? $row['apply_product_name'] : '';
     $price = isset($row['apply_product_price']) ? (int)$row['apply_product_price'] : 0;
+    // 금액 표기: override(예: PayPal "$89.00 USD") 있으면 사용, 없으면 KRW
+    $amount_html = ($amount_label !== '') ? $e($amount_label) : ('&#8361;'.number_format($price).' (KRW)');
     $base  = 'https://epiclounge.co.kr/unrealfest2026/';
     $qr    = $base.'qrdata/'.$apply_no.'.jpg';
     $link  = $base.'myticket.php?lang=en';
@@ -27,7 +29,7 @@ function ufs_dodo_confirm_mail($row) {
           . '(August 20–21, 2026 · COEX, Seoul).<br><br>'
           . 'Your payment has been received and your registration is <strong class="inter-bold700" style="font-weight:700;">confirmed</strong>.<br><br>'
           . 'Ticket: <strong class="inter-bold700" style="font-weight:700;">'.$e($prod).'</strong><br>'
-          . 'Amount paid: &#8361;'.number_format($price).' (KRW)'
+          . 'Amount paid: '.$amount_html
           . $qrbox
           . 'You can also view your ticket anytime using the button below (look up by email and phone). '
           . 'The event T-shirt and goods are picked up on-site at the venue.';

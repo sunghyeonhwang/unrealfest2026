@@ -215,8 +215,9 @@ $eb = false;   // 해외(Dodo) 등록은 얼리버드 없이 항상 정상가(KR
 (function(){
   document.querySelectorAll('.ticket-en').forEach(function(card){
     card.addEventListener('click', function(){
-      document.querySelectorAll('.ticket-en').forEach(function(c){ c.classList.remove('border-[#00C1D5]'); });
-      card.classList.add('border-[#00C1D5]');
+      document.querySelectorAll('.ticket-en').forEach(function(c){ c.style.removeProperty('border-color'); c.style.removeProperty('box-shadow'); });
+      card.style.setProperty('border-color','#00C1D5','important');   // Tailwind가 !important라 인라인도 important 필요
+      card.style.setProperty('box-shadow','0 0 0 1px #00C1D5','important');
       card.querySelector('input[type=radio]').checked = true;
       var price=card.getAttribute('data-price')||'';
       document.getElementById('sumSub').textContent=card.getAttribute('data-sub');

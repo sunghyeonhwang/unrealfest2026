@@ -309,6 +309,48 @@ function applyCouponEn(){
     ufsRenderTotalEn();
   }).catch(function(){ btn.disabled = false; btn.textContent = ot; msg.style.color='#ff8674'; msg.textContent='Could not validate. Please try again.'; });
 }
+
+/* ── 입력 보존: PayPal 결제 왕복/뒤로가기 시 폼 내용 유지 (localStorage, 2시간 만료) ── */
+(function(){
+  var KEY='ufs_en_form_v1', TTL=2*60*60*1000;
+  var form=document.getElementById('frm'); if(!form) return;
+  function collect(){
+    var d={_t:Date.now()};
+    form.querySelectorAll('input[name],select[name],textarea[name]').forEach(function(el){
+      if(el.type==='radio'||el.type==='checkbox'){ if(el.checked) d[el.name]=el.value; }
+      else d[el.name]=el.value;
+    });
+    return d;
+  }
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(collect())); }catch(e){} }
+  function radioByVal(nm,val){ var e=form.querySelectorAll('input[name="'+nm+'"]'); for(var i=0;i<e.length;i++) if(e[i].value===val) return e[i]; return null; }
+  function restore(){
+    var raw; try{ raw=localStorage.getItem(KEY); }catch(e){ return; }
+    if(!raw) return; var d; try{ d=JSON.parse(raw); }catch(e){ return; }
+    if(!d || !d._t || (Date.now()-d._t)>TTL){ try{ localStorage.removeItem(KEY); }catch(e){} return; }
+    // 텍스트/셀렉트/쿠폰 등 일반 입력
+    form.querySelectorAll('input[name],select[name],textarea[name]').forEach(function(el){
+      if(el.type==='radio'||el.type==='checkbox') return;
+      if(d[el.name]!=null) el.value=d[el.name];
+    });
+    // 티켓(카드 클릭 → 요약·상품코드·가격 반영)
+    if(d.ticket){ var tr=radioByVal('ticket',d.ticket), card=tr&&tr.closest('.ticket-en'); if(card) card.click(); }
+    // 트랙(라벨 클릭 → 하이라이트)
+    ['day1track','day2track'].forEach(function(nm){ if(d[nm]){ var r=radioByVal(nm,d[nm]), lb=r&&r.closest('.track-en'); if(lb) lb.click(); } });
+    // 티셔츠(peer CSS → checked만)
+    if(d.tshirt){ var ts=radioByVal('tshirt',d.tshirt); if(ts) ts.checked=true; }
+    // 동의
+    ['agree_req','agree_mkt'].forEach(function(nm){ if(d[nm]!=null){ var c=form.querySelector('input[name="'+nm+'"]'); if(c) c.checked=true; } });
+    var all=document.getElementById('agree_all');
+    if(all){ var items=form.querySelectorAll('.agree-item'), allc=items.length>0; items.forEach(function(c){ if(!c.checked) allc=false; }); all.checked=allc; }
+    // 쿠폰 값 있으면 자동 재적용
+    var cin=document.getElementById('couponInput');
+    if(cin && cin.value.trim() && typeof applyCouponEn==='function') applyCouponEn();
+  }
+  form.addEventListener('input', save);
+  form.addEventListener('change', save);
+  restore();
+})();
 </script>
 
 </body>

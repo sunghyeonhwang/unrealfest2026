@@ -138,7 +138,7 @@ $eb = ufs_is_earlybird();
             <div class="h-px bg-[#27272a]"></div>
             <label class="flex items-start gap-3 px-3 py-2 cursor-pointer">
               <input type="checkbox" name="agree_req" value="Y" class="agree-item mt-0.5 accent-[#00C1D5]">
-              <span class="text-sm text-[#a1a1aa]">I agree to the <a href="#" class="underline text-[#00C1D5]">Terms of Service</a> and <a href="#" class="underline text-[#00C1D5]">Privacy Policy</a><span class="ml-1 text-xs text-[#00C1D5]">(required)</span></span></label>
+              <span class="text-sm text-[#a1a1aa]">I agree to the <a href="legal-en.php#terms" target="_blank" rel="noopener" class="underline text-[#00C1D5]">Terms of Service</a>, <a href="legal-en.php#refund" target="_blank" rel="noopener" class="underline text-[#00C1D5]">Refund Policy</a> and <a href="legal-en.php#privacy" target="_blank" rel="noopener" class="underline text-[#00C1D5]">Privacy Policy</a><span class="ml-1 text-xs text-[#00C1D5]">(required)</span></span></label>
             <label class="flex items-start gap-3 px-3 py-2 cursor-pointer">
               <input type="checkbox" name="agree_mkt" value="Y" class="agree-item mt-0.5 accent-[#00C1D5]">
               <span class="text-sm text-[#a1a1aa]">I agree to receive marketing communications<span class="ml-1 text-xs text-[#71717a]">(optional)</span></span></label>

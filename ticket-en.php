@@ -153,7 +153,7 @@ $eb = false;   // 해외(Dodo) 등록은 얼리버드 없이 항상 정상가(KR
                 </select></div>
               <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">Industry <span class="text-[#00C1D5]">*</span></label>
                 <select name="apply_user_ex1" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none">
-                  <option value="">Select</option><option>Games</option><option>Film &amp; TV</option><option>Broadcast &amp; Live Events</option><option>Animation</option><option>Architecture</option><option>Automotive</option><option>Manufacturing / Simulation</option><option>Software &amp; Tools</option><option>VR / AR</option><option>Education</option><option>Other</option>
+                  <option value="">Select</option><option>Games</option><option>Film &amp; TV</option><option>Broadcast &amp; Live Events</option><option>Animation</option><option>Architecture</option><option>Automotive</option><option>Manufacturing / Simulation</option><option>Software &amp; Tools Dev</option><option>VR / AR</option><option>Education</option><option>Other</option>
                 </select></div>
             </div>
           </div>

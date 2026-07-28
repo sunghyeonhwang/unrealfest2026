@@ -196,7 +196,7 @@ $eb = ufs_is_earlybird();
                   <option value="">Select</option><option>Visual Art</option><option>Programming</option><option>Production</option><option>Engineering</option><option>Design</option><option>Planning</option><option>R&amp;D</option><option>IT</option><option>Director / PD</option><option>Business / Marketing</option><option>C-level</option><option>Other</option></select></div>
               <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]">Industry <span class="text-[#00C1D5]">*</span></label>
                 <select name="apply_user_ex1" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none">
-                  <option value="">Select</option><option>Games</option><option>Film &amp; TV</option><option>Broadcast &amp; Live Events</option><option>Animation</option><option>Architecture</option><option>Automotive</option><option>Manufacturing / Simulation</option><option>Software &amp; Tools</option><option>VR / AR</option><option>Education</option><option>Other</option></select></div>
+                  <option value="">Select</option><option>Games</option><option>Film &amp; TV</option><option>Broadcast &amp; Live Events</option><option>Animation</option><option>Architecture</option><option>Automotive</option><option>Manufacturing / Simulation</option><option>Software &amp; Tools Dev</option><option>VR / AR</option><option>Education</option><option>Other</option></select></div>
             </div>
           </div>
         </div>

@@ -3,8 +3,9 @@
  * ticket-en.php POST 수신 → 검증 → 대기(temp) 등록건 INSERT → Dodo 체크아웃 생성 → 리다이렉트.
  * 확정은 결제완료 후 웹훅/완료페이지에서 (_dodo_apply.php). 정상가(KRW) 고정. PHP 7.0.
  */
-require __DIR__ . '/_ticket_init.php';     // common, $UFS_TRACKS, $trackRemain, ufs_ticket_orig
-require_once __DIR__ . '/_paypal.php';     // ufs_pp_create_order (PayPal Orders v2)
+require __DIR__ . '/_ticket_init.php';     // common, $UFS_TRACKS, $trackRemain, ufs_ticket_orig, _pricing(+_coupon)
+require_once __DIR__ . '/_paypal.php';     // ufs_pp_create_order/ufs_pp_price (PayPal Orders v2)
+require_once __DIR__ . '/_group_apply.php';// ufs_group_make_qr (100% 쿠폰 무료 확정 시 QR)
 
 $SITE = 'https://epiclounge.co.kr/unrealfest2026/';
 $PRODNAME = array('NORMAL_ALL'=>'2-Day Pass (Aug 20-21)','NORMAL_20'=>'1-Day Pass (Aug 20)','NORMAL_21'=>'1-Day Pass (Aug 21)');
@@ -41,6 +42,15 @@ if ($pcode==='NORMAL_ALL')      { if(!isset($UFS_TRACKS[1][$d1])) pay_en_fail('P
 elseif ($pcode==='NORMAL_20')   { if(!isset($UFS_TRACKS[1][$d1])) pay_en_fail('Please select a Day 1 track.'); $tracks=array($d1); }
 elseif ($pcode==='NORMAL_21')   { if(!isset($UFS_TRACKS[2][$d2])) pay_en_fail('Please select a Day 2 track.'); $tracks=array($d2); }
 
+// ── 쿠폰(선택) — 부분할인=할인 USD PayPal / 100%=무료. 권위 검증(프론트 재검증). ──
+$ccode = strtoupper($gp('coupon_code'));
+$cpct = 0; $cstore = '';
+if ($ccode !== '') {
+    $ck = function_exists('ufs_coupon_check') ? ufs_coupon_check($ccode) : array('ok'=>false,'percent'=>0);
+    if (empty($ck['ok'])) pay_en_fail('Invalid or unavailable coupon code.');
+    $cpct = (int)$ck['percent']; $cstore = $ck['code'];
+}
+
 // ── 중복(완료 등록 이메일) ──
 $dup = sql_fetch("SELECT count(*) c FROM cb_unreal_2026_event2_apply WHERE apply_user_email='".sql_real_escape_string($email)."' AND apply_temp_yn='N' AND apply_pay_status<>0");
 if ($dup && (int)$dup['c']>0) pay_en_fail('This email is already registered.');
@@ -55,26 +65,49 @@ foreach ($tracks as $tk) {
     }
 }
 
-// ── 대기(temp) 등록건 INSERT — 정상가(KRW). 확정 전이라 정원/중복 집계에서 제외(temp_yn=Y). ──
-$price = function_exists('ufs_ticket_orig') ? (int)ufs_ticket_orig($pcode) : 0;
+$price = function_exists('ufs_ticket_orig') ? (int)ufs_ticket_orig($pcode) : 0;   // apply_product_price = 정가(KRW) 기록 유지
 $f = function($v){ return sql_real_escape_string(strip_tags((string)$v)); };
 $pw = md5(str_replace("'","\\'",$email));
 $track_str = implode(',', $tracks);
+
+// ── 100% 쿠폰 → 무료 즉시 확정(결제 없음). ticket-coupon-en.php 무료 경로와 동일. ──
+if ($cpct >= 100) {
+    sql_query("INSERT INTO cb_unreal_2026_event2_apply
+       (apply_user_name,apply_user_email,apply_user_phone,apply_user_job,apply_user_company,apply_user_depart,apply_user_grade,apply_user_ex1,
+        apply_product_code,apply_product_name,apply_product_price,apply_tshirt,apply_track,apply_user_event_agree,apply_coupon_code,apply_coupon_pct,
+        apply_password,apply_ci,apply_di,apply_pay_status,pay_complete,free_yn,apply_temp_yn,apply_group_code,pay_paymethod,apply_reg_datetime)
+       VALUES ('".$f($name)."','".$f($email)."','".$f($phone)."','".$f($job)."','".$f($company)."','".$f($depart)."','".$f($grade)."','".$f($ex1)."',
+        '".$f($pcode)."','".$f($PRODNAME[$pcode])."','0','".$f($tshirt)."','".$f($track_str)."','".$mkt."','".$f($cstore)."',".$cpct.",
+        '".sql_real_escape_string($pw)."','','',10,'Y','Y','N','','coupon_free',now())");
+    $r = sql_query("SELECT LAST_INSERT_ID() as idx")->fetch_array();
+    $apply_no = (int)$r['idx'];
+    if ($apply_no <= 0) pay_en_fail('Registration failed. Please try again.');
+    if (function_exists('ufs_coupon_use')) ufs_coupon_use($cstore);
+    if (function_exists('ufs_group_make_qr')) ufs_group_make_qr($apply_no, $pw);
+    header('Location: ticket-complete.php?k='.rawurlencode(base64_encode($apply_no)));
+    exit;
+}
+
+// ── 부분할인/정가 → PayPal 결제(USD). 할인 USD = 정가 USD × (100-할인율)/100. ──
+$base_usd = ufs_pp_price($pcode);
+$usd_pay  = ($cpct > 0) ? number_format((float)$base_usd * (100 - $cpct) / 100, 2, '.', '') : $base_usd;
+
+// 대기(temp) 등록건 INSERT — 정상가(KRW) 기록. 확정 전이라 정원/중복 집계에서 제외(temp_yn=Y). 쿠폰 코드/율 저장.
 sql_query("INSERT INTO cb_unreal_2026_event2_apply
    (apply_user_name,apply_user_email,apply_user_phone,apply_user_job,apply_user_company,apply_user_depart,apply_user_grade,apply_user_ex1,
     apply_product_code,apply_product_name,apply_product_price,apply_tshirt,apply_track,apply_user_event_agree,apply_coupon_code,apply_coupon_pct,
     apply_password,apply_ci,apply_di,apply_pay_status,pay_complete,free_yn,apply_temp_yn,apply_group_code,pay_paymethod,apply_reg_datetime)
    VALUES ('".$f($name)."','".$f($email)."','".$f($phone)."','".$f($job)."','".$f($company)."','".$f($depart)."','".$f($grade)."','".$f($ex1)."',
-    '".$f($pcode)."','".$f($PRODNAME[$pcode])."','".$price."','".$f($tshirt)."','".$f($track_str)."','".$mkt."','',0,
+    '".$f($pcode)."','".$f($PRODNAME[$pcode])."','".$price."','".$f($tshirt)."','".$f($track_str)."','".$mkt."','".$f($cstore)."',".$cpct.",
     '".sql_real_escape_string($pw)."','','',0,'N','N','Y','','paypal_pending',now())");
 $r = sql_query("SELECT LAST_INSERT_ID() as idx")->fetch_array();
 $apply_no = (int)$r['idx'];
 if ($apply_no <= 0) pay_en_fail('Registration failed. Please try again.');
 
-// ── PayPal 주문 생성 → 승인 페이지로 리다이렉트 ──
+// ── PayPal 주문 생성(할인 USD override) → 승인 페이지로 리다이렉트 ──
 $return_url = $SITE.'ticket-en-complete.php?apply_no='.$apply_no;   // 승인 후 PayPal이 ?token=&PayerID= 부착
 $cancel_url = $SITE.'ticket-en.php?paypal=cancel';
-$od = ufs_pp_create_order($pcode, $email, $name, $return_url, $cancel_url, $apply_no);
+$od = ufs_pp_create_order($pcode, $email, $name, $return_url, $cancel_url, $apply_no, $usd_pay);
 if (empty($od['ok']) || $od['approve_url']==='') {
     // 주문 생성 실패 → 대기건 정리
     sql_query("DELETE FROM cb_unreal_2026_event2_apply WHERE apply_no=".$apply_no." AND apply_temp_yn='Y' AND pay_complete='N'");

@@ -6,6 +6,7 @@
 require_once __DIR__ . '/_group_apply.php';   // ufs_group_make_qr
 require_once __DIR__ . '/_resend.php';         // ufs_resend_send
 require_once __DIR__ . '/_dodo_mail.php';      // ufs_dodo_confirm_mail (금액 override 지원)
+if (is_file(__DIR__ . '/_coupon.php')) require_once __DIR__ . '/_coupon.php';   // ufs_coupon_use (부분할인 쿠폰 사용횟수)
 
 if (!function_exists('ufs_paypal_finalize_apply')) {
 function ufs_paypal_finalize_apply($apply_no, $capture_id = '', $usd_amount = '') {
@@ -34,6 +35,13 @@ function ufs_paypal_finalize_apply($apply_no, $capture_id = '', $usd_amount = ''
         pay_paymethod='paypal', pay_tid='".$cap."', pay_moid='".$cap."',
         pay_goodname='".$good."', pay_totprice='".$usd."'
         WHERE apply_no=".$apply_no." AND pay_complete<>'Y'");
+
+    // 부분할인 쿠폰 사용횟수 +1 (1회만: 이 요청의 UPDATE가 실제로 pay_complete를 뒤집었을 때만 — return/웹훅 동시 방지)
+    global $g5;
+    $aff = (isset($g5['connect_db']) && function_exists('mysqli_affected_rows')) ? mysqli_affected_rows($g5['connect_db']) : 1;
+    if ($aff > 0 && function_exists('ufs_coupon_use') && !empty($row['apply_coupon_code']) && (int)$row['apply_coupon_pct'] > 0) {
+        ufs_coupon_use($row['apply_coupon_code']);
+    }
 
     // QR 생성 (apply_password 기반 — 대기 INSERT 시 저장됨)
     if (function_exists('ufs_group_make_qr')) {

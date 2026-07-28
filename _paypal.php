@@ -62,8 +62,8 @@ function ufs_pp_api($method, $path, $body = null) {
 /* 주문 생성(CAPTURE). 반환: array('ok','order_id','approve_url','msg')
  * custom_id=apply_no 로 웹훅/캡처에서 등록건 식별. */
 if (!function_exists('ufs_pp_create_order')) {
-function ufs_pp_create_order($ticket_code, $email, $name, $return_url, $cancel_url, $apply_no) {
-    $price = ufs_pp_price($ticket_code);
+function ufs_pp_create_order($ticket_code, $email, $name, $return_url, $cancel_url, $apply_no, $amount_override = null) {
+    $price = ($amount_override !== null && $amount_override !== '') ? (string)$amount_override : ufs_pp_price($ticket_code);
     if ($price === '') return array('ok'=>false, 'order_id'=>'', 'approve_url'=>'', 'msg'=>'no price for '.$ticket_code);
     $body = array(
         'intent' => 'CAPTURE',

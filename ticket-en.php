@@ -189,15 +189,26 @@ $eb = false;   // 해외(Dodo) 등록은 얼리버드 없이 항상 정상가(KR
             <div class="flex justify-between items-center"><span class="text-sm text-[#a1a1aa]">Ticket price</span><span class="text-sm text-[#a1a1aa]" id="sumPrice">&nbsp;</span></div>
             <?php if ($eb): ?><div class="flex justify-between items-center mt-1"><span class="text-sm text-[#00C1D5]">Early Bird (50%)</span><span class="text-sm font-bold text-[#00C1D5]" id="sumDiscount">&nbsp;</span></div><?php endif; ?>
             <div class="flex justify-between items-center mt-1"><span class="text-sm text-[#a1a1aa]">VAT</span><span class="text-sm text-[#a1a1aa]">Included</span></div>
+            <div class="justify-between items-center mt-1" id="sumCouponRow" style="display:none"><span class="text-sm text-[#00C1D5]" id="sumCouponLabel">Coupon</span><span class="text-sm font-bold text-[#00C1D5]" id="sumCouponAmt">&nbsp;</span></div>
           </div>
           <div class="flex justify-between items-end"><span class="text-[#a1a1aa] font-medium">Total</span><span class="text-3xl font-black text-white" id="sumTotal">&nbsp;</span></div>
+
+          <!-- Coupon (always visible) -->
+          <div class="border-t border-[#27272a] pt-5">
+            <label class="block text-xs font-bold text-[#e4e4e7] mb-2">Coupon code <span class="text-[#71717a] font-normal">(optional)</span></label>
+            <div class="flex gap-2">
+              <input type="text" id="couponInput" name="coupon_code" value="" autocomplete="off" placeholder="Enter code" class="flex-1 min-w-0 bg-[#111115] border border-[#27272a] text-white text-sm px-3 py-2.5 outline-none focus:border-[#00C1D5]" style="text-transform:uppercase">
+              <button type="button" id="couponBtn" onclick="applyCouponEn()" class="px-4 py-2.5 border border-[#00C1D5] text-[#00C1D5] text-sm font-bold hover:bg-[#00C1D5] hover:text-[#09090b] transition-colors whitespace-nowrap">Apply</button>
+            </div>
+            <div id="couponMsg" class="text-xs mt-2"></div>
+          </div>
 
           <!-- Payment -->
           <div class="border border-[#27272a] bg-[#111115] p-4 text-xs text-[#a1a1aa] leading-relaxed">
             <div class="font-bold text-[#e4e4e7] mb-1">Payment: PayPal / International card</div>
             Secure checkout by <strong class="text-[#e4e4e7]">PayPal</strong>. Pay with your PayPal account or any international credit/debit card. Charged in <strong class="text-[#e4e4e7]">USD</strong>.
           </div>
-          <button type="submit" class="w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all">
+          <button type="submit" id="payBtn" class="w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all">
             Proceed to Payment
           </button>
           <p class="text-xs text-[#71717a]">By continuing you agree to our <a href="legal-en.php#refund" target="_blank" rel="noopener" class="underline text-[#a1a1aa]">Refund Policy</a>. A QR code will be emailed after payment.</p>
@@ -225,6 +236,7 @@ $eb = false;   // 해외(Dodo) 등록은 얼리버드 없이 항상 정상가(KR
       document.getElementById('sumTotal').textContent='$'+price;
       document.getElementById('apply_product_code').value=card.getAttribute('data-pcode');
       document.getElementById('apply_product_price').value=price;
+      if(typeof ufsRenderTotalEn==='function') ufsRenderTotalEn();   // 쿠폰 적용 상태면 할인가 재계산
     });
   });
   var all=document.getElementById('agree_all');
@@ -256,6 +268,46 @@ function validateEnForm(){
   if(needD2 && !document.querySelector('input[name="day2track"]:checked')){ alert('Please select a Day 2 track.'); return false; }
   if(!document.querySelector('input[name="agree_req"]').checked){ alert('Please agree to the required terms.'); return false; }
   return true;
+}
+
+/* ── Coupon (개인 쿠폰: 부분할인→할인 USD PayPal / 100%→무료) ── */
+var UFS_couponPct = 0;   // 적용된 할인율(0=미적용)
+function ufsBaseUsd(){ var el=document.getElementById('apply_product_price'); return (el && el.value) ? parseFloat(el.value) : 0; }
+function ufsRenderTotalEn(){
+  var base = ufsBaseUsd();
+  var row = document.getElementById('sumCouponRow'), total = document.getElementById('sumTotal'), btn = document.getElementById('payBtn');
+  if(base <= 0) return;
+  if(UFS_couponPct > 0){
+    var disc = UFS_couponPct >= 100 ? 0 : +(base * (100 - UFS_couponPct) / 100).toFixed(2);
+    var off  = +(base - disc).toFixed(2);
+    document.getElementById('sumCouponLabel').textContent = 'Coupon (' + UFS_couponPct + '% off)';
+    document.getElementById('sumCouponAmt').textContent = '-$' + off.toFixed(2);
+    row.style.display = 'flex';
+    total.textContent = UFS_couponPct >= 100 ? '$0.00' : '$' + disc.toFixed(2);
+    if(btn) btn.textContent = UFS_couponPct >= 100 ? 'Complete Registration (Free)' : 'Proceed to Payment';
+  } else {
+    row.style.display = 'none';
+    total.textContent = '$' + base.toFixed(2);
+    if(btn) btn.textContent = 'Proceed to Payment';
+  }
+}
+function applyCouponEn(){
+  var inp = document.getElementById('couponInput'), msg = document.getElementById('couponMsg');
+  var code = (inp.value || '').trim().toUpperCase(); inp.value = code;
+  if(!ufsBaseUsd()){ msg.style.color='#ff8674'; msg.textContent='Please select a ticket first.'; return; }
+  if(!code){ UFS_couponPct = 0; msg.textContent = ''; ufsRenderTotalEn(); return; }
+  var btn = document.getElementById('couponBtn'), ot = btn.textContent; btn.disabled = true; btn.textContent = '...';
+  var fd = new FormData(); fd.append('code', code);
+  fetch('coupon_en_check.php', {method:'POST', body:fd}).then(function(r){ return r.json(); }).then(function(d){
+    btn.disabled = false; btn.textContent = ot;
+    if(d && d.ok && d.percent > 0){
+      UFS_couponPct = d.percent; msg.style.color = '#00C1D5';
+      msg.textContent = d.percent >= 100 ? '100% coupon applied — free registration.' : (d.percent + '% discount applied.');
+    } else {
+      UFS_couponPct = 0; msg.style.color = '#ff8674'; msg.textContent = 'Invalid or unavailable coupon code.';
+    }
+    ufsRenderTotalEn();
+  }).catch(function(){ btn.disabled = false; btn.textContent = ot; msg.style.color='#ff8674'; msg.textContent='Could not validate. Please try again.'; });
 }
 </script>
 

@@ -74,7 +74,11 @@ $qr_url = ($row && $state==='done' && file_exists(__DIR__.'/qrdata/'.$apply_no.'
       <div class="bg-[#0e0f14] border border-[#27272a] p-6 text-left text-sm space-y-2 mb-8">
         <div class="flex justify-between"><span class="text-[#71717a]">Name</span><span><?= e($row['apply_user_name']) ?></span></div>
         <div class="flex justify-between"><span class="text-[#71717a]">Ticket</span><span><?= e(isset($PRODNAME[$row['apply_product_code']])?$PRODNAME[$row['apply_product_code']]:$row['apply_product_code']) ?></span></div>
-        <div class="flex justify-between"><span class="text-[#71717a]">Amount</span><span><?= ($row['pay_totprice']!=='' ? '$'.e($row['pay_totprice']).' USD' : '&#8361;'.number_format((int)$row['apply_product_price'])) ?></span></div>
+        <div class="flex justify-between"><span class="text-[#71717a]">Amount</span><span><?php
+          $pm = isset($row['pay_paymethod']) ? $row['pay_paymethod'] : '';
+          if ($pm === 'paypal') { echo '$'.e($row['pay_totprice']).' USD'; }
+          else { $amt_krw = ($row['pay_totprice']!=='' ? (int)$row['pay_totprice'] : (int)$row['apply_product_price']); echo '&#8361;'.number_format($amt_krw).' KRW'; }
+        ?></span></div>
         <div class="flex justify-between"><span class="text-[#71717a]">T-shirt</span><span><?= e($row['apply_tshirt']) ?> <span class="text-[#71717a]">(on-site pickup)</span></span></div>
       </div>
       <a href="myticket.php?lang=en" class="inline-block bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] px-8 py-3 font-bold">View my ticket</a>

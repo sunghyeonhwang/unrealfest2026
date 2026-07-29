@@ -5,8 +5,7 @@
  * 중복방지는 결제 연동 단계에서 이메일 기준으로 처리 예정(현 CI 기준 아님).
  * 데이터/가격/트랙 정원은 _ticket_init.php 재사용. PHP 7.0 호환.
  */
-require __DIR__ . '/_ticket_init.php';   // common.php, e(), asset_v(), ufs_ticket_price/orig, $UFS_TRACKS, $trackRemain
-require_once __DIR__ . '/_paypal.php';   // ufs_pp_price (USD 가격)
+require __DIR__ . '/_ticket_init.php';   // common.php, e(), asset_v(), ufs_ticket_price/orig, $UFS_TRACKS, $trackRemain (INICIS 해외카드 KRW)
 
 // 트랙 영문 라벨 (요일별)
 function ufs_track_label_en($v) {
@@ -100,12 +99,13 @@ $eb = false;   // 해외(Dodo) 등록은 얼리버드 없이 항상 정상가(KR
               array('code'=>'DAY2', 'pcode'=>'NORMAL_21', 'sub'=>'1-Day Pass · Aug 21','label'=>'1-Day Pass — Aug 21 (Fri)'),
             );
             foreach ($opts as $o):
-              $usd = ufs_pp_price($o['pcode']); ?>
+              $krw = (int)ufs_ticket_orig($o['pcode']);
+              $usd = (int)round($krw/1500); ?>
             <label class="ticket-en relative p-5 border cursor-pointer transition-all border-[#27272a] hover:border-white/20 block"
-                   data-pcode="<?= e($o['pcode']) ?>" data-price="<?= e($usd) ?>" data-sub="<?= e($o['sub']) ?>">
+                   data-pcode="<?= e($o['pcode']) ?>" data-krw="<?= $krw ?>" data-usd="<?= $usd ?>" data-sub="<?= e($o['sub']) ?>">
               <input type="radio" name="ticket" value="<?= e($o['code']) ?>" class="sr-only">
               <div class="text-base font-bold text-white mb-2"><?= e($o['label']) ?></div>
-              <div class="text-2xl font-black text-white">$<?= e($usd) ?> <span class="text-sm text-[#71717a] font-normal">USD</span></div>
+              <div class="text-2xl font-black text-white">US$<?= $usd ?> <span class="text-sm text-[#71717a] font-normal">≈ &#8361;<?= number_format($krw) ?></span></div>
             </label>
             <?php endforeach; ?>
           </div>
@@ -187,11 +187,11 @@ $eb = false;   // 해외(Dodo) 등록은 얼리버드 없이 항상 정상가(KR
           <div class="pb-5 border-b border-[#27272a]">
             <div class="text-[#00C1D5] font-bold text-sm mb-1" id="sumSub">&nbsp;</div>
             <div class="flex justify-between items-center"><span class="text-sm text-[#a1a1aa]">Ticket price</span><span class="text-sm text-[#a1a1aa]" id="sumPrice">&nbsp;</span></div>
-            <?php if ($eb): ?><div class="flex justify-between items-center mt-1"><span class="text-sm text-[#00C1D5]">Early Bird (50%)</span><span class="text-sm font-bold text-[#00C1D5]" id="sumDiscount">&nbsp;</span></div><?php endif; ?>
             <div class="flex justify-between items-center mt-1"><span class="text-sm text-[#a1a1aa]">VAT</span><span class="text-sm text-[#a1a1aa]">Included</span></div>
             <div class="justify-between items-center mt-1" id="sumCouponRow" style="display:none"><span class="text-sm text-[#00C1D5]" id="sumCouponLabel">Coupon</span><span class="text-sm font-bold text-[#00C1D5]" id="sumCouponAmt">&nbsp;</span></div>
           </div>
           <div class="flex justify-between items-end"><span class="text-[#a1a1aa] font-medium">Total</span><span class="text-3xl font-black text-white" id="sumTotal">&nbsp;</span></div>
+          <div class="text-right text-xs text-[#71717a] -mt-4" id="sumBilled">&nbsp;</div>
 
           <!-- Coupon (always visible) -->
           <div class="border-t border-[#27272a] pt-5">
@@ -205,8 +205,8 @@ $eb = false;   // 해외(Dodo) 등록은 얼리버드 없이 항상 정상가(KR
 
           <!-- Payment -->
           <div class="border border-[#27272a] bg-[#111115] p-4 text-xs text-[#a1a1aa] leading-relaxed">
-            <div class="font-bold text-[#e4e4e7] mb-1">Payment: PayPal / International card</div>
-            Secure checkout by <strong class="text-[#e4e4e7]">PayPal</strong>. Pay with your PayPal account or any international credit/debit card. Charged in <strong class="text-[#e4e4e7]">USD</strong>.
+            <div class="font-bold text-[#e4e4e7] mb-1">Payment: International credit card</div>
+            Secure checkout with <strong class="text-[#e4e4e7]">Visa · Mastercard · JCB · Amex · Diners · UnionPay</strong> (3D Secure). Your card is <strong class="text-[#e4e4e7]">charged in Korean Won (KRW)</strong>; your card issuer converts to your local currency.
           </div>
           <button type="submit" id="payBtn" class="w-full bg-[#00C1D5] hover:bg-[#00a8ba] text-[#09090b] py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all">
             Proceed to Payment
@@ -230,13 +230,12 @@ $eb = false;   // 해외(Dodo) 등록은 얼리버드 없이 항상 정상가(KR
       card.style.setProperty('border-color','#00C1D5','important');   // T셔츠 선택과 동일: 시안 테두리 + 시안 배경틴트 (Tailwind !important 대응)
       card.style.setProperty('background-color','rgba(0,79,89,0.2)','important');
       card.querySelector('input[type=radio]').checked = true;
-      var price=card.getAttribute('data-price')||'';
+      window.__ufsKrw = parseInt(card.getAttribute('data-krw'),10)||0;
+      window.__ufsUsd = parseInt(card.getAttribute('data-usd'),10)||0;
       document.getElementById('sumSub').textContent=card.getAttribute('data-sub');
-      document.getElementById('sumPrice').textContent='$'+price;
-      document.getElementById('sumTotal').textContent='$'+price;
       document.getElementById('apply_product_code').value=card.getAttribute('data-pcode');
-      document.getElementById('apply_product_price').value=price;
-      if(typeof ufsRenderTotalEn==='function') ufsRenderTotalEn();   // 쿠폰 적용 상태면 할인가 재계산
+      document.getElementById('apply_product_price').value=window.__ufsKrw;   // 서버 청구 KRW
+      if(typeof ufsRenderTotalEn==='function') ufsRenderTotalEn();
     });
   });
   var all=document.getElementById('agree_all');
@@ -270,31 +269,38 @@ function validateEnForm(){
   return true;
 }
 
-/* ── Coupon (개인 쿠폰: 부분할인→할인 USD PayPal / 100%→무료) ── */
+/* ── Coupon: 부분할인→할인 KRW(INICIS 청구) / 100%→무료. 표기는 US$ + KRW 병기. ── */
 var UFS_couponPct = 0;   // 적용된 할인율(0=미적용)
-function ufsBaseUsd(){ var el=document.getElementById('apply_product_price'); return (el && el.value) ? parseFloat(el.value) : 0; }
+function ufsKrw(){ return window.__ufsKrw || 0; }
+function ufsUsd(){ return window.__ufsUsd || 0; }
+function ufsFmt(n){ return (n||0).toLocaleString('en-US'); }
+function ufsDiscKrw(base, pct){ if(pct>=100) return 0; return Math.round(base*(100-pct)/100/100)*100; }  // 서버 ufs_coupon_apply_price 동일(100원 단위)
 function ufsRenderTotalEn(){
-  var base = ufsBaseUsd();
-  var row = document.getElementById('sumCouponRow'), total = document.getElementById('sumTotal'), btn = document.getElementById('payBtn');
-  if(base <= 0) return;
-  if(UFS_couponPct > 0){
-    var disc = UFS_couponPct >= 100 ? 0 : +(base * (100 - UFS_couponPct) / 100).toFixed(2);
-    var off  = +(base - disc).toFixed(2);
-    document.getElementById('sumCouponLabel').textContent = 'Coupon (' + UFS_couponPct + '% off)';
-    document.getElementById('sumCouponAmt').textContent = '-$' + off.toFixed(2);
-    row.style.display = 'flex';
-    total.textContent = UFS_couponPct >= 100 ? '$0.00' : '$' + disc.toFixed(2);
-    if(btn) btn.textContent = UFS_couponPct >= 100 ? 'Complete Registration (Free)' : 'Proceed to Payment';
+  var krw=ufsKrw(), usd=ufsUsd();
+  var row=document.getElementById('sumCouponRow'), total=document.getElementById('sumTotal'),
+      billed=document.getElementById('sumBilled'), price=document.getElementById('sumPrice'), btn=document.getElementById('payBtn');
+  if(krw<=0) return;
+  if(price) price.textContent='US$'+usd;
+  if(UFS_couponPct>0){
+    var dk = ufsDiscKrw(krw, UFS_couponPct);
+    var du = UFS_couponPct>=100 ? 0 : Math.round(usd*(100-UFS_couponPct)/100);
+    document.getElementById('sumCouponLabel').textContent='Coupon ('+UFS_couponPct+'% off)';
+    document.getElementById('sumCouponAmt').textContent='-US$'+(usd-du);
+    row.style.display='flex';
+    if(UFS_couponPct>=100){ total.textContent='Free'; if(billed) billed.textContent='Billed ₩0 KRW'; }
+    else { total.textContent='US$'+du; if(billed) billed.textContent='Billed ₩'+ufsFmt(dk)+' KRW'; }
+    if(btn) btn.textContent = UFS_couponPct>=100 ? 'Complete Registration (Free)' : 'Proceed to Payment';
   } else {
-    row.style.display = 'none';
-    total.textContent = '$' + base.toFixed(2);
-    if(btn) btn.textContent = 'Proceed to Payment';
+    row.style.display='none';
+    total.textContent='US$'+usd;
+    if(billed) billed.textContent='Billed ₩'+ufsFmt(krw)+' KRW';
+    if(btn) btn.textContent='Proceed to Payment';
   }
 }
 function applyCouponEn(){
   var inp = document.getElementById('couponInput'), msg = document.getElementById('couponMsg');
   var code = (inp.value || '').trim().toUpperCase(); inp.value = code;
-  if(!ufsBaseUsd()){ msg.style.color='#ff8674'; msg.textContent='Please select a ticket first.'; return; }
+  if(ufsKrw()<=0){ msg.style.color='#ff8674'; msg.textContent='Please select a ticket first.'; return; }
   if(!code){ UFS_couponPct = 0; msg.textContent = ''; ufsRenderTotalEn(); return; }
   var btn = document.getElementById('couponBtn'), ot = btn.textContent; btn.disabled = true; btn.textContent = '...';
   var fd = new FormData(); fd.append('code', code);

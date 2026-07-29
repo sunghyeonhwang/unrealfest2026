@@ -129,9 +129,9 @@ $returnUrl = $base."/apply_pay_en_return.php";
 $closeUrl  = $base."/ticket-en.php";
 $goodname  = $PRODNAME[$pcode];
 
-// 해외카드(카드 단독). 모바일은 P_RESERVED 에 global_visa3d=Y (해외카드 노출).
+// 해외카드(카드 단독). PC=결제창 영문(LANG(ENGLISH)). 모바일은 P_RESERVED 에 global_visa3d=Y (해외카드 노출).
 $gopaymethod  = "Card";
-$acceptmethod = "HPP(1):below1000:centerCd(Y):cardonly";
+$acceptmethod = "LANG(ENGLISH):HPP(1):below1000:centerCd(Y):cardonly";   // LANG(ENGLISH)=영문 결제창(PC). 필요시 FORCARD 추가 검토
 $mReserved    = "global_visa3d=Y&below1000=Y&centerCd=Y";
 
 $ua = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';

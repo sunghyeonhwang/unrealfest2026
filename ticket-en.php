@@ -195,7 +195,7 @@ $eb = false;   // 해외(Dodo) 등록은 얼리버드 없이 항상 정상가(KR
 
           <!-- Coupon (always visible) -->
           <div class="border-t border-[#27272a] pt-5">
-            <label class="block text-xs font-bold text-[#e4e4e7] mb-2">Coupon code <span class="text-[#71717a] font-normal">(optional)</span></label>
+            <label class="block text-xs font-bold text-[#e4e4e7] mb-2">Promo code <span class="text-[#71717a] font-normal">(optional)</span></label>
             <div class="flex gap-2">
               <input type="text" id="couponInput" name="coupon_code" value="" autocomplete="off" placeholder="Enter code" class="flex-1 min-w-0 bg-[#111115] border border-[#27272a] text-white text-sm px-3 py-2.5 outline-none focus:border-[#00C1D5]" style="text-transform:uppercase">
               <button type="button" id="couponBtn" onclick="applyCouponEn()" class="px-4 py-2.5 border border-[#00C1D5] text-[#00C1D5] text-sm font-bold hover:bg-[#00C1D5] hover:text-[#09090b] transition-colors whitespace-nowrap">Apply</button>

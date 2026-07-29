@@ -11,7 +11,7 @@ $PRODNAME = array('NORMAL_ALL'=>'2-Day Pass (Aug 20–21)','NORMAL_20'=>'1-Day P
 $T2P = array('ALL'=>'NORMAL_ALL','DAY1'=>'NORMAL_20','DAY2'=>'NORMAL_21');
 
 function ufs_track_label_en($v) {
-    $m = array('DAY1_TR1'=>'Game: Programming','DAY1_TR2'=>'Game: Art','DAY1_TR3'=>'Media & Entertainment','DAY1_TR4'=>'Cross - Industries',
+    $m = array('DAY1_TR1'=>'Game: Programming','DAY1_TR2'=>'Game: Art','DAY1_TR3'=>'Media & Entertainment','DAY1_TR4'=>'Cross-Industries',
                'DAY2_TR1'=>'Game: Programming','DAY2_TR2'=>'Game: Art','DAY2_TR3'=>'Media & Entertainment','DAY2_TR4'=>'Manufacturing & Simulation');
     return isset($m[$v]) ? $m[$v] : $v;
 }

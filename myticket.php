@@ -90,7 +90,7 @@ function t($k){ global $L, $lang; return isset($L[$lang][$k]) ? $L[$lang][$k] : 
 
 // 트랙 코드 → 라벨 (lang 인지)
 function mt_track_en($code){
-    $m = array('DAY1_TR1'=>'Game: Programming','DAY1_TR2'=>'Game: Art','DAY1_TR3'=>'Media & Entertainment','DAY1_TR4'=>'Cross - Industries',
+    $m = array('DAY1_TR1'=>'Game: Programming','DAY1_TR2'=>'Game: Art','DAY1_TR3'=>'Media & Entertainment','DAY1_TR4'=>'Cross-Industries',
                'DAY2_TR1'=>'Game: Programming','DAY2_TR2'=>'Game: Art','DAY2_TR3'=>'Media & Entertainment','DAY2_TR4'=>'Manufacturing & Simulation');
     return isset($m[$code]) ? $m[$code] : $code;
 }

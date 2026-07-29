@@ -10,7 +10,7 @@ require __DIR__ . '/_ticket_init.php';   // common.php, e(), asset_v(), ufs_tick
 // 트랙 영문 라벨 (요일별)
 function ufs_track_label_en($v) {
     $m = array(
-        'DAY1_TR1'=>'Game: Programming', 'DAY1_TR2'=>'Game: Art', 'DAY1_TR3'=>'Media & Entertainment', 'DAY1_TR4'=>'Cross - Industries',
+        'DAY1_TR1'=>'Game: Programming', 'DAY1_TR2'=>'Game: Art', 'DAY1_TR3'=>'Media & Entertainment', 'DAY1_TR4'=>'Cross-Industries',
         'DAY2_TR1'=>'Game: Programming', 'DAY2_TR2'=>'Game: Art', 'DAY2_TR3'=>'Media & Entertainment', 'DAY2_TR4'=>'Manufacturing & Simulation',
     );
     return isset($m[$v]) ? $m[$v] : $v;

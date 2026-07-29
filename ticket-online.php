@@ -6,6 +6,7 @@
 include_once "../common.php";
 require __DIR__ . '/_assets.php';
 require_once __DIR__ . '/_sms.php';   // 온라인 등록완료 안내 SMS
+if (!function_exists('e')) { function e($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); } }
 
 // ── 언어 (GET ?lang > 쿠키 > ko) ──
 $lang = 'ko';

@@ -45,7 +45,7 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
   foreach ($TR[2] as $v=>$l) echo $opt($v,$l);
   echo '</select></div>';
   // 티셔츠 (드롭박스)
-  echo '<div class="space-y-2" data-tshirt-wrap><label class="text-sm font-medium text-[#a1a1aa]">티셔츠 <span class="text-[#00C1D5]">*</span></label>';
+  echo '<div class="space-y-2" data-tshirt-wrap><label class="text-sm font-medium text-[#a1a1aa]">티셔츠 사이즈 <span class="text-[#00C1D5]">*</span></label>';
   echo '<select name="'.e($nTshirt).'" data-pick-tshirt class="'.$SEL_CLS.'"><option value="">선택</option>';
   foreach (array('M','L','XL','XXL') as $s) echo '<option>'.$s.'</option>';
   echo '</select></div>';
@@ -58,7 +58,7 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow, noarchive">
-<title>단체 등록 — Unreal Fest Seoul 2026</title>
+<title>단체 할인 등록 — Unreal Fest Seoul 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= asset_v('assets/style.css') ?>">
@@ -76,7 +76,7 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
   </div>
 </header>
 
-<form name="frm" id="frm" method="post" action="ticket-group-confirm.php" onsubmit="return gValidate()">
+<form name="frm" id="frm" method="post" action="ticket-group-tier-confirm.php" onsubmit="return gValidate()">
 <input type="hidden" name="apply_ci" id="apply_ci" value="<?= e($sess_ci) ?>">
 <input type="hidden" name="apply_di" id="apply_di" value="<?= e($sess_di) ?>">
 <input type="hidden" name="apply_real_type" id="apply_real_type" value="">
@@ -85,10 +85,13 @@ function ufs_attend_row($nTicket, $nD1, $nD2, $nTshirt, $TKT, $TR, $allowNone = 
 <div class="pt-32 pb-24 min-h-screen bg-[#09090b]">
   <div class="gwrap px-6">
     <a href="index.php#register" class="inline-flex items-center gap-2 text-[#71717a] hover:text-white transition-colors mb-8 text-sm"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> 돌아가기</a>
-    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">단체 등록</h1>
+    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">단체 할인 등록</h1>
     <p class="text-[#a1a1aa] mb-4">5인 이상 단체로 등록하실 수 있습니다. 대표자 1인은 본인 인증 후 정보를 입력하고, 함께 참석하실 인원(최소 4인 추가)을 작성해 주세요. 50명 이상 대규모 단체는 CSV 업로드를 이용해 주세요. 티켓·트랙·티셔츠는 인원별로 각각 선택합니다.</p>
-    <?php if ($GDISC > 0): ?>
-    <div class="inline-flex items-center gap-2 mb-10 px-4 py-2 bg-[rgba(0,79,89,0.2)] border border-[#00C1D5]/40 text-[#00C1D5] text-sm font-bold">단체 할인 <?= (int)$GDISC ?>% 적용 (정상가 기준)</div>
+    <?php if (!$GCOUPON): ?>
+    <button type="button" class="tm-trigger" onclick="openTierModal()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+      단체 할인 티어 보기 — 인원별 최대 50%
+    </button>
     <?php else: ?><div class="mb-10"></div><?php endif; ?>
 
     <div class="space-y-4">
@@ -267,8 +270,98 @@ window.UFS_MAX_TOTAL   = 100;  // 총원(대표 포함) 하드 상한 — CSV �
 window.UFS_BTN_MAX_TOTAL = 49; // 버튼(+1/+5) 추가 상한(총원). 50명 이상은 CSV 업로드로만
 window.GROUP_DISCOUNT    = <?= (int)$GDISC ?>;      // 일괄 할인율(%) — 쿠폰 모드면 0
 window.GROUP_COUPON_MODE = <?= $GCOUPON ? 1 : 0 ?>; // 쿠폰 모드 여부(전역 100)
+<?php require_once __DIR__ . '/_group_tier.php'; ?>
+window.GROUP_TIER  = <?= $GCOUPON ? 0 : 1 ?>;       // [티어 단체등록] 티어 모드(쿠폰 모드 아닐 때)
+window.GROUP_TIERS = <?= json_encode(ufs_group_tier_table()) ?>; // [[하한인원,할인율],...]
 </script>
 <script src="<?= asset_v('assets/js/ticket.js') ?>"></script>
-<script src="<?= asset_v('assets/js/group.js') ?>"></script>
+<script src="<?= asset_v('assets/js/group-tier.js') ?>"></script>
+
+<!-- [티어 할인 안내 모달] 순수 CSS(tm-*) — Tailwind 재빌드 불필요. GROUP_TIERS로 표 생성·현재 인원 하이라이트 -->
+<style>
+.tm-trigger{display:inline-flex;align-items:center;gap:8px;margin-bottom:40px;padding:9px 16px;background:rgba(0,79,89,.2);border:1px solid rgba(0,193,213,.4);color:#00C1D5;font-size:14px;font-weight:700;border-radius:8px;cursor:pointer;transition:background .15s;text-align:left}
+.tm-trigger:hover{background:rgba(0,79,89,.35)}
+.tm-overlay{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.72);padding:20px}
+.tm-overlay.tm-on{display:flex}
+.tm-card{width:100%;max-width:440px;background:#111115;border:1px solid #27272a;border-radius:14px;padding:24px;color:#e4e4e7;box-shadow:0 20px 60px rgba(0,0,0,.55);animation:tmIn .18s ease}
+@keyframes tmIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.tm-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:4px}
+.tm-head h3{font-size:19px;font-weight:700;color:#fff;margin:0}
+.tm-x{background:none;border:0;color:#71717a;font-size:28px;line-height:1;cursor:pointer;padding:0 2px}
+.tm-x:hover{color:#fff}
+.tm-sub{font-size:13px;color:#a1a1aa;margin:6px 0 16px;line-height:1.5}
+.tm-table{width:100%;border-collapse:collapse;font-size:15px}
+.tm-table th,.tm-table td{padding:11px 14px;border-bottom:1px solid #27272a;text-align:left}
+.tm-table th{color:#71717a;font-size:12px;font-weight:600;letter-spacing:.02em}
+.tm-table td:last-child,.tm-table th:last-child{text-align:right;font-weight:700}
+.tm-table tr:last-child td{border-bottom:0}
+.tm-table tr.tm-active td{background:rgba(0,79,89,.30);color:#00C1D5}
+.tm-table tr.tm-active td:first-child{border-left:3px solid #00C1D5;padding-left:11px}
+.tm-note{font-size:12px;color:#71717a;margin:16px 0 0;line-height:1.65}
+</style>
+<div id="tierModal" class="tm-overlay" aria-hidden="true" onclick="tierBackdrop(event)">
+  <div class="tm-card" role="dialog" aria-modal="true" aria-label="인원별 단체 할인 티어">
+    <div class="tm-head">
+      <h3>인원별 단체 할인 티어</h3>
+      <button type="button" class="tm-x" onclick="closeTierModal()" aria-label="닫기">&times;</button>
+    </div>
+    <p class="tm-sub" id="tmNow">참석 인원에 따라 할인율이 자동 적용됩니다.</p>
+    <table class="tm-table">
+      <thead><tr><th>참석 인원</th><th>할인율</th></tr></thead>
+      <tbody id="tmRows"></tbody>
+    </table>
+    <p class="tm-note">· 할인은 <b>참석 인원</b> 기준입니다(‘결제만’ 선택한 대표자는 인원에서 제외).<br>· 5인 미만은 할인이 없습니다. 최종 금액은 하단 <b>결제 요약</b>에서 확인하세요.</p>
+  </div>
+</div>
+<script>
+(function(){
+  var tiers = (window.GROUP_TIERS || []).slice().sort(function(a,b){ return a[0]-b[0]; }); // 하한 오름차순
+  function label(i){
+    var min = tiers[i][0];
+    var next = tiers[i+1] ? (tiers[i+1][0]-1) : null;
+    return next ? (min + '–' + next + '인') : (min + '인 이상');
+  }
+  function build(){
+    var rowsEl = document.getElementById('tmRows'); if(!rowsEl) return;
+    while(rowsEl.firstChild) rowsEl.removeChild(rowsEl.firstChild);
+    for(var i=0;i<tiers.length;i++){
+      var tr = document.createElement('tr'); tr.setAttribute('data-min', tiers[i][0]);
+      var td1 = document.createElement('td'); td1.textContent = label(i);
+      var td2 = document.createElement('td'); td2.textContent = tiers[i][1] + '%';
+      tr.appendChild(td1); tr.appendChild(td2); rowsEl.appendChild(tr);
+    }
+  }
+  function currentPeople(){
+    var el = document.getElementById('sumPeople'); if(!el) return 0;
+    var m = (el.textContent || '').match(/\d+/); return m ? parseInt(m[0],10) : 0;
+  }
+  function bTeal(txt){ var b=document.createElement('b'); b.style.color='#00C1D5'; b.textContent=txt; return b; }
+  function highlight(){
+    var p = currentPeople();
+    var rowsEl = document.getElementById('tmRows'); if(!rowsEl) return;
+    var rows = rowsEl.querySelectorAll('tr'), active = -1;
+    for(var i=0;i<tiers.length;i++){ if(p >= tiers[i][0]) active = i; }
+    for(var j=0;j<rows.length;j++){ rows[j].className = (j===active) ? 'tm-active' : ''; }
+    var now = document.getElementById('tmNow'); if(!now) return;
+    while(now.firstChild) now.removeChild(now.firstChild);
+    if(active >= 0){
+      now.appendChild(document.createTextNode('현재 '));
+      now.appendChild(bTeal(p + '명'));
+      now.appendChild(document.createTextNode(' → '));
+      now.appendChild(bTeal(tiers[active][1] + '%'));
+      now.appendChild(document.createTextNode(' 할인 적용 중'));
+    } else {
+      now.appendChild(document.createTextNode('현재 '));
+      now.appendChild(bTeal(p + '명'));
+      now.appendChild(document.createTextNode(' — 5인 이상부터 할인이 적용됩니다.'));
+    }
+  }
+  window.openTierModal = function(){ build(); highlight(); var o=document.getElementById('tierModal'); if(o){ o.classList.add('tm-on'); o.setAttribute('aria-hidden','false'); } };
+  window.closeTierModal = function(){ var o=document.getElementById('tierModal'); if(o){ o.classList.remove('tm-on'); o.setAttribute('aria-hidden','true'); } };
+  window.tierBackdrop = function(e){ if(e.target && e.target.id==='tierModal') window.closeTierModal(); };
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') window.closeTierModal(); });
+  build();
+})();
+</script>
 </body>
 </html>

@@ -47,6 +47,25 @@ $is_adm = (isset($member['mb_id']) && $member['mb_id']!=='' && (
     (isset($config['cf_admin']) && $member['mb_id']===$config['cf_admin'])
 ));
 
+// ── 라이선스 문의 접수(AJAX, JSON 반환) ──
+if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['inq_action']) && $_POST['inq_action']==='submit') {
+    header('Content-Type: application/json; charset=utf-8');
+    $iqn = trim(isset($_POST['inq_name'])?$_POST['inq_name']:'');
+    $iqe = trim(isset($_POST['inq_email'])?$_POST['inq_email']:'');
+    $iqc = trim(isset($_POST['inq_content'])?$_POST['inq_content']:'');
+    if ($iqn==='' || $iqe==='' || $iqc==='' || !filter_var($iqe, FILTER_VALIDATE_EMAIL)) {
+        echo json_encode(array('ok'=>0,'msg'=>'이름·이메일·내용을 올바르게 입력해 주세요.')); exit;
+    }
+    if (function_exists('mb_strlen') && mb_strlen($iqc,'UTF-8') > 5000) $iqc = mb_substr($iqc,0,5000,'UTF-8');
+    if (function_exists('mb_strlen') && mb_strlen($iqn,'UTF-8') > 100) $iqn = mb_substr($iqn,0,100,'UTF-8');
+    @sql_query("CREATE TABLE IF NOT EXISTS cb_unreal_2026_live_inquiry (iq_no INT NOT NULL AUTO_INCREMENT, iq_name VARCHAR(100) NOT NULL DEFAULT '', iq_email VARCHAR(190) NOT NULL DEFAULT '', iq_content TEXT, iq_status CHAR(1) NOT NULL DEFAULT 'N', iq_ip VARCHAR(45) NOT NULL DEFAULT '', created_at DATETIME DEFAULT NULL, PRIMARY KEY (iq_no)) DEFAULT CHARSET=utf8");
+    if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) { $iqip = $_SERVER['HTTP_CF_CONNECTING_IP']; }
+    else if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) { $__xf=explode(',',$_SERVER['HTTP_X_FORWARDED_FOR']); $iqip=trim($__xf[0]); }
+    else { $iqip = isset($_SERVER['REMOTE_ADDR'])?$_SERVER['REMOTE_ADDR']:''; }
+    $ok = @sql_query("INSERT INTO cb_unreal_2026_live_inquiry (iq_name, iq_email, iq_content, iq_ip, created_at) VALUES ('".sql_real_escape_string($iqn)."', '".sql_real_escape_string($iqe)."', '".sql_real_escape_string($iqc)."', '".sql_real_escape_string(substr($iqip,0,45))."', '".date('Y-m-d H:i:s')."')");
+    echo json_encode(array('ok'=>$ok?1:0, 'msg'=>$ok?'':'접수 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.')); exit;
+}
+
 // ── 이메일 게이트 ──
 if (isset($_GET['logout'])) { unset($_SESSION['ufs_live_ok'], $_SESSION['ufs_live_name']); header('Location: live.php'); exit; }
 $gate_err = '';
@@ -221,13 +240,41 @@ a{color:inherit;text-decoration:none}
 .lv-gtrk-opts label .dot{width:10px;height:10px;flex:none;box-shadow:0 0 0 3px rgba(255,255,255,.03)}
 .lv-gtrk-opts label:has(input:checked){color:#fff;border-color:var(--tkc,#00C1D5);box-shadow:0 0 0 2px rgba(0,193,213,.10) inset;background:linear-gradient(180deg,rgba(255,255,255,.04),transparent),#0b0b10}
 
+/* 라이선스 문의 — 플로팅 버튼 + 모달 */
+.lv-inqbtn{position:fixed;right:22px;bottom:22px;z-index:60;display:inline-flex;align-items:center;gap:9px;padding:13px 20px;
+  background:var(--teal);color:#00232a;border:0;border-radius:999px;font-size:14px;font-weight:900;cursor:pointer;letter-spacing:.01em;
+  box-shadow:0 14px 34px -10px rgba(0,193,213,.55),0 4px 12px rgba(0,0,0,.4);transition:.15s}
+.lv-inqbtn:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.lv-inqbtn svg{width:17px;height:17px}
+.lv-inqmask{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(4,4,6,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.lv-inqmask.on{display:flex}
+.lv-inqmodal{width:100%;max-width:460px;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent),var(--panel);border:1px solid var(--line2);border-radius:16px;padding:26px 26px 24px;box-shadow:0 50px 100px -30px rgba(0,0,0,.85);position:relative}
+.lv-inqmodal h2{margin:0 0 6px;font-size:20px;font-weight:900;color:#fff;letter-spacing:-.01em}
+.lv-inqmodal p.sub{margin:0 0 18px;font-size:13px;color:var(--muted);line-height:1.65}
+.lv-inqmodal label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:0 0 6px}
+.lv-inqmodal input,.lv-inqmodal textarea{width:100%;padding:12px 14px;background:#08080b;border:1px solid var(--line2);border-radius:10px;color:#fff;font-size:14px;margin:0 0 13px;font-family:inherit;transition:.15s}
+.lv-inqmodal textarea{min-height:120px;resize:vertical;line-height:1.6}
+.lv-inqmodal input:focus,.lv-inqmodal textarea:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,193,213,.12)}
+.lv-inqmodal .go{width:100%;padding:14px;background:var(--teal);color:#00232a;border:0;border-radius:10px;font-size:15px;font-weight:900;cursor:pointer;transition:.15s}
+.lv-inqmodal .go:hover{filter:brightness(1.06)}
+.lv-inqmodal .go:disabled{opacity:.6;cursor:default}
+.lv-inqx{position:absolute;top:12px;right:14px;width:30px;height:30px;display:grid;place-items:center;background:transparent;border:0;color:var(--muted);font-size:24px;line-height:1;cursor:pointer;border-radius:8px;transition:.15s}
+.lv-inqx:hover{color:#fff;background:rgba(255,255,255,.06)}
+.lv-inqmsg{font-size:13px;margin:0 0 12px;padding:9px 12px;border-radius:9px;display:none}
+.lv-inqmsg.err{display:block;color:#ff8a8a;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25)}
+.lv-inqmsg.ok{display:block;color:#7fe0b0;background:rgba(0,193,213,.08);border:1px solid rgba(0,193,213,.28)}
+.lv-inqdone{text-align:center;padding:14px 0 4px}
+.lv-inqdone .ic{width:60px;height:60px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;background:rgba(0,193,213,.12);color:var(--teal)}
+.lv-inqdone h2{margin:0 0 8px}
+.lv-inqdone p{font-size:13.5px;color:var(--muted);line-height:1.7;margin:0 0 18px}
+@media (max-width:600px){.lv-inqbtn{right:14px;bottom:14px;padding:12px 17px;font-size:13px} .lv-inqbtn .txt{display:none}}
 @media (max-width:900px){
   .lv-player{flex-direction:column}
   .lv-chat{flex-basis:auto;border-left:0;border-top:1px solid var(--line);height:52vh}
   .lv-nav{display:none}
 }
 /* 영상·버튼·폼 라운드 제거(각진 스타일). 원형 표시점(dot/ic)은 유지 */
-.lv-player,.lv-frame,.lv-chat,.lv-chat iframe,.lv-btn,.lv-tk,.lv-nav a,.lv-out,.lv-notice,.lv-nowb,.lv-gcard,.lv-gcard input,.lv-gcard button,.lv-err{border-radius:0}
+.lv-player,.lv-frame,.lv-chat,.lv-chat iframe,.lv-btn,.lv-tk,.lv-nav a,.lv-out,.lv-notice,.lv-nowb,.lv-gcard,.lv-gcard input,.lv-gcard button,.lv-err,.lv-inqbtn,.lv-inqmodal,.lv-inqmodal input,.lv-inqmodal textarea,.lv-inqmodal .go,.lv-inqmsg{border-radius:0}
 </style>
 </head>
 <body class="<?= $has_stream ? '' : '' ?>">
@@ -317,6 +364,36 @@ a{color:inherit;text-decoration:none}
     </footer>
   </div>
 
+  <!-- 라이선스 문의 플로팅 버튼 -->
+  <button type="button" class="lv-inqbtn" onclick="ufsInqOpen()" aria-label="라이선스 문의하기">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="txt">라이선스 문의하기</span>
+  </button>
+
+  <!-- 라이선스 문의 모달 -->
+  <div class="lv-inqmask" id="lvInqMask" onclick="if(event.target===this)ufsInqClose()">
+    <div class="lv-inqmodal" role="dialog" aria-modal="true" aria-labelledby="lvInqTitle">
+      <button type="button" class="lv-inqx" onclick="ufsInqClose()" aria-label="닫기">&times;</button>
+      <div id="lvInqForm">
+        <h2 id="lvInqTitle">라이선스 문의</h2>
+        <p class="sub">언리얼 엔진 라이선스 관련 문의를 남겨 주시면 담당자가 확인 후 회신드립니다.</p>
+        <div class="lv-inqmsg" id="lvInqMsg"></div>
+        <label for="lvInqName">이름</label>
+        <input type="text" id="lvInqName" maxlength="100" placeholder="이름" value="<?= $verified ? e($viewer) : '' ?>">
+        <label for="lvInqEmail">이메일</label>
+        <input type="email" id="lvInqEmail" autocapitalize="off" placeholder="이메일" value="<?= (!$is_adm && !empty($_SESSION['ufs_live_email'])) ? e($_SESSION['ufs_live_email']) : '' ?>">
+        <label for="lvInqContent">문의 내용</label>
+        <textarea id="lvInqContent" maxlength="5000" placeholder="문의하실 내용을 입력해 주세요."></textarea>
+        <button type="button" class="go" id="lvInqGo" onclick="ufsInqSubmit()">문의 보내기</button>
+      </div>
+      <div class="lv-inqdone" id="lvInqDone" style="display:none">
+        <div class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+        <h2>문의가 접수되었습니다</h2>
+        <p>담당자가 확인 후 입력하신 이메일로 회신드리겠습니다.<br>감사합니다.</p>
+        <button type="button" class="go" onclick="ufsInqClose()">닫기</button>
+      </div>
+    </div>
+  </div>
+
   <script>
   function ufsToggleChat(){
     var w=document.getElementById('lvWrap'), t=document.getElementById('chTxt');
@@ -339,6 +416,36 @@ a{color:inherit;text-decoration:none}
     var n=document.getElementById('lvNotice'); if(!n) return;
     try{ if(localStorage.getItem('ufsLiveNoticeClosed')===n.getAttribute('data-nk')) n.style.display='none'; }catch(e){}
   })();
+
+  // 라이선스 문의 모달
+  function ufsInqOpen(){
+    var m=document.getElementById('lvInqMask'); if(!m) return;
+    document.getElementById('lvInqForm').style.display='';
+    document.getElementById('lvInqDone').style.display='none';
+    var msg=document.getElementById('lvInqMsg'); msg.className='lv-inqmsg'; msg.textContent='';
+    m.classList.add('on');
+  }
+  function ufsInqClose(){ var m=document.getElementById('lvInqMask'); if(m) m.classList.remove('on'); }
+  function ufsInqSubmit(){
+    var nm=document.getElementById('lvInqName').value.trim();
+    var em=document.getElementById('lvInqEmail').value.trim();
+    var ct=document.getElementById('lvInqContent').value.trim();
+    var msg=document.getElementById('lvInqMsg');
+    var re=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(!nm||!em||!ct||!re.test(em)){ msg.className='lv-inqmsg err'; msg.textContent='이름·이메일·내용을 올바르게 입력해 주세요.'; return; }
+    var btn=document.getElementById('lvInqGo'); btn.disabled=true; btn.textContent='보내는 중…';
+    var fd=new FormData();
+    fd.append('inq_action','submit'); fd.append('inq_name',nm); fd.append('inq_email',em); fd.append('inq_content',ct);
+    fetch('live.php',{method:'POST',body:fd,headers:{'X-Requested-With':'XMLHttpRequest'}})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        btn.disabled=false; btn.textContent='문의 보내기';
+        if(d&&d.ok){ document.getElementById('lvInqForm').style.display='none'; document.getElementById('lvInqDone').style.display=''; }
+        else { msg.className='lv-inqmsg err'; msg.textContent=(d&&d.msg)?d.msg:'접수 중 오류가 발생했습니다.'; }
+      })
+      .catch(function(){ btn.disabled=false; btn.textContent='문의 보내기'; msg.className='lv-inqmsg err'; msg.textContent='네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'; });
+  }
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') ufsInqClose(); });
   </script>
 <?php endif; ?>
 </body></html>

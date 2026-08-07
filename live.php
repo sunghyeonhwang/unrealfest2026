@@ -217,10 +217,6 @@ a{color:inherit;text-decoration:none}
         <?php foreach ($TRK[$day] as $tk=>$tl): $c=$TRKCOL[$tk]; ?>
           <a class="lv-tk <?= (string)$trk===(string)$tk?'on':'' ?>" style="--tkc:<?= $c ?>" href="live.php?d=<?= $day ?>&t=<?= $tk ?>"><span class="dot" style="background:<?= $c ?>"></span><?= e($tl) ?><?php if ((string)$trk===(string)$tk): ?><span class="lv-nowb">시청 중</span><?php endif; ?></a>
         <?php endforeach; ?>
-        <div class="lv-nav">
-          <a href="live.php?d=<?= $day ?>&t=<?= $prev_t ?>" title="이전 채널" aria-label="이전"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></a>
-          <a href="live.php?d=<?= $day ?>&t=<?= $next_t ?>" title="다음 채널" aria-label="다음"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></a>
-        </div>
       </div>
     </div>
 

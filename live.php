@@ -35,18 +35,26 @@ $verified = (!empty($_SESSION['ufs_live_ok']) || $is_adm);
 $viewer = !empty($_SESSION['ufs_live_name']) ? $_SESSION['ufs_live_name'] : ($is_adm ? '관리자' : '');
 
 // ── 채널 정의 ──
-$DAYS = array('1'=>'8월 20일 (Day 1)', '2'=>'8월 21일 (Day 2)');
+$DAYS = array('1'=>'8월 20일', '2'=>'8월 21일');
+$DAYSUB = array('1'=>'Day 1 · 목', '2'=>'Day 2 · 금');
 $TRK  = array(
   '1'=>array('1'=>'게임: 프로그래밍','2'=>'게임: 아트','3'=>'미디어 & 엔터','4'=>'공통'),
   '2'=>array('1'=>'게임: 프로그래밍','2'=>'게임: 아트','3'=>'미디어 & 엔터','4'=>'제조 및 시뮬'),
 );
+$TRKCOL = array('1'=>'#307FE2','2'=>'#FF8F1C','3'=>'#FA4616','4'=>'#DD0AB2');
 // 기본 Day = 오늘(8/20→1, 8/21→2), 그 외 1
 $today = date('Y-m-d');
 $defDay = ($today==='2026-08-21') ? '2' : '1';
 $day = (isset($_GET['d']) && isset($DAYS[$_GET['d']])) ? $_GET['d'] : $defDay;
 $trk = (isset($_GET['t']) && isset($TRK[$day][$_GET['t']])) ? $_GET['t'] : '1';
 $ytid = lv_get('live_yt_d'.$day.'t'.$trk);
-$cur_label = $DAYS[$day].' · '.$TRK[$day][$trk];
+$curtrk = $TRK[$day][$trk];
+$curcol = $TRKCOL[$trk];
+$cur_label = $DAYS[$day].' · '.$curtrk;
+// 이전/다음 트랙(현재 Day 내 순환)
+$__tk = array_keys($TRK[$day]); $__pos = array_search($trk, $__tk, true);
+$prev_t = $__tk[($__pos - 1 + count($__tk)) % count($__tk)];
+$next_t = $__tk[($__pos + 1) % count($__tk)];
 
 // ── CGChat(2025 동일 방식) 채팅 URL 구성 — 채널별 room, griff/griff2/griff3 분산 ──
 $chIndex = array('d1t1'=>1,'d1t2'=>2,'d1t3'=>3,'d1t4'=>4,'d2t1'=>5,'d2t2'=>6,'d2t3'=>7,'d2t4'=>8);
@@ -66,6 +74,7 @@ if ($is_adm) {
     $__nk = (function_exists('mb_substr') ? mb_substr($viewer,0,12,'UTF-8') : substr($viewer,0,12)).'('.substr($__vphone,-4).')';
     $chat_src .= '&lv=2&id='.rawurlencode($__vemail).'&nk='.rawurlencode($__nk);
 }
+$has_stream = ($live_active && $ytid !== '');
 ?>
 <!DOCTYPE html>
 <html lang="ko"><head>
@@ -73,112 +82,208 @@ if ($is_adm) {
 <meta name="robots" content="noindex, nofollow">
 <title>온라인 라이브 — Unreal Fest Seoul 2026</title>
 <style>
+:root{--bg:#08080a;--panel:#0e0e12;--panel2:#0b0b0e;--line:#1e1e25;--line2:#2a2a33;--teal:#00C1D5;--text:#eaeaef;--muted:#8b8b96;--accent:<?= $curcol ?>}
 *{box-sizing:border-box}
-body{margin:0;background:#09090b;color:#e4e4e7;font-family:system-ui,-apple-system,'Apple SD Gothic Neo',sans-serif}
-a{color:inherit}
-.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-bottom:1px solid #1f1f23;background:#0d0d10;position:sticky;top:0;z-index:10;flex-wrap:wrap}
-.brand{font-size:13px;font-weight:800;letter-spacing:.06em;color:#00C1D5}
-.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;margin-right:6px;animation:blink 1.3s infinite}
-@keyframes blink{50%{opacity:.3}}
-.wrap{max-width:1400px;margin:0 auto;padding:18px 20px 60px}
-.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.tab{padding:8px 16px;border:1px solid #27272a;border-radius:8px;background:#111115;color:#a1a1aa;text-decoration:none;font-size:13px;font-weight:600}
-.tab.on{background:rgba(0,193,213,.15);border-color:#00C1D5;color:#00C1D5}
-.daytabs .tab{font-size:14px;font-weight:700}
-.stage{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap}
-.video-col{flex:1 1 66%;min-width:320px;display:flex;flex-direction:column}
-.ratio{position:relative;width:100%;padding-top:56.25%;background:#000;border-radius:12px;overflow:hidden;border:1px solid #1f1f23}
-.ratio iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-.holder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;color:#a1a1aa}
-.holder .big{font-size:20px;font-weight:800;color:#fff}
-.chat-col{flex:1 1 31%;min-width:300px;max-width:420px;display:flex}
-.chat-col iframe{width:100%;height:100%;min-height:520px;border:1px solid #1f1f23;border-radius:12px;background:#111}
-@media (max-width:820px){ .chat-col{flex-basis:100%;max-width:100%} .chat-col iframe{min-height:460px} }
-.nowlabel{margin:14px 0 4px;font-size:16px;font-weight:800;color:#fff}
-.notice{margin-top:10px;font-size:13px;color:#a1a1aa;background:#111115;border:1px solid #27272a;border-radius:8px;padding:10px 14px}
-.gate{min-height:calc(100vh - 52px);display:flex;align-items:center;justify-content:center;padding:20px}
-.gate-card{width:100%;max-width:420px;background:#111115;border:1px solid #27272a;border-radius:16px;padding:32px}
-.gate-card h1{font-size:20px;color:#fff;margin:0 0 6px}
-.gate-card p{font-size:13px;color:#a1a1aa;margin:0 0 18px;line-height:1.6}
-.gate-card input{width:100%;padding:13px;background:#0b0b0e;border:1px solid #27272a;border-radius:8px;color:#fff;font-size:15px;margin-bottom:12px}
-.gate-card button{width:100%;padding:14px;background:#00C1D5;color:#001b1f;border:0;border-radius:8px;font-size:16px;font-weight:800;cursor:pointer}
-.err{color:#f87171;font-size:13px;margin-bottom:12px}
-.muted{color:#71717a;font-size:12px}
-.btnline{display:flex;gap:8px;align-items:center}
-.chtoggle{padding:6px 12px;border:1px solid #27272a;border-radius:8px;background:#111115;color:#a1a1aa;font-size:12px;cursor:pointer}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(900px 500px at 78% -8%, rgba(0,193,213,.10), transparent 60%),radial-gradient(700px 400px at 0% 0%, rgba(48,127,226,.06), transparent 55%)}
+a{color:inherit;text-decoration:none}
+.blink{animation:blink 1.25s steps(1,end) infinite}@keyframes blink{50%{opacity:.28}}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;vertical-align:middle}
+
+/* top bar */
+.lv-top{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:13px clamp(16px,4vw,40px);background:rgba(8,8,10,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.lv-logo{display:flex;align-items:center;gap:12px;min-width:0}
+.lv-mark{font-weight:900;letter-spacing:.02em;font-size:15px;color:#fff}
+.lv-mark b{color:var(--teal)}
+.lv-sep{width:1px;height:16px;background:var(--line2)}
+.lv-kind{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.lv-live{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;font-size:11px;font-weight:900;letter-spacing:.12em}
+.lv-live.on{background:rgba(239,68,68,.14);color:#ff6b6b;border:1px solid rgba(239,68,68,.35)}
+.lv-live.off{background:#141418;color:var(--muted);border:1px solid var(--line2)}
+.lv-user{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted);white-space:nowrap}
+.lv-user b{color:var(--text);font-weight:700}
+.lv-out{padding:6px 13px;border:1px solid var(--line2);border-radius:999px;font-size:12px;color:var(--muted);transition:.15s}
+.lv-out:hover{border-color:var(--teal);color:var(--teal)}
+
+.lv-wrap{max-width:1680px;margin:0 auto;padding:clamp(16px,2.4vw,30px) clamp(14px,4vw,40px) 56px}
+
+/* channel bar */
+.lv-chan{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.lv-seg{display:inline-flex;padding:4px;background:var(--panel);border:1px solid var(--line);border-radius:12px;gap:2px}
+.lv-seg a{padding:8px 16px;border-radius:9px;font-size:14px;font-weight:800;color:var(--muted);line-height:1;display:flex;flex-direction:column;gap:3px;align-items:center;transition:.15s}
+.lv-seg a small{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.7}
+.lv-seg a.on{background:linear-gradient(180deg,#17171d,#101014);color:#fff;box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 6px 16px rgba(0,0,0,.35);border:1px solid var(--line2)}
+.lv-tracks{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;min-width:260px}
+.lv-tk{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border:1px solid var(--line);border-radius:11px;background:var(--panel);font-size:13px;font-weight:700;color:var(--muted);transition:.15s}
+.lv-tk .dot{width:9px;height:9px;box-shadow:0 0 0 3px rgba(255,255,255,.03)}
+.lv-tk:hover{border-color:var(--line2);color:var(--text)}
+.lv-tk.on{color:#fff;border-color:transparent;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02))}
+.lv-tk.on{box-shadow:0 0 0 1px var(--tkc), 0 8px 22px -10px var(--tkc)}
+.lv-nav{margin-left:auto;display:flex;gap:6px}
+.lv-nav a{width:38px;height:38px;display:grid;place-items:center;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--muted);transition:.15s}
+.lv-nav a:hover{border-color:var(--teal);color:var(--teal)}
+
+/* unified player */
+.lv-player{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#000;box-shadow:0 40px 90px -30px rgba(0,0,0,.75),0 0 0 1px rgba(0,193,213,.05)}
+.lv-video{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;background:#000}
+.lv-frame{position:relative;width:100%;padding-top:56.25%;background:radial-gradient(120% 120% at 50% 30%, #131318, #000)}
+.lv-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.lv-frame:fullscreen{padding-top:0;height:100%}
+.lv-frame:-webkit-full-screen{padding-top:0;height:100%}
+.lv-hold{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px}
+.lv-hold .ic{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line2);background:#0c0c10;color:var(--accent)}
+.lv-hold h3{margin:0;font-size:20px;font-weight:900;color:#fff;letter-spacing:-.01em}
+.lv-hold p{margin:0;font-size:13px;color:var(--muted);line-height:1.7}
+/* control bar */
+.lv-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 16px;background:rgba(12,12,16,.92);border-top:1px solid var(--line)}
+.lv-now{display:flex;align-items:center;gap:10px;min-width:0}
+.lv-now .tag{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:6px;font-size:10px;font-weight:900;letter-spacing:.1em;background:rgba(239,68,68,.16);color:#ff6b6b}
+.lv-now .lab{font-size:14px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lv-now .lab i{font-style:normal;color:var(--accent)}
+.lv-ctrl{display:flex;gap:8px;flex-shrink:0}
+.lv-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border:1px solid var(--line2);border-radius:9px;background:#141418;color:#cfcfd6;font-size:12px;font-weight:700;cursor:pointer;transition:.15s}
+.lv-btn:hover{border-color:var(--teal);color:#fff}
+.lv-btn svg{width:15px;height:15px}
+/* chat */
+.lv-chat{flex:0 0 380px;display:flex;flex-direction:column;border-left:1px solid var(--line);background:var(--panel2)}
+.lv-chat-h{display:flex;align-items:center;gap:8px;padding:13px 15px;font-size:13px;font-weight:800;color:#fff;border-bottom:1px solid var(--line)}
+.lv-chat-h .dot{width:7px;height:7px;background:#ff6b6b}
+.lv-chat iframe{flex:1;width:100%;border:0;min-height:0;background:#111}
+.hidechat .lv-chat{display:none}
+
+/* footer */
+.lv-foot{margin-top:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:12px;line-height:1.7}
+.lv-foot .epic{font-weight:900;letter-spacing:.03em;color:#6b6b76}
+.lv-notice{margin:0 0 16px;font-size:13px;color:#cfd0d6;background:linear-gradient(180deg,rgba(0,193,213,.06),transparent);border:1px solid rgba(0,193,213,.22);border-radius:12px;padding:12px 16px;display:flex;gap:10px;align-items:flex-start}
+.lv-notice .dot{width:7px;height:7px;background:var(--teal);margin-top:7px;flex:none}
+
+/* gate */
+.lv-gate{min-height:calc(100vh - 54px);display:flex;align-items:center;justify-content:center;padding:24px}
+.lv-gcard{width:100%;max-width:440px;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent),var(--panel);border:1px solid var(--line);border-radius:20px;padding:38px 34px;box-shadow:0 40px 90px -40px rgba(0,0,0,.8)}
+.lv-gcard .badge{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:16px}
+.lv-gcard h1{font-size:23px;font-weight:900;color:#fff;margin:0 0 8px;letter-spacing:-.01em}
+.lv-gcard p{font-size:13.5px;color:var(--muted);margin:0 0 20px;line-height:1.7}
+.lv-gcard input{width:100%;padding:14px 16px;background:#08080b;border:1px solid var(--line2);border-radius:11px;color:#fff;font-size:15px;margin-bottom:12px;transition:.15s}
+.lv-gcard input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,193,213,.12)}
+.lv-gcard button{width:100%;padding:15px;background:var(--teal);color:#00232a;border:0;border-radius:11px;font-size:15px;font-weight:900;cursor:pointer;transition:.15s;letter-spacing:.01em}
+.lv-gcard button:hover{filter:brightness(1.06)}
+.lv-err{color:#ff8a8a;font-size:13px;margin-bottom:12px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);padding:9px 12px;border-radius:9px}
+
+@media (max-width:900px){
+  .lv-player{flex-direction:column}
+  .lv-chat{flex-basis:auto;border-left:0;border-top:1px solid var(--line);height:52vh}
+  .lv-nav{display:none}
+}
 </style>
 </head>
-<body>
-<div class="top">
-  <div class="brand"><?php if ($live_active): ?><span class="live-dot"></span>LIVE · <?php endif; ?>UNREAL FEST SEOUL 2026 · 온라인</div>
+<body class="<?= $has_stream ? '' : '' ?>">
+
+<header class="lv-top">
+  <div class="lv-logo">
+    <span class="lv-mark">UNREAL FEST<b>26</b></span>
+    <span class="lv-sep"></span>
+    <span class="lv-kind">Online Live</span>
+    <?php if ($verified): ?>
+      <span class="lv-live <?= $live_active?'on':'off' ?>"><span class="dot <?= $live_active?'blink':'' ?>" style="background:<?= $live_active?'#ff6b6b':'#6b6b76' ?>"></span><?= $live_active?'ON AIR':'대기중' ?></span>
+    <?php endif; ?>
+  </div>
   <?php if ($verified): ?>
-  <div class="btnline"><span class="muted"><?= e($viewer) ?>님</span> <a class="tab" style="padding:6px 12px" href="live.php?logout=1">로그아웃</a></div>
+  <div class="lv-user"><span><b><?= e($viewer) ?></b>님</span><a class="lv-out" href="live.php?logout=1">로그아웃</a></div>
   <?php endif; ?>
-</div>
+</header>
 
 <?php if (!$verified): ?>
-  <div class="gate">
-    <div class="gate-card">
+  <div class="lv-gate">
+    <div class="lv-gcard">
+      <div class="badge"><span class="dot" style="background:var(--teal)"></span>Unreal Fest Seoul 2026</div>
       <h1>온라인 라이브 시청</h1>
-      <p>참가 등록에 사용하신 <b>이메일</b>을 입력하시면 라이브 시청 페이지로 이동합니다.</p>
-      <?php if ($gate_err): ?><div class="err"><?= e($gate_err) ?></div><?php endif; ?>
+      <p>참가 등록에 사용하신 <b style="color:#cfd0d6">이메일</b>을 입력하시면 실시간 세션 시청 화면으로 입장합니다.</p>
+      <?php if ($gate_err): ?><div class="lv-err"><?= e($gate_err) ?></div><?php endif; ?>
       <form method="post">
         <input type="email" name="live_email" placeholder="email@example.com" required autofocus>
-        <button type="submit">입장하기</button>
+        <button type="submit">입장하기 →</button>
       </form>
-      <p class="muted" style="margin-top:14px">· 등록 확인이 안 되면 사무국(02-326-3701 · info@epiclounge.co.kr)으로 문의해 주세요.</p>
+      <p style="font-size:12px;color:#6b6b76;margin:16px 0 0;line-height:1.7">등록 확인이 안 되면 사무국으로 문의해 주세요.<br>02-326-3701 · info@epiclounge.co.kr</p>
     </div>
   </div>
 <?php else: ?>
-  <div class="wrap">
-    <!-- Day 탭 -->
-    <div class="tabs daytabs">
-      <?php foreach ($DAYS as $dk=>$dl): ?>
-        <a class="tab <?= $day===$dk?'on':'' ?>" href="live.php?d=<?= $dk ?>&t=1"><?= e($dl) ?></a>
-      <?php endforeach; ?>
-    </div>
-    <!-- 트랙 탭 -->
-    <div class="tabs">
-      <?php foreach ($TRK[$day] as $tk=>$tl): ?>
-        <a class="tab <?= $trk===$tk?'on':'' ?>" href="live.php?d=<?= $day ?>&t=<?= $tk ?>"><?= e($tl) ?></a>
-      <?php endforeach; ?>
+  <div class="lv-wrap" id="lvWrap">
+
+    <!-- 채널 바 -->
+    <div class="lv-chan">
+      <div class="lv-seg">
+        <?php foreach ($DAYS as $dk=>$dl): ?>
+          <a class="<?= $day===$dk?'on':'' ?>" href="live.php?d=<?= $dk ?>&t=1"><span><?= e($dl) ?></span><small><?= e($DAYSUB[$dk]) ?></small></a>
+        <?php endforeach; ?>
+      </div>
+      <div class="lv-tracks">
+        <?php foreach ($TRK[$day] as $tk=>$tl): $c=$TRKCOL[$tk]; ?>
+          <a class="lv-tk <?= $trk===$tk?'on':'' ?>" style="--tkc:<?= $c ?>" href="live.php?d=<?= $day ?>&t=<?= $tk ?>"><span class="dot" style="background:<?= $c ?>"></span><?= e($tl) ?></a>
+        <?php endforeach; ?>
+        <div class="lv-nav">
+          <a href="live.php?d=<?= $day ?>&t=<?= $prev_t ?>" title="이전 채널" aria-label="이전"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></a>
+          <a href="live.php?d=<?= $day ?>&t=<?= $next_t ?>" title="다음 채널" aria-label="다음"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></a>
+        </div>
+      </div>
     </div>
 
-    <div class="nowlabel"><?php if ($live_active && $ytid!==''): ?><span class="live-dot"></span><?php endif; ?><?= e($cur_label) ?></div>
+    <?php if ($live_notice !== ''): ?><div class="lv-notice"><span class="dot"></span><span><?= e($live_notice) ?></span></div><?php endif; ?>
 
-    <div class="stage">
-      <div class="video-col">
-        <div class="ratio">
-          <?php if ($live_active && $ytid !== ''): ?>
-            <iframe src="https://www.youtube.com/embed/<?= e($ytid) ?>?rel=0&autoplay=1" title="<?= e($cur_label) ?>" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>
+    <!-- 플레이어 -->
+    <div class="lv-player">
+      <div class="lv-video">
+        <div class="lv-frame" id="lvFrame">
+          <?php if ($has_stream): ?>
+            <iframe src="https://www.youtube.com/embed/<?= e($ytid) ?>?rel=0&autoplay=1&modestbranding=1" title="<?= e($cur_label) ?>" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>
           <?php else: ?>
-            <div class="holder">
-              <div class="big">⏳ 곧 시작합니다</div>
-              <div>이 채널의 라이브가 아직 시작되지 않았습니다.<br>세션 시간에 맞춰 다시 접속해 주세요.</div>
+            <div class="lv-hold">
+              <div class="ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+              <h3>곧 시작합니다</h3>
+              <p><b style="color:<?= $curcol ?>"><?= e($curtrk) ?></b> 채널의 라이브가 아직 시작되지 않았습니다.<br>세션 시간에 맞춰 다시 접속하거나 다른 채널을 확인해 주세요.</p>
             </div>
           <?php endif; ?>
         </div>
-        <?php if ($live_notice !== ''): ?><div class="notice"><?= e($live_notice) ?></div><?php endif; ?>
-        <?php if ($live_active && $ytid !== ''): ?>
-        <div style="margin-top:10px"><button type="button" class="chtoggle" id="chBtn" onclick="ufsToggleChat()">채팅창 숨기기</button></div>
-        <?php endif; ?>
+        <div class="lv-bar">
+          <div class="lv-now">
+            <?php if ($has_stream): ?><span class="tag"><span class="dot blink" style="background:#ff6b6b;width:6px;height:6px"></span>LIVE</span><?php endif; ?>
+            <span class="lab"><?= e($DAYS[$day]) ?> · <i><?= e($curtrk) ?></i></span>
+          </div>
+          <div class="lv-ctrl">
+            <?php if ($has_stream): ?>
+            <button type="button" class="lv-btn" id="chBtn" onclick="ufsToggleChat()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="chTxt">채팅 숨기기</span></button>
+            <?php endif; ?>
+            <button type="button" class="lv-btn" onclick="ufsFS()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>전체화면</button>
+          </div>
+        </div>
       </div>
-      <?php if ($live_active && $ytid !== ''): ?>
-      <div class="chat-col" id="chatcol">
+      <?php if ($has_stream): ?>
+      <aside class="lv-chat" id="lvChat">
+        <div class="lv-chat-h"><span class="dot blink"></span>실시간 채팅</div>
         <iframe src="<?= e($chat_src) ?>" title="라이브 채팅" allow="clipboard-write"></iframe>
-      </div>
+      </aside>
       <?php endif; ?>
     </div>
 
-    <p class="muted" style="margin-top:22px">· 상단 <b>Day</b>·<b>트랙</b> 탭으로 채널을 이동하세요. · 온라인 중계 제외 세션은 송출되지 않습니다. · 문의: 사무국 02-326-3701</p>
+    <div class="lv-foot">
+      <div>상단 <b style="color:#cfd0d6">날짜·트랙</b>으로 채널을 전환하세요. · 온라인 중계 제외 세션은 송출되지 않습니다. · 문의: 사무국 02-326-3701</div>
+      <div class="epic">EPIC LOUNGE · UNREAL FEST SEOUL 2026</div>
+    </div>
   </div>
+
   <script>
   function ufsToggleChat(){
-    var c=document.getElementById('chatcol'), b=document.getElementById('chBtn');
-    if(!c) return;
-    var hidden=(c.style.display==='none');
-    c.style.display = hidden ? '' : 'none';
-    if(b) b.textContent = hidden ? '채팅창 숨기기' : '채팅창 보이기';
+    var w=document.getElementById('lvWrap'), t=document.getElementById('chTxt');
+    if(!w) return;
+    var hid=w.classList.toggle('hidechat');
+    if(t) t.textContent = hid ? '채팅 보이기' : '채팅 숨기기';
+  }
+  function ufsFS(){
+    var el=document.getElementById('lvFrame'); if(!el) return;
+    var fsEl=document.fullscreenElement||document.webkitFullscreenElement;
+    if(fsEl){ (document.exitFullscreen||document.webkitExitFullscreen).call(document); }
+    else { (el.requestFullscreen||el.webkitRequestFullscreen).call(el); }
   }
   </script>
 <?php endif; ?>

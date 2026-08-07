@@ -121,8 +121,8 @@ a{color:inherit;text-decoration:none}
 .lv-tk{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border:1px solid var(--line);border-radius:11px;background:var(--panel);font-size:13px;font-weight:700;color:var(--muted);transition:.15s}
 .lv-tk .dot{width:9px;height:9px;box-shadow:0 0 0 3px rgba(255,255,255,.03)}
 .lv-tk:hover{border-color:var(--line2);color:var(--text)}
-.lv-tk.on{color:#fff;border-color:transparent;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02))}
-.lv-tk.on{box-shadow:0 0 0 1px var(--tkc), 0 8px 22px -10px var(--tkc)}
+.lv-tk.on{color:#fff;border-color:var(--tkc);background:transparent;box-shadow:none}
+.lv-nowb{margin-left:3px;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.02em;border:1px solid var(--tkc);color:var(--tkc);line-height:1.5}
 .lv-nav{margin-left:auto;display:flex;gap:6px}
 .lv-nav a{width:38px;height:38px;display:grid;place-items:center;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--muted);transition:.15s}
 .lv-nav a:hover{border-color:var(--teal);color:var(--teal)}
@@ -213,7 +213,7 @@ a{color:inherit;text-decoration:none}
     <div class="lv-chan">
       <div class="lv-tracks">
         <?php foreach ($TRK[$day] as $tk=>$tl): $c=$TRKCOL[$tk]; ?>
-          <a class="lv-tk <?= $trk===$tk?'on':'' ?>" style="--tkc:<?= $c ?>" href="live.php?d=<?= $day ?>&t=<?= $tk ?>"><span class="dot" style="background:<?= $c ?>"></span><?= e($tl) ?></a>
+          <a class="lv-tk <?= (string)$trk===(string)$tk?'on':'' ?>" style="--tkc:<?= $c ?>" href="live.php?d=<?= $day ?>&t=<?= $tk ?>"><span class="dot" style="background:<?= $c ?>"></span><?= e($tl) ?><?php if ((string)$trk===(string)$tk): ?><span class="lv-nowb">시청 중</span><?php endif; ?></a>
         <?php endforeach; ?>
         <div class="lv-nav">
           <a href="live.php?d=<?= $day ?>&t=<?= $prev_t ?>" title="이전 채널" aria-label="이전"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></a>

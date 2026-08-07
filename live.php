@@ -22,22 +22,16 @@ $is_adm = (isset($member['mb_id']) && $member['mb_id']!=='' && (
 // ── 이메일 게이트 ──
 if (isset($_GET['logout'])) { unset($_SESSION['ufs_live_ok'], $_SESSION['ufs_live_name']); header('Location: live.php'); exit; }
 $gate_err = '';
-if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['live_id'])) {
-    $idv = trim($_POST['live_id']);
-    $cond = '';
-    if ($idv === '') { $gate_err = '이메일 또는 전화번호를 입력해 주세요.'; }
-    else if (strpos($idv, '@') !== false) { // 이메일
-        if (!filter_var($idv, FILTER_VALIDATE_EMAIL)) { $gate_err = '올바른 이메일을 입력해 주세요.'; }
-        else { $cond = "apply_user_email='".sql_real_escape_string($idv)."'"; }
-    } else { // 전화번호 — 숫자만 추출, 뒷 8자리 매칭(앞자리 0 누락 등 보정)
-        $digits = preg_replace('/[^0-9]/', '', $idv);
-        if (strlen($digits) < 8) { $gate_err = '전화번호를 정확히 입력해 주세요.'; }
-        else { $cond = "apply_user_phone LIKE '%".sql_real_escape_string(substr($digits,-8))."%'"; }
-    }
-    if ($cond !== '') {
-        $row = sql_fetch("SELECT apply_user_name, apply_user_phone, apply_user_email FROM cb_unreal_2026_event2_apply WHERE (".$cond.") AND apply_pay_status<>0 AND apply_temp_yn='N' ORDER BY apply_no DESC LIMIT 1");
+if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['live_email'])) {
+    $em = trim($_POST['live_email']);
+    $phd = preg_replace('/[^0-9]/', '', isset($_POST['live_phone']) ? $_POST['live_phone'] : '');
+    if ($em === '' || !filter_var($em, FILTER_VALIDATE_EMAIL)) { $gate_err = '올바른 이메일을 입력해 주세요.'; }
+    else if (strlen($phd) < 8) { $gate_err = '전화번호를 정확히 입력해 주세요.'; }
+    else {
+        // 이메일 + 전화번호(뒷 8자리·앞자리0 보정) 둘 다 일치하는 등록 확인
+        $row = sql_fetch("SELECT apply_user_name, apply_user_phone, apply_user_email FROM cb_unreal_2026_event2_apply WHERE apply_user_email='".sql_real_escape_string($em)."' AND apply_user_phone LIKE '%".sql_real_escape_string(substr($phd,-8))."%' AND apply_pay_status<>0 AND apply_temp_yn='N' ORDER BY apply_no DESC LIMIT 1");
         if ($row) { $_SESSION['ufs_live_ok']=1; $_SESSION['ufs_live_name']=$row['apply_user_name']; $_SESSION['ufs_live_phone']=$row['apply_user_phone']; $_SESSION['ufs_live_email']=$row['apply_user_email']; header('Location: live.php'); exit; }
-        $gate_err = '등록 정보를 찾을 수 없습니다. 참가 등록에 사용하신 이메일 또는 전화번호를 입력해 주세요.';
+        $gate_err = '등록 정보를 찾을 수 없습니다. 등록에 사용하신 이메일과 전화번호를 확인해 주세요.';
     }
 }
 $verified = (!empty($_SESSION['ufs_live_ok']) || $is_adm);
@@ -103,11 +97,8 @@ a{color:inherit;text-decoration:none}
 /* top bar */
 .lv-top{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:14px;
   padding:13px clamp(16px,4vw,40px);background:rgba(8,8,10,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-.lv-logo{display:flex;align-items:center;gap:12px;min-width:0}
-.lv-mark{font-weight:900;letter-spacing:.02em;font-size:15px;color:#fff}
-.lv-mark b{color:var(--teal)}
-.lv-sep{width:1px;height:16px;background:var(--line2)}
-.lv-kind{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.lv-logo{display:flex;align-items:center;gap:14px;min-width:0}
+.lv-toplogo{height:24px;width:auto;display:block}
 .lv-live{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;font-size:11px;font-weight:900;letter-spacing:.12em}
 .lv-live.on{background:rgba(239,68,68,.14);color:#ff6b6b;border:1px solid rgba(239,68,68,.35)}
 .lv-live.off{background:#141418;color:var(--muted);border:1px solid var(--line2)}
@@ -191,9 +182,7 @@ a{color:inherit;text-decoration:none}
 
 <header class="lv-top">
   <div class="lv-logo">
-    <span class="lv-mark">UNREAL FEST<b>26</b></span>
-    <span class="lv-sep"></span>
-    <span class="lv-kind">Online Live</span>
+    <a href="index.php" aria-label="Unreal Fest Seoul 2026"><img class="lv-toplogo" src="white_logo.svg" alt="Unreal Fest Seoul 2026"></a>
     <?php if ($verified): ?>
       <span class="lv-live <?= $live_active?'on':'off' ?>"><span class="dot <?= $live_active?'blink':'' ?>" style="background:<?= $live_active?'#ff6b6b':'#6b6b76' ?>"></span><?= $live_active?'ON AIR':'대기중' ?></span>
     <?php endif; ?>
@@ -206,12 +195,13 @@ a{color:inherit;text-decoration:none}
 <?php if (!$verified): ?>
   <div class="lv-gate">
     <div class="lv-gcard">
-      <img class="lv-glogo" src="https://unrealsummit16.cafe24.com/2026/ufs26/hero_new_main_logo2.svg" alt="Unreal Fest Seoul 2026">
+      <img class="lv-glogo" src="white_logo.svg" alt="Unreal Fest Seoul 2026">
       <h1>온라인 라이브 시청</h1>
-      <p>참가 등록에 사용하신 <b style="color:#cfd0d6">이메일 또는 전화번호</b>를 입력하시면 실시간 세션 시청 화면으로 입장합니다.</p>
+      <p>참가 등록에 사용하신 <b style="color:#cfd0d6">이메일과 전화번호</b>를 입력하시면 실시간 세션 시청 화면으로 입장합니다.</p>
       <?php if ($gate_err): ?><div class="lv-err"><?= e($gate_err) ?></div><?php endif; ?>
       <form method="post">
-        <input type="text" name="live_id" inputmode="email" autocapitalize="off" autocomplete="off" placeholder="이메일 또는 전화번호" required autofocus>
+        <input type="email" name="live_email" autocapitalize="off" autocomplete="off" placeholder="이메일 입력" required autofocus>
+        <input type="text" name="live_phone" inputmode="numeric" autocomplete="off" placeholder="전화번호 입력" required>
         <button type="submit">입장하기 →</button>
       </form>
       <p style="font-size:12px;color:#6b6b76;margin:16px 0 0;line-height:1.7">등록 확인이 안 되면 사무국으로 문의해 주세요.<br>02-326-3701 · info@epiclounge.co.kr</p>

@@ -156,8 +156,9 @@ a{color:inherit;text-decoration:none}
 .hidechat .lv-chat{display:none}
 
 /* footer */
-.lv-foot{margin-top:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:12px;line-height:1.7}
-.lv-foot .epic{font-weight:900;letter-spacing:.03em;color:#6b6b76}
+.lv-foot{margin-top:28px;padding-top:22px;border-top:1px solid var(--line);display:flex;justify-content:center;align-items:center}
+.lv-foot img{height:22px;width:auto;opacity:.6;transition:opacity .15s}
+.lv-foot a:hover img{opacity:1}
 .lv-notice{margin:0 0 16px;font-size:13px;color:#cfd0d6;background:linear-gradient(180deg,rgba(0,193,213,.06),transparent);border:1px solid rgba(0,193,213,.22);border-radius:12px;padding:12px 16px;display:flex;gap:10px;align-items:flex-start}
 .lv-notice .dot{width:7px;height:7px;background:var(--teal);margin-top:7px;flex:none}
 
@@ -256,6 +257,9 @@ a{color:inherit;text-decoration:none}
       <?php endif; ?>
     </div>
 
+    <footer class="lv-foot">
+      <a href="https://epiclounge.co.kr" target="_blank" rel="noopener"><img src="https://epiclounge.co.kr/resource/images/common/foot_logo.svg" alt="EPIC LOUNGE"></a>
+    </footer>
   </div>
 
   <script>

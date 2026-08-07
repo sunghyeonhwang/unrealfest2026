@@ -122,7 +122,7 @@ a{color:inherit;text-decoration:none}
 .lv-tk .dot{width:9px;height:9px;box-shadow:0 0 0 3px rgba(255,255,255,.03)}
 .lv-tk:hover{border-color:var(--line2);color:var(--text)}
 .lv-tk.on{color:#fff;border-color:var(--tkc);background:transparent;box-shadow:none}
-.lv-nowb{margin-left:3px;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.02em;border:1px solid var(--tkc);color:var(--tkc);line-height:1.5}
+.lv-nowb{margin-left:3px;padding:2px 8px;font-size:10px;font-weight:800;letter-spacing:.02em;background:var(--tkc);color:#fff;line-height:1.55}
 .lv-nav{margin-left:auto;display:flex;gap:6px}
 .lv-nav a{width:38px;height:38px;display:grid;place-items:center;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--muted);transition:.15s}
 .lv-nav a:hover{border-color:var(--teal);color:var(--teal)}
@@ -178,6 +178,8 @@ a{color:inherit;text-decoration:none}
   .lv-chat{flex-basis:auto;border-left:0;border-top:1px solid var(--line);height:52vh}
   .lv-nav{display:none}
 }
+/* 영상·버튼·폼 라운드 제거(각진 스타일). 원형 표시점(dot/ic)은 유지 */
+.lv-player,.lv-frame,.lv-chat,.lv-chat iframe,.lv-btn,.lv-tk,.lv-nav a,.lv-out,.lv-notice,.lv-nowb,.lv-gcard,.lv-gcard input,.lv-gcard button,.lv-err{border-radius:0}
 </style>
 </head>
 <body class="<?= $has_stream ? '' : '' ?>">

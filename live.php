@@ -23,8 +23,8 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['live_email'])) {
     $em = trim($_POST['live_email']);
     if ($em==='' || !filter_var($em, FILTER_VALIDATE_EMAIL)) { $gate_err = '올바른 이메일을 입력해 주세요.'; }
     else {
-        $row = sql_fetch("SELECT apply_user_name FROM cb_unreal_2026_event2_apply WHERE apply_user_email='".sql_real_escape_string($em)."' AND apply_pay_status<>0 AND apply_temp_yn='N' ORDER BY apply_no DESC LIMIT 1");
-        if ($row) { $_SESSION['ufs_live_ok']=1; $_SESSION['ufs_live_name']=$row['apply_user_name']; header('Location: live.php'); exit; }
+        $row = sql_fetch("SELECT apply_user_name, apply_user_phone FROM cb_unreal_2026_event2_apply WHERE apply_user_email='".sql_real_escape_string($em)."' AND apply_pay_status<>0 AND apply_temp_yn='N' ORDER BY apply_no DESC LIMIT 1");
+        if ($row) { $_SESSION['ufs_live_ok']=1; $_SESSION['ufs_live_name']=$row['apply_user_name']; $_SESSION['ufs_live_phone']=$row['apply_user_phone']; $_SESSION['ufs_live_email']=$em; header('Location: live.php'); exit; }
         $gate_err = '등록 정보를 찾을 수 없습니다. 참가 등록에 사용하신 이메일을 입력해 주세요.';
     }
 }
@@ -44,6 +44,25 @@ $day = (isset($_GET['d']) && isset($DAYS[$_GET['d']])) ? $_GET['d'] : $defDay;
 $trk = (isset($_GET['t']) && isset($TRK[$day][$_GET['t']])) ? $_GET['t'] : '1';
 $ytid = lv_get('live_yt_d'.$day.'t'.$trk);
 $cur_label = $DAYS[$day].' · '.$TRK[$day][$trk];
+
+// ── CGChat(2025 동일 방식) 채팅 URL 구성 — 채널별 room, griff/griff2/griff3 분산 ──
+$chIndex = array('d1t1'=>1,'d1t2'=>2,'d1t3'=>3,'d1t4'=>4,'d2t1'=>5,'d2t2'=>6,'d2t3'=>7,'d2t4'=>8);
+$__ci = isset($chIndex['d'.$day.'t'.$trk]) ? $chIndex['d'.$day.'t'.$trk] : 1;
+$__sub = array('griff','griff2','griff3');
+$chat_base = 'https://'.$__sub[($__ci-1)%3].'.cgchat.kr/chat?sk=griff&no=griffroom2026_'.$__ci;
+$__ui   = rawurlencode('{"btnPopupChat":"0","btnEmoji":"1"}');
+$__view = rawurlencode('{"sendBtn":"333333","bgColor":"333333","msgViewType":"0","chatOneLine":"0","isChatHistory":"1","sysMsgColor":"7e7e7e","chatTime":"1"}');
+$__my   = rawurlencode('{"nkColor":"7e7e7e","msgColor":"000000"}');
+$__ctrl = rawurlencode('{"banWord":"***나쁜말***","autoLink":"1","maxLength":"0","msgInterval":"0","mobileFocus":"0"}');
+$chat_src = $chat_base.'&ui='.$__ui.'&view='.$__view.'&my='.$__my.'&control='.$__ctrl.'&tg=https://unrealsummit16.cafe24.com/og/tg.svg';
+if ($is_adm) {
+    $chat_src .= '&lv=3&id='.rawurlencode('언리얼페스트').'&nk=admin';
+} else {
+    $__vemail = !empty($_SESSION['ufs_live_email']) ? $_SESSION['ufs_live_email'] : '';
+    $__vphone = preg_replace('/[^0-9]/', '', !empty($_SESSION['ufs_live_phone']) ? $_SESSION['ufs_live_phone'] : '');
+    $__nk = (function_exists('mb_substr') ? mb_substr($viewer,0,12,'UTF-8') : substr($viewer,0,12)).'('.substr($__vphone,-4).')';
+    $chat_src .= '&lv=2&id='.rawurlencode($__vemail).'&nk='.rawurlencode($__nk);
+}
 ?>
 <!DOCTYPE html>
 <html lang="ko"><head>
@@ -63,14 +82,15 @@ a{color:inherit}
 .tab{padding:8px 16px;border:1px solid #27272a;border-radius:8px;background:#111115;color:#a1a1aa;text-decoration:none;font-size:13px;font-weight:600}
 .tab.on{background:rgba(0,193,213,.15);border-color:#00C1D5;color:#00C1D5}
 .daytabs .tab{font-size:14px;font-weight:700}
-.stage{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
-.video-col{flex:1;min-width:320px}
+.stage{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap}
+.video-col{flex:1 1 66%;min-width:320px;display:flex;flex-direction:column}
 .ratio{position:relative;width:100%;padding-top:56.25%;background:#000;border-radius:12px;overflow:hidden;border:1px solid #1f1f23}
 .ratio iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .holder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;color:#a1a1aa}
 .holder .big{font-size:20px;font-weight:800;color:#fff}
-.chat-col{width:360px;max-width:100%}
-.chat-col iframe{width:100%;height:560px;border:1px solid #1f1f23;border-radius:12px;background:#111}
+.chat-col{flex:1 1 31%;min-width:300px;max-width:420px;display:flex}
+.chat-col iframe{width:100%;height:100%;min-height:520px;border:1px solid #1f1f23;border-radius:12px;background:#111}
+@media (max-width:820px){ .chat-col{flex-basis:100%;max-width:100%} .chat-col iframe{min-height:460px} }
 .nowlabel{margin:14px 0 4px;font-size:16px;font-weight:800;color:#fff}
 .notice{margin-top:10px;font-size:13px;color:#a1a1aa;background:#111115;border:1px solid #27272a;border-radius:8px;padding:10px 14px}
 .gate{min-height:calc(100vh - 52px);display:flex;align-items:center;justify-content:center;padding:20px}
@@ -137,17 +157,26 @@ a{color:inherit}
         </div>
         <?php if ($live_notice !== ''): ?><div class="notice"><?= e($live_notice) ?></div><?php endif; ?>
         <?php if ($live_active && $ytid !== ''): ?>
-        <div style="margin-top:10px"><button type="button" class="chtoggle" onclick="var c=document.getElementById('chatcol');c.style.display=(c.style.display==='none')?'block':'none';">채팅 켜기/끄기</button></div>
+        <div style="margin-top:10px"><button type="button" class="chtoggle" id="chBtn" onclick="ufsToggleChat()">채팅창 숨기기</button></div>
         <?php endif; ?>
       </div>
       <?php if ($live_active && $ytid !== ''): ?>
       <div class="chat-col" id="chatcol">
-        <iframe src="https://www.youtube.com/live_chat?v=<?= e($ytid) ?>&embed_domain=<?= e($_SERVER['HTTP_HOST']) ?>" title="라이브 채팅"></iframe>
+        <iframe src="<?= e($chat_src) ?>" title="라이브 채팅" allow="clipboard-write"></iframe>
       </div>
       <?php endif; ?>
     </div>
 
     <p class="muted" style="margin-top:22px">· 상단 <b>Day</b>·<b>트랙</b> 탭으로 채널을 이동하세요. · 온라인 중계 제외 세션은 송출되지 않습니다. · 문의: 사무국 02-326-3701</p>
   </div>
+  <script>
+  function ufsToggleChat(){
+    var c=document.getElementById('chatcol'), b=document.getElementById('chBtn');
+    if(!c) return;
+    var hidden=(c.style.display==='none');
+    c.style.display = hidden ? '' : 'none';
+    if(b) b.textContent = hidden ? '채팅창 숨기기' : '채팅창 보이기';
+  }
+  </script>
 <?php endif; ?>
 </body></html>

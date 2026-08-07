@@ -22,13 +22,22 @@ $is_adm = (isset($member['mb_id']) && $member['mb_id']!=='' && (
 // ── 이메일 게이트 ──
 if (isset($_GET['logout'])) { unset($_SESSION['ufs_live_ok'], $_SESSION['ufs_live_name']); header('Location: live.php'); exit; }
 $gate_err = '';
-if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['live_email'])) {
-    $em = trim($_POST['live_email']);
-    if ($em==='' || !filter_var($em, FILTER_VALIDATE_EMAIL)) { $gate_err = '올바른 이메일을 입력해 주세요.'; }
-    else {
-        $row = sql_fetch("SELECT apply_user_name, apply_user_phone FROM cb_unreal_2026_event2_apply WHERE apply_user_email='".sql_real_escape_string($em)."' AND apply_pay_status<>0 AND apply_temp_yn='N' ORDER BY apply_no DESC LIMIT 1");
-        if ($row) { $_SESSION['ufs_live_ok']=1; $_SESSION['ufs_live_name']=$row['apply_user_name']; $_SESSION['ufs_live_phone']=$row['apply_user_phone']; $_SESSION['ufs_live_email']=$em; header('Location: live.php'); exit; }
-        $gate_err = '등록 정보를 찾을 수 없습니다. 참가 등록에 사용하신 이메일을 입력해 주세요.';
+if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['live_id'])) {
+    $idv = trim($_POST['live_id']);
+    $cond = '';
+    if ($idv === '') { $gate_err = '이메일 또는 전화번호를 입력해 주세요.'; }
+    else if (strpos($idv, '@') !== false) { // 이메일
+        if (!filter_var($idv, FILTER_VALIDATE_EMAIL)) { $gate_err = '올바른 이메일을 입력해 주세요.'; }
+        else { $cond = "apply_user_email='".sql_real_escape_string($idv)."'"; }
+    } else { // 전화번호 — 숫자만 추출, 뒷 8자리 매칭(앞자리 0 누락 등 보정)
+        $digits = preg_replace('/[^0-9]/', '', $idv);
+        if (strlen($digits) < 8) { $gate_err = '전화번호를 정확히 입력해 주세요.'; }
+        else { $cond = "apply_user_phone LIKE '%".sql_real_escape_string(substr($digits,-8))."%'"; }
+    }
+    if ($cond !== '') {
+        $row = sql_fetch("SELECT apply_user_name, apply_user_phone, apply_user_email FROM cb_unreal_2026_event2_apply WHERE (".$cond.") AND apply_pay_status<>0 AND apply_temp_yn='N' ORDER BY apply_no DESC LIMIT 1");
+        if ($row) { $_SESSION['ufs_live_ok']=1; $_SESSION['ufs_live_name']=$row['apply_user_name']; $_SESSION['ufs_live_phone']=$row['apply_user_phone']; $_SESSION['ufs_live_email']=$row['apply_user_email']; header('Location: live.php'); exit; }
+        $gate_err = '등록 정보를 찾을 수 없습니다. 참가 등록에 사용하신 이메일 또는 전화번호를 입력해 주세요.';
     }
 }
 $verified = (!empty($_SESSION['ufs_live_ok']) || $is_adm);
@@ -162,7 +171,7 @@ a{color:inherit;text-decoration:none}
 /* gate */
 .lv-gate{min-height:calc(100vh - 54px);display:flex;align-items:center;justify-content:center;padding:24px}
 .lv-gcard{width:100%;max-width:440px;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent),var(--panel);border:1px solid var(--line);border-radius:20px;padding:38px 34px;box-shadow:0 40px 90px -40px rgba(0,0,0,.8)}
-.lv-gcard .badge{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:16px}
+.lv-glogo{width:200px;max-width:64%;height:auto;display:block;margin-bottom:22px}
 .lv-gcard h1{font-size:23px;font-weight:900;color:#fff;margin:0 0 8px;letter-spacing:-.01em}
 .lv-gcard p{font-size:13.5px;color:var(--muted);margin:0 0 20px;line-height:1.7}
 .lv-gcard input{width:100%;padding:14px 16px;background:#08080b;border:1px solid var(--line2);border-radius:11px;color:#fff;font-size:15px;margin-bottom:12px;transition:.15s}
@@ -197,12 +206,12 @@ a{color:inherit;text-decoration:none}
 <?php if (!$verified): ?>
   <div class="lv-gate">
     <div class="lv-gcard">
-      <div class="badge"><span class="dot" style="background:var(--teal)"></span>Unreal Fest Seoul 2026</div>
+      <img class="lv-glogo" src="https://unrealsummit16.cafe24.com/2026/ufs26/hero_new_main_logo2.svg" alt="Unreal Fest Seoul 2026">
       <h1>온라인 라이브 시청</h1>
-      <p>참가 등록에 사용하신 <b style="color:#cfd0d6">이메일</b>을 입력하시면 실시간 세션 시청 화면으로 입장합니다.</p>
+      <p>참가 등록에 사용하신 <b style="color:#cfd0d6">이메일 또는 전화번호</b>를 입력하시면 실시간 세션 시청 화면으로 입장합니다.</p>
       <?php if ($gate_err): ?><div class="lv-err"><?= e($gate_err) ?></div><?php endif; ?>
       <form method="post">
-        <input type="email" name="live_email" placeholder="email@example.com" required autofocus>
+        <input type="text" name="live_id" inputmode="email" autocapitalize="off" autocomplete="off" placeholder="이메일 또는 전화번호" required autofocus>
         <button type="submit">입장하기 →</button>
       </form>
       <p style="font-size:12px;color:#6b6b76;margin:16px 0 0;line-height:1.7">등록 확인이 안 되면 사무국으로 문의해 주세요.<br>02-326-3701 · info@epiclounge.co.kr</p>

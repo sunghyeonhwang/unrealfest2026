@@ -50,11 +50,21 @@ $is_adm = (isset($member['mb_id']) && $member['mb_id']!=='' && (
 // ── 라이선스 문의 접수(AJAX, JSON 반환) ──
 if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['inq_action']) && $_POST['inq_action']==='submit') {
     header('Content-Type: application/json; charset=utf-8');
-    $iqn = trim(isset($_POST['inq_name'])?$_POST['inq_name']:'');
-    $iqe = trim(isset($_POST['inq_email'])?$_POST['inq_email']:'');
+    // 신원은 체크인(세션) 정보를 우선 사용 — 클라이언트 위변조 방지. 세션 없으면(관리자 등) POST 사용.
+    if (!empty($_SESSION['ufs_live_ok']) && !empty($_SESSION['ufs_live_email'])) {
+        $iqn = trim($_SESSION['ufs_live_name']);
+        $iqe = trim($_SESSION['ufs_live_email']);
+    } else {
+        $iqn = trim(isset($_POST['inq_name'])?$_POST['inq_name']:'');
+        $iqe = trim(isset($_POST['inq_email'])?$_POST['inq_email']:'');
+    }
     $iqc = trim(isset($_POST['inq_content'])?$_POST['inq_content']:'');
+    $iqagree = (isset($_POST['inq_agree']) && $_POST['inq_agree']==='1');
     if ($iqn==='' || $iqe==='' || $iqc==='' || !filter_var($iqe, FILTER_VALIDATE_EMAIL)) {
         echo json_encode(array('ok'=>0,'msg'=>'이름·이메일·내용을 올바르게 입력해 주세요.')); exit;
+    }
+    if (!$iqagree) {
+        echo json_encode(array('ok'=>0,'msg'=>'개인정보 수집·이용에 동의해 주세요.')); exit;
     }
     if (function_exists('mb_strlen') && mb_strlen($iqc,'UTF-8') > 5000) $iqc = mb_substr($iqc,0,5000,'UTF-8');
     if (function_exists('mb_strlen') && mb_strlen($iqn,'UTF-8') > 100) $iqn = mb_substr($iqn,0,100,'UTF-8');
@@ -243,9 +253,17 @@ a{color:inherit;text-decoration:none}
 /* 라이선스 문의 — 플로팅 버튼 + 모달 */
 .lv-inqbtn{position:fixed;right:22px;bottom:22px;z-index:60;display:inline-flex;align-items:center;gap:9px;padding:13px 20px;
   background:var(--teal);color:#00232a;border:0;border-radius:999px;font-size:14px;font-weight:900;cursor:pointer;letter-spacing:.01em;
-  box-shadow:0 14px 34px -10px rgba(0,193,213,.55),0 4px 12px rgba(0,0,0,.4);transition:.15s}
-.lv-inqbtn:hover{filter:brightness(1.06);transform:translateY(-1px)}
+  box-shadow:0 14px 34px -10px rgba(0,193,213,.55),0 4px 12px rgba(0,0,0,.4);transition:.15s;transform:scale(.7);transform-origin:100% 100%}
+.lv-inqbtn:hover{filter:brightness(1.06);transform:scale(.7) translateY(-2px)}
 .lv-inqbtn svg{width:17px;height:17px}
+/* 문의 폼 — 자동입력 잠금·힌트·동의 */
+.lv-inqmodal input[readonly]{background:#0b0b0f;color:#b9b9c2;cursor:default}
+.lv-inqhint{margin:-6px 0 13px;font-size:11.5px;color:#6b6b76}
+.lv-inqagree{display:flex;align-items:flex-start;gap:8px;margin:2px 0 4px;font-size:12.5px;color:var(--muted);cursor:pointer;font-weight:600}
+.lv-inqmodal .lv-inqagree input{width:16px;height:16px;min-width:16px;margin:1px 0 0;padding:0;background:transparent;border:0;accent-color:var(--teal);flex:none;cursor:pointer}
+.lv-inqagree b{color:var(--teal);font-weight:800}
+.lv-inqagmore{background:none;border:0;color:var(--teal);font-size:12px;text-decoration:underline;cursor:pointer;padding:0}
+.lv-inqagbox{display:none;margin:2px 0 12px;padding:10px 12px;background:#08080b;border:1px solid var(--line);font-size:11.5px;color:#9a9aa4;line-height:1.65}
 .lv-inqmask{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(4,4,6,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 .lv-inqmask.on{display:flex}
 .lv-inqmodal{width:100%;max-width:460px;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent),var(--panel);border:1px solid var(--line2);border-radius:16px;padding:26px 26px 24px;box-shadow:0 50px 100px -30px rgba(0,0,0,.85);position:relative}
@@ -377,12 +395,16 @@ a{color:inherit;text-decoration:none}
         <h2 id="lvInqTitle">라이선스 문의</h2>
         <p class="sub">언리얼 엔진 라이선스 관련 문의를 남겨 주시면 담당자가 확인 후 회신드립니다.</p>
         <div class="lv-inqmsg" id="lvInqMsg"></div>
+        <?php $__ilock = (!$is_adm && !empty($_SESSION['ufs_live_email'])); ?>
         <label for="lvInqName">이름</label>
-        <input type="text" id="lvInqName" maxlength="100" placeholder="이름" value="<?= $verified ? e($viewer) : '' ?>">
+        <input type="text" id="lvInqName" maxlength="100" placeholder="이름" value="<?= $verified ? e($viewer) : '' ?>"<?= $__ilock ? ' readonly' : '' ?>>
         <label for="lvInqEmail">이메일</label>
-        <input type="email" id="lvInqEmail" autocapitalize="off" placeholder="이메일" value="<?= (!$is_adm && !empty($_SESSION['ufs_live_email'])) ? e($_SESSION['ufs_live_email']) : '' ?>">
+        <input type="email" id="lvInqEmail" autocapitalize="off" placeholder="이메일" value="<?= $__ilock ? e($_SESSION['ufs_live_email']) : '' ?>"<?= $__ilock ? ' readonly' : '' ?>>
+        <?php if ($__ilock): ?><p class="lv-inqhint">체크인하신 등록 정보로 자동 입력됩니다.</p><?php endif; ?>
         <label for="lvInqContent">문의 내용</label>
         <textarea id="lvInqContent" maxlength="5000" placeholder="문의하실 내용을 입력해 주세요."></textarea>
+        <label class="lv-inqagree"><input type="checkbox" id="lvInqAgree"><span><b>[필수]</b> 개인정보 수집·이용 동의 <button type="button" class="lv-inqagmore" onclick="ufsInqAgree()">자세히</button></span></label>
+        <div class="lv-inqagbox" id="lvInqAgBox">수집 항목: 이름, 이메일, 문의 내용 · 수집 목적: 라이선스 문의 응대 및 회신 · 보유 기간: 문의 처리 완료 후 1년 이내 파기. 동의를 거부하실 수 있으나 이 경우 문의 접수가 제한됩니다.</div>
         <button type="button" class="go" id="lvInqGo" onclick="ufsInqSubmit()">문의 보내기</button>
       </div>
       <div class="lv-inqdone" id="lvInqDone" style="display:none">
@@ -426,16 +448,19 @@ a{color:inherit;text-decoration:none}
     m.classList.add('on');
   }
   function ufsInqClose(){ var m=document.getElementById('lvInqMask'); if(m) m.classList.remove('on'); }
+  function ufsInqAgree(){ var b=document.getElementById('lvInqAgBox'); if(b) b.style.display = (b.style.display==='block'?'none':'block'); }
   function ufsInqSubmit(){
     var nm=document.getElementById('lvInqName').value.trim();
     var em=document.getElementById('lvInqEmail').value.trim();
     var ct=document.getElementById('lvInqContent').value.trim();
+    var ag=document.getElementById('lvInqAgree').checked;
     var msg=document.getElementById('lvInqMsg');
     var re=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if(!nm||!em||!ct||!re.test(em)){ msg.className='lv-inqmsg err'; msg.textContent='이름·이메일·내용을 올바르게 입력해 주세요.'; return; }
+    if(!ag){ msg.className='lv-inqmsg err'; msg.textContent='개인정보 수집·이용에 동의해 주세요.'; return; }
     var btn=document.getElementById('lvInqGo'); btn.disabled=true; btn.textContent='보내는 중…';
     var fd=new FormData();
-    fd.append('inq_action','submit'); fd.append('inq_name',nm); fd.append('inq_email',em); fd.append('inq_content',ct);
+    fd.append('inq_action','submit'); fd.append('inq_name',nm); fd.append('inq_email',em); fd.append('inq_content',ct); fd.append('inq_agree','1');
     fetch('live.php',{method:'POST',body:fd,headers:{'X-Requested-With':'XMLHttpRequest'}})
       .then(function(r){return r.json();})
       .then(function(d){

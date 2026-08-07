@@ -58,6 +58,18 @@ include __DIR__ . '/_head.php';
 .btn-off:hover{ background-color:#00d9ef !important; transform:translateY(-3px); box-shadow:0 12px 34px rgba(0,193,213,.6); filter:brightness(1.06); }
 .btn-on{ transition: background-color .2s ease, color .2s ease, border-color .2s ease; }
 .btn-on:hover{ background-color:#ffffff !important; color:#09090b !important; border-color:#ffffff !important; }
+/* 할인 혜택 보기 버튼 */
+.btn-disc{ border:1px solid #00C1D5; color:#00C1D5; background:transparent; cursor:pointer; transition: background-color .2s ease, color .2s ease; }
+.btn-disc:hover{ background:#00C1D5; color:#09090b; }
+/* 단체 할인율 모달 */
+.modal-ov{ position:fixed; inset:0; background:rgba(0,0,0,.72); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); z-index:1000; display:none; align-items:center; justify-content:center; padding:20px; }
+.modal-ov.open{ display:flex; }
+.modal-box{ background:#0e0f14; border:1px solid #27272a; width:100%; max-width:760px; max-height:86vh; overflow:auto; padding:28px; }
+.modal-box table{ width:100%; border-collapse:collapse; font-size:14px; margin-top:16px; }
+.modal-box th,.modal-box td{ border:1px solid #27272a; padding:11px 12px; text-align:center; color:#e4e4e7; white-space:nowrap; }
+.modal-box thead th{ background:#111115; color:#a1a1aa; font-weight:700; }
+.modal-box .disc{ color:#00C1D5; font-weight:800; }
+.modal-box .save{ color:#ff8674; }
 </style>
 <section id="hero" class="relative h-screen overflow-hidden">
   <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover object-bottom" style="object-position: calc(50% + 200px) bottom;">
@@ -72,6 +84,15 @@ include __DIR__ . '/_head.php';
     <?php if (ufs_promo_hero_line() !== ''): ?>
     <!-- 연장(전체 세션 공개 기념) 프로모 문구 — 자정 전에는 노출 안 됨. 날짜/장소는 로고 이미지에 포함. -->
     <p class="text-[#00C1D5] font-bold text-base md:text-lg -mt-4 mb-6 tracking-tight"><?= e(ufs_promo_hero_line()) ?></p>
+    <?php endif; ?>
+    <?php /* 행사기간(8/20~21) 온라인 라이브 자동 배너 · ?livebanner=1 로 미리보기 */
+      $__ld = date('Y-m-d'); if (($__ld >= '2026-08-20' && $__ld <= '2026-08-21') || isset($_GET['livebanner'])): ?>
+    <a href="live.php" class="flex items-center gap-3 mb-8 px-6 py-4 font-bold text-lg text-white transition-all hover:opacity-90" style="background:linear-gradient(90deg,rgba(239,68,68,.95),rgba(0,193,213,.95));box-shadow:0 8px 30px rgba(239,68,68,.25)">
+      <span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#fff;animation:ufsLiveBlink 1.2s infinite"></span>
+      지금 온라인 라이브 진행 중 — 시청하기
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    </a>
+    <style>@keyframes ufsLiveBlink{50%{opacity:.25}}</style>
     <?php endif; ?>
     <div class="flex flex-col sm:flex-row items-start gap-4 mb-10">
       <button type="button" data-scroll="register" class="bg-[#00C1D5] hover:bg-[#004F59] text-white px-8 py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-lg clip-btn">
@@ -277,10 +298,52 @@ $ov_icons = array(
         <h3 class="text-xl font-bold text-[#fafafa] mb-2">단체 등록 및 기업 결제</h3>
         <p class="text-sm text-[#a1a1aa]">5인 이상 단체 등록 시 세금계산서 발행 및 무통장 입금을 지원합니다. 관련 문의는 운영 사무국으로 연락해 주세요.</p>
       </div>
-      <a href="mailto:info@epiclounge.co.kr" class="flex-shrink-0 inline-flex items-center gap-2 px-6 py-2.5 bg-white text-black text-sm font-bold hover:bg-white/90 transition-colors whitespace-nowrap clip-btn-8">
-        문의하기
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-      </a>
+      <div class="flex-shrink-0 flex flex-wrap gap-3">
+        <button type="button" onclick="document.getElementById('groupDiscModal').classList.add('open')" class="btn-disc inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold whitespace-nowrap">할인 혜택 보기</button>
+        <a href="mailto:info@epiclounge.co.kr" class="inline-flex items-center gap-2 px-6 py-2.5 bg-white text-black text-sm font-bold hover:bg-white/90 transition-colors whitespace-nowrap clip-btn-8">
+          문의하기
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+    <!-- 단체 규모별 할인율 모달 -->
+    <div class="modal-ov" id="groupDiscModal" onclick="if(event.target===this)this.classList.remove('open')">
+      <div class="modal-box">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+          <div>
+            <h3 style="font-size:20px;font-weight:800;color:#fff;margin:0">규모별 할인율</h3>
+            <p style="color:#a1a1aa;font-size:13px;margin:6px 0 0">5인 이상 단체 등록 시 인원에 따라 <b style="color:#00C1D5">최대 50%</b> 할인이 적용됩니다. (정상가 기준)</p>
+          </div>
+          <button type="button" onclick="document.getElementById('groupDiscModal').classList.remove('open')" aria-label="닫기" style="color:#a1a1aa;font-size:26px;line-height:1;background:none;border:0;cursor:pointer;flex-shrink:0">&times;</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>단체 인원</th><th>할인율</th><th>양일권 (1인당)</th><th>양일권 할인 (1인당)</th><th>1일권 (1인당)</th><th>1일권 할인 (1인당)</th></tr></thead>
+            <tbody>
+              <tr><td>5 ~ 9인</td><td class="disc">10%</td><td>₩108,000</td><td class="save">-₩12,000</td><td>₩54,000</td><td class="save">-₩6,000</td></tr>
+              <tr><td>10 ~ 19인</td><td class="disc">20%</td><td>₩96,000</td><td class="save">-₩24,000</td><td>₩48,000</td><td class="save">-₩12,000</td></tr>
+              <tr><td>20 ~ 29인</td><td class="disc">30%</td><td>₩84,000</td><td class="save">-₩36,000</td><td>₩42,000</td><td class="save">-₩18,000</td></tr>
+              <tr><td>30 ~ 39인</td><td class="disc">40%</td><td>₩72,000</td><td class="save">-₩48,000</td><td>₩36,000</td><td class="save">-₩24,000</td></tr>
+              <tr><td>40인 이상</td><td class="disc">50%</td><td>₩60,000</td><td class="save">-₩60,000</td><td>₩30,000</td><td class="save">-₩30,000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="color:#71717a;font-size:12px;margin-top:14px">· 정상가: 양일권 ₩120,000 / 1일권 ₩60,000 기준. 단체 등록·기업 결제 문의는 운영 사무국으로 연락해 주세요.</p>
+        <div style="margin-top:18px;padding-top:16px;border-top:1px solid #27272a">
+          <h4 style="font-size:14px;font-weight:700;color:#fafafa;margin:0 0 8px">안내사항</h4>
+          <ul style="list-style:none;margin:0;padding:0;color:#a1a1aa;font-size:13px;line-height:1.7">
+            <li style="display:flex;gap:8px"><span style="color:#00C1D5;flex-shrink:0">·</span><span>단체 할인은 5인 이상 등록 시 적용됩니다.</span></li>
+            <li style="display:flex;gap:8px"><span style="color:#00C1D5;flex-shrink:0">·</span><span>할인율은 최종 등록 인원을 기준으로 적용됩니다.</span></li>
+            <li style="display:flex;gap:8px"><span style="color:#00C1D5;flex-shrink:0">·</span><span>단체 등록은 부분 취소가 불가능하며, 취소 시 전체 등록이 취소됩니다.</span></li>
+          </ul>
+        </div>
+        <div style="margin-top:20px;display:flex;justify-content:center">
+          <a href="mailto:info@epiclounge.co.kr" class="inline-flex items-center gap-2 px-8 py-3 bg-white text-black text-sm font-bold hover:bg-white/90 transition-colors clip-btn-8">
+            문의하기
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 </section>

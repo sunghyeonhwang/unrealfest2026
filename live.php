@@ -7,6 +7,34 @@ include_once "../common.php";
 if (!function_exists('e')) { function e($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); } }
 
 function lv_get($k){ $r=@sql_fetch("SELECT cfg_val FROM cb_unreal_2026_config WHERE cfg_key='".sql_real_escape_string($k)."'"); return $r?$r['cfg_val']:''; }
+// 라이브 접속 로그 upsert(이메일 기준). 실패해도 로그인 흐름에 영향 없도록 @ 처리.
+function ufs_live_log($row, $day, $trk){
+    @sql_query("CREATE TABLE IF NOT EXISTS cb_unreal_2026_event2_apply_live (la_no INT NOT NULL AUTO_INCREMENT, apply_no INT NOT NULL DEFAULT 0, apply_user_email VARCHAR(190) NOT NULL DEFAULT '', apply_user_name VARCHAR(100) NOT NULL DEFAULT '', apply_user_phone VARCHAR(30) NOT NULL DEFAULT '', la_day CHAR(1) NOT NULL DEFAULT '', la_trk CHAR(1) NOT NULL DEFAULT '', la_free CHAR(1) NOT NULL DEFAULT '', first_at DATETIME DEFAULT NULL, last_at DATETIME DEFAULT NULL, hits INT NOT NULL DEFAULT 0, la_ip VARCHAR(45) NOT NULL DEFAULT '', d1_at DATETIME DEFAULT NULL, d2_at DATETIME DEFAULT NULL, win_yn CHAR(1) NOT NULL DEFAULT 'N', win_at DATETIME DEFAULT NULL, PRIMARY KEY (la_no), UNIQUE KEY uq_email (apply_user_email)) DEFAULT CHARSET=utf8");
+    $ano  = (int)(isset($row['apply_no'])?$row['apply_no']:0);
+    $em   = sql_real_escape_string($row['apply_user_email']);
+    $nm   = sql_real_escape_string($row['apply_user_name']);
+    $ph   = sql_real_escape_string($row['apply_user_phone']);
+    $free = sql_real_escape_string(isset($row['free_yn'])?$row['free_yn']:'');
+    $d    = sql_real_escape_string($day);
+    $t    = sql_real_escape_string($trk);
+    // Cloudflare 뒤 → 실제 방문자 IP 우선(CF-Connecting-IP → X-Forwarded-For 첫 값 → REMOTE_ADDR)
+    if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) { $__ip = $_SERVER['HTTP_CF_CONNECTING_IP']; }
+    else if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) { $__xf = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']); $__ip = trim($__xf[0]); }
+    else { $__ip = isset($_SERVER['REMOTE_ADDR'])?$_SERVER['REMOTE_ADDR']:''; }
+    $ip   = sql_real_escape_string(substr($__ip,0,45));
+    $now  = date('Y-m-d H:i:s');
+    // Day별 최초접속 스탬프(양일 접속자 추첨용). day가 1/2일 때만 해당 컬럼 세팅.
+    $dcol = ($d==='2') ? 'd2_at' : (($d==='1') ? 'd1_at' : '');
+    $ex = @sql_fetch("SELECT la_no FROM cb_unreal_2026_event2_apply_live WHERE apply_user_email='$em'");
+    if ($ex) {
+        $setd = ($dcol!=='') ? ", $dcol = IF($dcol IS NULL, '$now', $dcol)" : '';
+        @sql_query("UPDATE cb_unreal_2026_event2_apply_live SET apply_no=$ano, apply_user_name='$nm', apply_user_phone='$ph', la_free='$free', la_day='$d', la_trk='$t', la_ip='$ip', last_at='$now', hits=hits+1$setd WHERE la_no=".(int)$ex['la_no']);
+    } else {
+        $d1 = ($d==='1') ? "'$now'" : 'NULL';
+        $d2 = ($d==='2') ? "'$now'" : 'NULL';
+        @sql_query("INSERT INTO cb_unreal_2026_event2_apply_live (apply_no, apply_user_email, apply_user_name, apply_user_phone, la_free, la_day, la_trk, la_ip, first_at, last_at, hits, d1_at, d2_at) VALUES ($ano, '$em', '$nm', '$ph', '$free', '$d', '$t', '$ip', '$now', '$now', 1, $d1, $d2)");
+    }
+}
 // 라이브 활성 = 수동 토글 ON 또는 예약 기간(live_start~end) 내 (서버 시각 기준)
 $__la_manual = (lv_get('live_active') === '1');
 $__ls = lv_get('live_start'); $__le = lv_get('live_end'); $__lnow = date('Y-m-d H:i');
@@ -29,8 +57,16 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['live_email'])) {
     else if (strlen($phd) < 8) { $gate_err = '전화번호를 정확히 입력해 주세요.'; }
     else {
         // 이메일 + 전화번호(뒷 8자리·앞자리0 보정) 둘 다 일치하는 등록 확인
-        $row = sql_fetch("SELECT apply_user_name, apply_user_phone, apply_user_email FROM cb_unreal_2026_event2_apply WHERE apply_user_email='".sql_real_escape_string($em)."' AND apply_user_phone LIKE '%".sql_real_escape_string(substr($phd,-8))."%' AND apply_pay_status<>0 AND apply_temp_yn='N' ORDER BY apply_no DESC LIMIT 1");
-        if ($row) { $_SESSION['ufs_live_ok']=1; $_SESSION['ufs_live_name']=$row['apply_user_name']; $_SESSION['ufs_live_phone']=$row['apply_user_phone']; $_SESSION['ufs_live_email']=$row['apply_user_email']; header('Location: live.php'); exit; }
+        $row = sql_fetch("SELECT apply_no, apply_user_name, apply_user_phone, apply_user_email, free_yn FROM cb_unreal_2026_event2_apply WHERE apply_user_email='".sql_real_escape_string($em)."' AND apply_user_phone LIKE '%".sql_real_escape_string(substr($phd,-8))."%' AND apply_pay_status<>0 AND apply_temp_yn='N' ORDER BY apply_no DESC LIMIT 1");
+        if ($row) {
+            $_SESSION['ufs_live_ok']=1; $_SESSION['ufs_live_name']=$row['apply_user_name']; $_SESSION['ufs_live_phone']=$row['apply_user_phone']; $_SESSION['ufs_live_email']=$row['apply_user_email'];
+            // 게이트에서 선택한 채널로 바로 입장(단일 채널만 로드 → 트래픽 절감). Day는 접속일 기준.
+            $__dd = (date('Y-m-d')==='2026-08-21') ? '2' : '1';
+            $__st = (isset($_POST['live_trk']) && in_array($_POST['live_trk'], array('1','2','3','4'), true)) ? $_POST['live_trk'] : '';
+            // 접속 로그 기록(관리자 2026_live_list.php에서 조회). 이메일 기준 upsert — 최초/최종접속·횟수·선택채널·유형.
+            ufs_live_log($row, $__dd, $__st);
+            header('Location: live.php?d='.$__dd.($__st!=='' ? '&t='.$__st : '')); exit;
+        }
         $gate_err = '등록 정보를 찾을 수 없습니다. 등록에 사용하신 이메일과 전화번호를 확인해 주세요.';
     }
 }
@@ -97,7 +133,7 @@ $has_stream = ($live_active && $ytid !== '');
 :root{--bg:#08080a;--panel:#0e0e12;--panel2:#0b0b0e;--line:#1e1e25;--line2:#2a2a33;--teal:#00C1D5;--text:#eaeaef;--muted:#8b8b96;--accent:<?= $curcol ?>}
 *{box-sizing:border-box}
 html,body{margin:0}
-body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;-webkit-font-smoothing:antialiased;
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:break-word;
   background-image:radial-gradient(900px 500px at 78% -8%, rgba(0,193,213,.10), transparent 60%),radial-gradient(700px 400px at 0% 0%, rgba(48,127,226,.06), transparent 55%)}
 a{color:inherit;text-decoration:none}
 .blink{animation:blink 1.25s steps(1,end) infinite}@keyframes blink{50%{opacity:.28}}
@@ -175,6 +211,15 @@ a{color:inherit;text-decoration:none}
 .lv-gcard button{width:100%;padding:15px;background:var(--teal);color:#00232a;border:0;border-radius:11px;font-size:15px;font-weight:900;cursor:pointer;transition:.15s;letter-spacing:.01em}
 .lv-gcard button:hover{filter:brightness(1.06)}
 .lv-err{color:#ff8a8a;font-size:13px;margin-bottom:12px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);padding:9px 12px;border-radius:9px}
+/* gate: 채널 선택 */
+.lv-gtrk{margin:2px 0 18px}
+.lv-gtrk-lb{font-size:12px;font-weight:800;color:var(--muted);margin:0 0 9px;letter-spacing:.02em}
+.lv-gtrk-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lv-gtrk-opts label{display:flex;align-items:center;gap:9px;padding:12px 13px;border:1px solid var(--line2);background:#08080b;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;transition:.15s;user-select:none}
+.lv-gtrk-opts label:hover{border-color:var(--line2);color:#cfd0d6}
+.lv-gtrk-opts input{position:absolute;opacity:0;width:0;height:0}
+.lv-gtrk-opts label .dot{width:10px;height:10px;flex:none;box-shadow:0 0 0 3px rgba(255,255,255,.03)}
+.lv-gtrk-opts label:has(input:checked){color:#fff;border-color:var(--tkc,#00C1D5);box-shadow:0 0 0 2px rgba(0,193,213,.10) inset;background:linear-gradient(180deg,rgba(255,255,255,.04),transparent),#0b0b10}
 
 @media (max-width:900px){
   .lv-player{flex-direction:column}
@@ -206,6 +251,14 @@ a{color:inherit;text-decoration:none}
       <form method="post">
         <input type="email" name="live_email" autocapitalize="off" autocomplete="off" placeholder="이메일 입력" required autofocus>
         <input type="text" name="live_phone" inputmode="numeric" autocomplete="off" placeholder="전화번호 입력" required>
+        <div class="lv-gtrk">
+          <p class="lv-gtrk-lb">시청할 채널 선택 · <?= e($DAYS[$defDay]) ?></p>
+          <div class="lv-gtrk-opts">
+            <?php $__i=0; foreach ($TRK[$defDay] as $tk=>$tl): $c=$TRKCOL[$tk]; ?>
+              <label style="--tkc:<?= $c ?>"><input type="radio" name="live_trk" value="<?= $tk ?>"<?= $__i===0?' checked':'' ?>><span class="dot" style="background:<?= $c ?>"></span><?= e($tl) ?></label>
+            <?php $__i++; endforeach; ?>
+          </div>
+        </div>
         <button type="submit">입장하기 →</button>
       </form>
       <p style="font-size:12px;color:#6b6b76;margin:16px 0 0;line-height:1.7">등록 확인이 안 되면 사무국으로 문의해 주세요.<br>02-326-3701 · info@epiclounge.co.kr</p>

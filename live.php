@@ -7,7 +7,10 @@ include_once "../common.php";
 if (!function_exists('e')) { function e($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); } }
 
 function lv_get($k){ $r=@sql_fetch("SELECT cfg_val FROM cb_unreal_2026_config WHERE cfg_key='".sql_real_escape_string($k)."'"); return $r?$r['cfg_val']:''; }
-$live_active = (lv_get('live_active') === '1');
+// 라이브 활성 = 수동 토글 ON 또는 예약 기간(live_start~end) 내 (서버 시각 기준)
+$__la_manual = (lv_get('live_active') === '1');
+$__ls = lv_get('live_start'); $__le = lv_get('live_end'); $__lnow = date('Y-m-d H:i');
+$live_active = $__la_manual || ($__ls !== '' && $__le !== '' && $__lnow >= $__ls && $__lnow <= $__le);
 $live_notice = lv_get('live_notice');
 
 // 관리자 여부(공개측 동일 세션)

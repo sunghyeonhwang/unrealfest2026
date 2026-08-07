@@ -121,7 +121,7 @@ a{color:inherit;text-decoration:none}
 .lv-tk{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border:1px solid var(--line);border-radius:11px;background:var(--panel);font-size:13px;font-weight:700;color:var(--muted);transition:.15s}
 .lv-tk .dot{width:9px;height:9px;box-shadow:0 0 0 3px rgba(255,255,255,.03)}
 .lv-tk:hover{border-color:var(--line2);color:var(--text)}
-.lv-tk.on{color:#fff;border-color:var(--tkc);background:transparent;box-shadow:none}
+.lv-tk.on{color:#fff;background:transparent;box-shadow:none}
 .lv-nowb{margin-left:3px;padding:2px 8px;font-size:10px;font-weight:800;letter-spacing:.02em;background:var(--tkc);color:#fff;line-height:1.55}
 .lv-nav{margin-left:auto;display:flex;gap:6px}
 .lv-nav a{width:38px;height:38px;display:grid;place-items:center;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--muted);transition:.15s}

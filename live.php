@@ -132,7 +132,6 @@ a{color:inherit;text-decoration:none}
 .lv-video{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;background:#000}
 .lv-frame{position:relative;width:100%;padding-top:56.25%;background:radial-gradient(120% 120% at 50% 30%, #131318, #000)}
 .lv-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-.lv-titlecap{position:absolute;top:0;left:0;right:0;height:54px;background:#000;pointer-events:none;z-index:3}
 .lv-frame:fullscreen{padding-top:0;height:100%}
 .lv-frame:-webkit-full-screen{padding-top:0;height:100%}
 .lv-hold{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px}
@@ -232,7 +231,6 @@ a{color:inherit;text-decoration:none}
         <div class="lv-frame" id="lvFrame">
           <?php if ($has_stream): ?>
             <iframe src="https://www.youtube.com/embed/<?= e($ytid) ?>?rel=0&autoplay=1&modestbranding=1" title="<?= e($cur_label) ?>" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>
-            <div class="lv-titlecap" aria-hidden="true"></div>
           <?php else: ?>
             <div class="lv-hold">
               <div class="ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>

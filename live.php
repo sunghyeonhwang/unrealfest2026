@@ -49,8 +49,17 @@ $TRKCOL = array('1'=>'#307FE2','2'=>'#FF8F1C','3'=>'#FA4616','4'=>'#DD0AB2');
 $today = date('Y-m-d');
 $defDay = ($today==='2026-08-21') ? '2' : '1';
 $day = (isset($_GET['d']) && isset($DAYS[$_GET['d']])) ? $_GET['d'] : $defDay;
-$trk = (isset($_GET['t']) && isset($TRK[$day][$_GET['t']])) ? $_GET['t'] : '1';
+$trk_explicit = (isset($_GET['t']) && isset($TRK[$day][$_GET['t']]));
+$trk = $trk_explicit ? $_GET['t'] : '1';
 $ytid = lv_get('live_yt_d'.$day.'t'.$trk);
+// 기본 진입(트랙 미지정)인데 해당 채널이 비어 있고 라이브 활성이면 → 스트림 있는 첫 채널로 자동 이동
+if (!$trk_explicit && $live_active && $ytid === '') {
+    $__order = array();
+    foreach (array_keys($TRK[$day]) as $tk) $__order[] = array($day, $tk);
+    $__od2 = ($day==='1') ? '2' : '1';
+    foreach (array_keys($TRK[$__od2]) as $tk) $__order[] = array($__od2, $tk);
+    foreach ($__order as $o) { $yy = lv_get('live_yt_d'.$o[0].'t'.$o[1]); if ($yy !== '') { $day=$o[0]; $trk=$o[1]; $ytid=$yy; break; } }
+}
 $curtrk = $TRK[$day][$trk];
 $curcol = $TRKCOL[$trk];
 $cur_label = $DAYS[$day].' · '.$curtrk;

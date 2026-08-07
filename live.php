@@ -159,8 +159,10 @@ a{color:inherit;text-decoration:none}
 .lv-foot{margin-top:28px;padding-top:22px;border-top:1px solid var(--line);display:flex;justify-content:center;align-items:center}
 .lv-foot img{height:22px;width:auto;opacity:.6;transition:opacity .15s}
 .lv-foot a:hover img{opacity:1}
-.lv-notice{margin:0 0 16px;font-size:13px;color:#cfd0d6;background:linear-gradient(180deg,rgba(0,193,213,.06),transparent);border:1px solid rgba(0,193,213,.22);border-radius:12px;padding:12px 16px;display:flex;gap:10px;align-items:flex-start}
+.lv-notice{position:relative;margin:0 0 16px;font-size:13px;color:#cfd0d6;background:linear-gradient(180deg,rgba(0,193,213,.06),transparent);border:1px solid rgba(0,193,213,.22);border-radius:12px;padding:12px 42px 12px 16px;display:flex;gap:10px;align-items:flex-start}
 .lv-notice .dot{width:7px;height:7px;background:var(--teal);margin-top:7px;flex:none}
+.lv-nx{position:absolute;top:6px;right:8px;width:26px;height:26px;display:grid;place-items:center;background:transparent;border:0;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;border-radius:6px;transition:.15s}
+.lv-nx:hover{color:#fff;background:rgba(255,255,255,.06)}
 
 /* gate */
 .lv-gate{min-height:calc(100vh - 54px);display:flex;align-items:center;justify-content:center;padding:24px}
@@ -221,7 +223,7 @@ a{color:inherit;text-decoration:none}
       </div>
     </div>
 
-    <?php if ($live_notice !== ''): ?><div class="lv-notice"><span class="dot"></span><span><?= e($live_notice) ?></span></div><?php endif; ?>
+    <?php if ($live_notice !== ''): ?><div class="lv-notice" id="lvNotice" data-nk="<?= e(substr(md5($live_notice),0,10)) ?>"><span class="dot"></span><span><?= e($live_notice) ?></span><button type="button" class="lv-nx" onclick="ufsCloseNotice()" aria-label="공지 닫기">&times;</button></div><?php endif; ?>
 
     <!-- 플레이어 -->
     <div class="lv-player">
@@ -275,6 +277,15 @@ a{color:inherit;text-decoration:none}
     if(fsEl){ (document.exitFullscreen||document.webkitExitFullscreen).call(document); }
     else { (el.requestFullscreen||el.webkitRequestFullscreen).call(el); }
   }
+  function ufsCloseNotice(){
+    var n=document.getElementById('lvNotice'); if(!n) return;
+    n.style.display='none';
+    try{ localStorage.setItem('ufsLiveNoticeClosed', n.getAttribute('data-nk')); }catch(e){}
+  }
+  (function(){
+    var n=document.getElementById('lvNotice'); if(!n) return;
+    try{ if(localStorage.getItem('ufsLiveNoticeClosed')===n.getAttribute('data-nk')) n.style.display='none'; }catch(e){}
+  })();
   </script>
 <?php endif; ?>
 </body></html>

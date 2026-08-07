@@ -108,9 +108,6 @@ a{color:inherit;text-decoration:none}
   padding:13px clamp(16px,4vw,40px);background:rgba(8,8,10,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 .lv-logo{display:flex;align-items:center;gap:14px;min-width:0}
 .lv-toplogo{height:24px;width:auto;display:block}
-.lv-live{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;font-size:11px;font-weight:900;letter-spacing:.12em}
-.lv-live.on{background:rgba(239,68,68,.14);color:#ff6b6b;border:1px solid rgba(239,68,68,.35)}
-.lv-live.off{background:#141418;color:var(--muted);border:1px solid var(--line2)}
 .lv-user{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted);white-space:nowrap}
 .lv-user b{color:var(--text);font-weight:700}
 .lv-out{padding:6px 13px;border:1px solid var(--line2);border-radius:999px;font-size:12px;color:var(--muted);transition:.15s}
@@ -120,10 +117,6 @@ a{color:inherit;text-decoration:none}
 
 /* channel bar */
 .lv-chan{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px}
-.lv-seg{display:inline-flex;padding:4px;background:var(--panel);border:1px solid var(--line);border-radius:12px;gap:2px}
-.lv-seg a{padding:8px 16px;border-radius:9px;font-size:14px;font-weight:800;color:var(--muted);line-height:1;display:flex;flex-direction:column;gap:3px;align-items:center;transition:.15s}
-.lv-seg a small{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.7}
-.lv-seg a.on{background:linear-gradient(180deg,#17171d,#101014);color:#fff;box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 6px 16px rgba(0,0,0,.35);border:1px solid var(--line2)}
 .lv-tracks{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;min-width:260px}
 .lv-tk{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border:1px solid var(--line);border-radius:11px;background:var(--panel);font-size:13px;font-weight:700;color:var(--muted);transition:.15s}
 .lv-tk .dot{width:9px;height:9px;box-shadow:0 0 0 3px rgba(255,255,255,.03)}
@@ -192,9 +185,6 @@ a{color:inherit;text-decoration:none}
 <header class="lv-top">
   <div class="lv-logo">
     <a href="index.php" aria-label="Unreal Fest Seoul 2026"><img class="lv-toplogo" src="white_logo.svg" alt="Unreal Fest Seoul 2026"></a>
-    <?php if ($verified): ?>
-      <span class="lv-live <?= $live_active?'on':'off' ?>"><span class="dot <?= $live_active?'blink':'' ?>" style="background:<?= $live_active?'#ff6b6b':'#6b6b76' ?>"></span><?= $live_active?'ON AIR':'대기중' ?></span>
-    <?php endif; ?>
   </div>
   <?php if ($verified): ?>
   <div class="lv-user"><span><b><?= e($viewer) ?></b>님</span><a class="lv-out" href="live.php?logout=1">로그아웃</a></div>
@@ -221,11 +211,6 @@ a{color:inherit;text-decoration:none}
 
     <!-- 채널 바 -->
     <div class="lv-chan">
-      <div class="lv-seg">
-        <?php foreach ($DAYS as $dk=>$dl): ?>
-          <a class="<?= $day===$dk?'on':'' ?>" href="live.php?d=<?= $dk ?>&t=1"><span><?= e($dl) ?></span><small><?= e($DAYSUB[$dk]) ?></small></a>
-        <?php endforeach; ?>
-      </div>
       <div class="lv-tracks">
         <?php foreach ($TRK[$day] as $tk=>$tl): $c=$TRKCOL[$tk]; ?>
           <a class="lv-tk <?= $trk===$tk?'on':'' ?>" style="--tkc:<?= $c ?>" href="live.php?d=<?= $day ?>&t=<?= $tk ?>"><span class="dot" style="background:<?= $c ?>"></span><?= e($tl) ?></a>
@@ -255,7 +240,6 @@ a{color:inherit;text-decoration:none}
         </div>
         <div class="lv-bar">
           <div class="lv-now">
-            <?php if ($has_stream): ?><span class="tag"><span class="dot blink" style="background:#ff6b6b;width:6px;height:6px"></span>LIVE</span><?php endif; ?>
             <span class="lab"><?= e($DAYS[$day]) ?> · <i><?= e($curtrk) ?></i></span>
           </div>
           <div class="lv-ctrl">
@@ -268,16 +252,12 @@ a{color:inherit;text-decoration:none}
       </div>
       <?php if ($has_stream): ?>
       <aside class="lv-chat" id="lvChat">
-        <div class="lv-chat-h"><span class="dot blink"></span>실시간 채팅</div>
+        <div class="lv-chat-h">실시간 채팅</div>
         <iframe src="<?= e($chat_src) ?>" title="라이브 채팅" allow="clipboard-write"></iframe>
       </aside>
       <?php endif; ?>
     </div>
 
-    <div class="lv-foot">
-      <div>상단 <b style="color:#cfd0d6">날짜·트랙</b>으로 채널을 전환하세요. · 온라인 중계 제외 세션은 송출되지 않습니다. · 문의: 사무국 02-326-3701</div>
-      <div class="epic">EPIC LOUNGE · UNREAL FEST SEOUL 2026</div>
-    </div>
   </div>
 
   <script>

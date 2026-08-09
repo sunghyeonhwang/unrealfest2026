@@ -133,11 +133,12 @@ $__tk = array_keys($TRK[$day]); $__pos = array_search($trk, $__tk, true);
 $prev_t = $__tk[($__pos - 1 + count($__tk)) % count($__tk)];
 $next_t = $__tk[($__pos + 1) % count($__tk)];
 
-// ── CGChat(2025 동일 방식) 채팅 URL 구성 — 채널별 room, griff/griff2/griff3 분산 ──
+// ── CGChat 채팅 URL — 트랙별 전용 서버(griff-<트랙>.cgchat.io), 방 no는 day+track별 고유(2025 방식 동일) ──
+//   서버: t1→griff-1(1000명)·t2→griff-2(600)·t3→griff-3(600)·t4→griff-4(500). day1/day2 같은 트랙은 같은 서버, 방 no만 다름.
 $chIndex = array('d1t1'=>1,'d1t2'=>2,'d1t3'=>3,'d1t4'=>4,'d2t1'=>5,'d2t2'=>6,'d2t3'=>7,'d2t4'=>8);
 $__ci = isset($chIndex['d'.$day.'t'.$trk]) ? $chIndex['d'.$day.'t'.$trk] : 1;
-$__sub = array('griff','griff2','griff3');
-$chat_base = 'https://'.$__sub[($__ci-1)%3].'.cgchat.kr/chat?sk=griff&no=griffroom2026_'.$__ci;
+$__trk = (isset($TRK[$day][$trk])) ? $trk : '1'; // 안전: 1~4
+$chat_base = 'https://griff-'.$__trk.'.cgchat.io/chat?sk=griff&no=griffroom2026_'.$__ci;
 $__ui   = rawurlencode('{"btnPopupChat":"0","btnEmoji":"1"}');
 $__view = rawurlencode('{"sendBtn":"333333","bgColor":"333333","msgViewType":"0","chatOneLine":"0","isChatHistory":"1","sysMsgColor":"7e7e7e","chatTime":"1"}');
 $__my   = rawurlencode('{"nkColor":"7e7e7e","msgColor":"000000"}');

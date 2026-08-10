@@ -66,7 +66,10 @@ if ($__coupon_active) {
 }
 
 // ── 검증 ──
-if ($apply_ci === '')          { exit('<script>alert("본인인증을 먼저 진행해주세요.");history.back();</script>'); }
+// 무인증 허용 조건: 100% 무료 쿠폰(가격 0 + 유효 쿠폰) → 본인인증 생략, 수동입력. 그 외는 본인인증(CI) 필수.
+$__is_free_coupon = ((int)$apply_product_price === 0 && $apply_coupon_code !== '');
+if ($apply_ci === '' && !$__is_free_coupon) { exit('<script>alert("본인인증을 먼저 진행해주세요.");history.back();</script>'); }
+if ($apply_user_name === '')  { exit('<script>alert("이름을 입력해주세요.");history.back();</script>'); }
 if ($apply_user_email === '' || $apply_user_phone === '') { exit('<script>alert("이메일/연락처를 입력해주세요.");history.back();</script>'); }
 
 // ── 만 14세 미만 오프라인 등록 차단 (온라인 등록은 예외) ──
@@ -94,8 +97,11 @@ if ($apply_user_phone !== '') { $_SESSION['TEL_NO']    = $apply_user_phone; }
 $ci_esc = sql_real_escape_string($apply_ci);
 $em_esc = sql_real_escape_string($apply_user_email);
 $ph_esc = sql_real_escape_string($apply_user_phone);
-$dup = sql_fetch("select count(*) as cnt from cb_unreal_2026_event2_apply where apply_ci = '$ci_esc' and apply_temp_yn = 'N' and apply_pay_status <> 0");
-if ($dup && $dup['cnt'] > 0) { exit('<script>alert("이미 등록된 본인인증 정보입니다. 등록 확인 페이지에서 확인해주세요.");location.href="myticket.php";</script>'); }
+// CI가 있을 때만 본인인증 기준 중복 차단(무인증 무료쿠폰은 CI가 비어 있으므로 이메일+전화로만 차단)
+if ($apply_ci !== '') {
+    $dup = sql_fetch("select count(*) as cnt from cb_unreal_2026_event2_apply where apply_ci = '$ci_esc' and apply_temp_yn = 'N' and apply_pay_status <> 0");
+    if ($dup && $dup['cnt'] > 0) { exit('<script>alert("이미 등록된 본인인증 정보입니다. 등록 확인 페이지에서 확인해주세요.");location.href="myticket.php";</script>'); }
+}
 $dup = sql_fetch("select count(*) as cnt from cb_unreal_2026_event2_apply where apply_user_email = '$em_esc' and apply_user_phone = '$ph_esc' and apply_temp_yn = 'N' and apply_pay_status <> 0");
 if ($dup && $dup['cnt'] > 0) { exit('<script>alert("이미 등록된 이메일/연락처입니다.");location.href="myticket.php";</script>'); }
 

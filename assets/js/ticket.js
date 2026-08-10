@@ -171,7 +171,12 @@ function ufsFail(el, msg){
 function _q(sel){ return document.querySelector(sel); }
 function validateForm(){
   collectTrack();
-  if(!_t('apply_ci').value) return ufsFail(_t('authState'), '본인인증을 먼저 진행해주세요.');
+  if(window.UFS_NOAUTH){
+    var _nm=_q('input[name="apply_user_name"]');
+    if(_nm && !_nm.value.trim()) return ufsFail(_nm, '이름을 입력해주세요.');
+  } else {
+    if(!_t('apply_ci').value) return ufsFail(_t('authState'), '본인인증을 먼저 진행해주세요.');
+  }
   var f;
   if(!(f=_q('input[name="apply_user_email"]')).value.trim()) return ufsFail(f, '이메일을 입력해주세요.');
   if(!(f=_q('input[name="apply_user_phone"]')).value.trim()) return ufsFail(f, '연락처를 입력해주세요.');

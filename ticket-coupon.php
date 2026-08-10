@@ -6,6 +6,14 @@
  */
 require __DIR__ . '/_ticket_init.php';
 $ufs_force_coupon = true;   // 토글과 무관하게 쿠폰 패널 노출/적용
+// 무인증 모드: ?coupon= 이 유효한 100% 무료 쿠폰이면 본인인증 없이 수동입력 등록(즉시 완료·QR).
+//   부분할인(유료) 쿠폰은 기존대로 본인인증+카드 유지.
+$ufs_noauth = false;
+$__pc = isset($_GET['coupon']) ? trim($_GET['coupon']) : '';
+if ($__pc !== '' && function_exists('ufs_coupon_check')) {
+    $__ck = ufs_coupon_check($__pc);
+    if (!empty($__ck['ok']) && (int)$__ck['percent'] >= 100) $ufs_noauth = true;
+}
 ?>
 <!DOCTYPE html>
 <html lang="ko" class="dark">
@@ -108,7 +116,7 @@ $ufs_force_coupon = true;   // 토글과 무관하게 쿠폰 패널 노출/적�
           </div>
         </div>
 
-        <?php include __DIR__ . '/_ticket_fields.php'; ?>
+        <?php include __DIR__ . ($ufs_noauth ? '/_ticket_fields_noauth.php' : '/_ticket_fields.php'); ?>
 
         <!-- 트랙 선택 (선택 티켓에 따라 ticket.js가 토글) -->
         <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
@@ -138,6 +146,7 @@ $ufs_force_coupon = true;   // 토글과 무관하게 쿠폰 패널 노출/적�
   <input type="hidden" name="TEL_COM_CD" value=""><input type="hidden" name="TEL_NO" value="">
 </form>
 
+<?php if ($ufs_noauth): ?><script>window.UFS_NOAUTH=true;</script><?php endif; ?>
 <script src="<?= asset_v('assets/js/ticket.js') ?>"></script>
 <script>selectTicket('ALL');</script>
 </body>

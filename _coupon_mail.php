@@ -1,8 +1,8 @@
 <?php
 /* Unreal Fest Seoul 2026 — 쿠폰 발급 안내 이메일 템플릿 (_coupon_mail.php)
+ * 라이브(_coupon_mail.php) 무수정 검증용. 추가: 분류(cp_category)별 양식 분기 — 스피커 / 스폰서 전용 문안.
  * ufs_coupon_mail($row, $lang) -> array('subject','html','text'). $row = cb_unreal_2026_coupon 행.
- * 초대장(_invite_mail)과 성격 다름: 개인 정식 등록(ticket-all.php, 본인인증·카드) + 쿠폰 할인.
- * 링크 = ticket-all.php?coupon=코드 (쿠폰 자동 프리필). 브랜디드 셸은 초대장과 동일. PHP 7.0.
+ * 링크 = ticket-coupon.php?coupon=코드. 브랜디드 셸 동일. PHP 7.0.
  */
 if (!function_exists('ufs_coupon_mail')) {
 function ufs_coupon_mail($row, $lang = 'ko') {
@@ -11,15 +11,84 @@ function ufs_coupon_mail($row, $lang = 'ko') {
     $pct  = isset($row['cp_percent']) ? (int)$row['cp_percent'] : 0;
     $name = isset($row['cp_recipient_name']) ? trim($row['cp_recipient_name']) : '';
     $expire = (isset($row['cp_expire']) && $row['cp_expire'] && $row['cp_expire'] !== '0000-00-00') ? $row['cp_expire'] : '';
+    $category = isset($row['cp_category']) ? trim($row['cp_category']) : '';   // [TEST] 스폰서 / 스피커
+    $company  = isset($row['cp_company']) ? trim($row['cp_company']) : '';     // [TEST] 업체/스피커명
     $e = function($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); };
     $page = ($lang === 'en') ? 'ticket-coupon-en.php' : 'ticket-coupon.php';   // 쿠폰 등록 전용 페이지(KO=본인인증, EN=무료 전용)
     $link = 'https://epiclounge.co.kr/unrealfest2026/'.$page.'?coupon='.rawurlencode($code);
+    $CONTACT_EMAIL = 'info@epiclounge.co.kr';
 
     // 쿠폰 코드 강조 박스
     $codebox = '<div style="margin:8px 0 4px;padding:14px 18px;background:#f4f7f8;border:1px dashed #00C1D5;text-align:center;'
              . 'font-family:\'Inter\',monospace;font-size:20px;font-weight:800;letter-spacing:2px;color:#000001;">'.$e($code).'</div>';
 
-    if ($lang === 'en') {
+    // 문의처 블록(공통) — 스피커/스폰서 문안 하단
+    $contactBlock = '<br><br><span style="color:#595959;font-size:14px;">오류 및 행사 문의처: 언리얼 페스트 사무국<br>'
+                  . '• 연락처: 02-326-3701<br>• 이메일: <a href="mailto:'.$e($CONTACT_EMAIL).'" style="color:#157EAF;">'.$e($CONTACT_EMAIL).'</a></span>';
+    $expireLine = ($expire !== '') ? '<br><span style="color:#595959;font-size:14px;">※ 사용 기한: '.$e($expire).'까지</span>' : '';
+    // 등록 가능 인원 = 사용 한도(cp_max). 0(무제한)이면 문안에 숫자 대신 일반 표현
+    $maxN = (isset($row['cp_max']) && (int)$row['cp_max'] > 0) ? (int)$row['cp_max'] : 0;
+    $b = function($t){ return '<strong class="inter-bold700" style="font-weight:700;">'.$t.'</strong>'; };
+    // 세 문안 공통: 인원 불릿 + 등록 마감 안내
+    $limitBullet = '• 하나의 쿠폰으로 '.($maxN > 0 ? $b('최대 '.$maxN.'인') : '지정된 인원').'까지 등록하실 수 있습니다. (양일권 또는 일일권 선택 가능)';
+    // 등록 마감일 = 쿠폰 사용 기한(cp_expire) 기준. 미설정 시 기본 문구.
+    $__dl = '8월 12일(수) 23:59';
+    if ($expire !== '') {
+        $__ts = strtotime($expire.' 23:59');
+        if ($__ts) { $__wd = array('일','월','화','수','목','금','토'); $__dl = ((int)date('n',$__ts)).'월 '.((int)date('j',$__ts)).'일('.$__wd[(int)date('w',$__ts)].') 23:59'; }
+    }
+    $earlyLine = '• 원활한 행사 운영을 위해서 '.$b($__dl).'까지 참석 등록을 완료해 주시기 바랍니다. 이후에는 등록이 제한될 수 있습니다.';
+
+    if ($lang !== 'en' && $category === '스피커') {
+        // ── 스피커 무료 초대권 ──
+        $subject = '[언리얼 페스트 서울 2026] 발표자 무료 초대권 제공 안내';
+        $preheader = '언리얼 페스트 서울 2026 발표자 무료 초대권이 발급되었습니다.';
+        $title = '발표자 무료 초대권 제공 안내';
+        $body = '안녕하세요 '.($name!==''?$e($name).' 님':'발표자님').',<br>언리얼 페스트 사무국입니다.<br><br>'
+              . '언리얼 페스트 서울 2026의 발표자로 함께해 주셔서 진심으로 감사드립니다. 발표자분께 감사의 마음을 담아 무료 초대권을 제공해 드립니다.<br><br>'
+              . '<strong class="inter-bold700" style="font-weight:700;">[초대권 사용 안내]</strong><br>'
+              . '• 초대권은 쿠폰 번호 형태로 제공되며, 초대권 전용 등록 페이지를 통해 등록하셔야 합니다.<br>'
+              . $limitBullet.'<br>'
+              . $earlyLine.'<br><br>'
+              . '발표자 무료 초대권 쿠폰 번호:'
+              . $codebox
+              . $contactBlock;
+        $cta = '초대권 등록하기';
+        $textbody = "[언리얼 페스트 서울 2026] 발표자 무료 초대권\n쿠폰 번호: ".$code."\n등록 페이지: ".$link."\n문의: 02-326-3701 / ".$CONTACT_EMAIL;
+    } elseif ($lang !== 'en' && $category === '스폰서') {
+        // ── 스폰서사 무료 초대권 ──
+        $greet = ($name !== '') ? $e($name) : (($company !== '') ? $e($company) : '담당자');
+        $subject = '[언리얼 페스트 서울 2026] 스폰서사 무료 초대권 제공 안내';
+        $preheader = '언리얼 페스트 서울 2026 스폰서 전용 무료 초대권이 발급되었습니다.';
+        $title = '스폰서사 무료 초대권 제공 안내';
+        $body = '안녕하세요 '.$greet.' 님,<br>언리얼 페스트 사무국입니다.<br><br>'
+              . '언리얼 페스트 서울 2026의 성공적인 개최를 위해 함께해 주시는 스폰서분들께 진심으로 감사의 마음을 전하며, 스폰서 전용 무료 초대권을 제공해 드립니다.<br><br>'
+              . $b('[초대권 사용 안내]').'<br>'
+              . '• 초대권은 쿠폰 번호 형태로 제공되며, 초대권 전용 등록 페이지를 통해 등록하셔야 합니다.<br>'
+              . $limitBullet.'<br>'
+              . $earlyLine.'<br><br>'
+              . '스폰서 전용 쿠폰 번호:'
+              . $codebox
+              . $contactBlock;
+        $cta = '초대권 등록하기';
+        $textbody = "[언리얼 페스트 서울 2026] 스폰서사 무료 초대권\n쿠폰 번호: ".$code."\n등록 페이지: ".$link."\n문의: 02-326-3701 / ".$CONTACT_EMAIL;
+    } elseif ($lang !== 'en' && $category === '기타') {
+        // ── 기타(게스트) 무료 초대권 ──
+        $subject = '[언리얼 페스트 서울 2026] 무료 초대권 제공 안내';
+        $preheader = '언리얼 페스트 서울 2026 무료 초대권이 발급되었습니다.';
+        $title = '무료 초대권 제공 안내';
+        $body = '안녕하세요 '.($name!==''?$e($name).' 님':'게스트님').',<br>언리얼 페스트 사무국입니다.<br><br>'
+              . '언리얼 페스트 서울 2026에 귀하를 소중한 게스트로 모시게 되어 기쁩니다. 행사에 참석하실 수 있도록 무료 초대권을 전해드립니다.<br><br>'
+              . $b('[초대권 사용 안내]').'<br>'
+              . '• 초대권은 쿠폰 번호 형태로 제공되며, 초대권 전용 등록 페이지를 통해 등록하셔야 합니다.<br>'
+              . $limitBullet.'<br>'
+              . $earlyLine.'<br><br>'
+              . '무료 초대권 쿠폰 번호:'
+              . $codebox
+              . $contactBlock;
+        $cta = '초대권 등록하기';
+        $textbody = "[언리얼 페스트 서울 2026] 무료 초대권\n쿠폰 번호: ".$code."\n등록 페이지: ".$link."\n문의: 02-326-3701 / ".$CONTACT_EMAIL;
+    } elseif ($lang === 'en') {
         $subject   = '[Unreal Fest Seoul 2026] Registration';
         $preheader = 'A discount coupon for Unreal Fest Seoul 2026 registration has been issued.';
         $title     = 'Unreal Fest Seoul 2026 — Registration';

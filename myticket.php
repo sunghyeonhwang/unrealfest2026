@@ -26,7 +26,7 @@ $L = array(
     'day1track'=>'Day 1 트랙','day2track'=>'Day 2 트랙','tshirt'=>'티셔츠',
     'mkt_agree'=>'광고 수신 동의','agreed'=>'동의','status'=>'상태',
     'st_done'=>'등록 완료','st_wait'=>'입금 대기','st_check'=>'확인 필요',
-    'btn_edit'=>'수정하기','btn_cancel'=>'등록 취소하기',
+    'btn_edit'=>'수정하기','btn_cancel'=>'등록 취소하기','cert_btn'=>'참가확인증 다운로드',
     'title_lookup'=>'등록 확인','sub_lookup'=>'등록 정보를 조회하고 수정 또는 취소할 수 있습니다.',
     'lookup_head'=>'등록 시 사용한 이메일과 연락처를 입력해 주세요.',
     'ph_email'=>'등록 시 사용한 이메일','ph_phone'=>'01012345678','btn_lookup'=>'조회하기',
@@ -62,7 +62,7 @@ $L = array(
     'day1track'=>'Day 1 track','day2track'=>'Day 2 track','tshirt'=>'T-shirt',
     'mkt_agree'=>'Marketing consent','agreed'=>'Agreed','status'=>'Status',
     'st_done'=>'Confirmed','st_wait'=>'Awaiting payment','st_check'=>'Needs review',
-    'btn_edit'=>'Edit','btn_cancel'=>'Cancel registration',
+    'btn_edit'=>'Edit','btn_cancel'=>'Cancel registration','cert_btn'=>'Download certificate',
     'title_lookup'=>'Find my registration','sub_lookup'=>'Look up your registration to edit or cancel it.',
     'lookup_head'=>'Enter the email and phone you used to register.',
     'ph_email'=>'Email used at registration','ph_phone'=>'Phone number','btn_lookup'=>'Look up',
@@ -254,6 +254,11 @@ $refund_dl = $row ? ufs_refund_deadline_ts($row) : 0;
 $refund_blocked = ($refund_dl > 0 && time() > $refund_dl);   // 마감 지남 → 셀프취소 차단(고객센터)
 $refund_note_key = ($row && ufs_refund_is_eb_ticket($row)) ? 'refund_over_note' : 'refund_over_note_reg';  // 얼리버드/정상가 문구 분기
 $qr_jpg = ($row && $is_paid && file_exists(__DIR__."/qrdata/".$row['apply_no'].".jpg")) ? "qrdata/".$row['apply_no'].".jpg" : '';
+// 참가확인증(오프라인만) — 발급 가능일: 8/21권=8/21부터, 그 외(양일·8/20권)=8/20부터. 미리보기 ?certpv=ufscert2026
+$cert_avail_date = ($row && $row['apply_product_code']==='NORMAL_21') ? '2026-08-21' : '2026-08-20';
+$cert_avail_disp = ($cert_avail_date==='2026-08-21') ? array('ko'=>'8월 21일','en'=>'Aug 21') : array('ko'=>'8월 20일','en'=>'Aug 20');
+$cert_preview = (isset($_GET['certpv']) && $_GET['certpv']==='ufscert2026');
+$cert_ok = ($is_paid && (date('Y-m-d') >= $cert_avail_date || $cert_preview));
 // 현재 트랙 분해 (view/edit 공용)
 $cur_d1=''; $cur_d2='';
 if ($row) { foreach (explode(',', $row['apply_track']) as $t) { $t=trim($t); if (strpos($t,'DAY1')===0) $cur_d1=$t; else if (strpos($t,'DAY2')===0) $cur_d2=$t; } }
@@ -463,6 +468,19 @@ $other_lang = ($lang === 'en') ? 'ko' : 'en';
         <div class="flex justify-between gap-4"><span class="text-[#71717a]"><?= e(t('status')) ?></span><span class="font-bold"><?= ((int)$row['apply_pay_status'] === 10) ? e(t('st_done')) : (((int)$row['apply_pay_status'] === 1) ? e(t('st_wait')) : e(t('st_check'))) ?></span></div>
       </div>
     </div>
+
+    <?php if ($cert_ok): ?>
+    <form method="post" action="cert.php<?= $cert_preview ? '?certpv=ufscert2026' : '' ?>" target="_blank" class="mb-4">
+      <input type="hidden" name="email" value="<?= e($row['apply_user_email']) ?>">
+      <input type="hidden" name="phone" value="<?= e($row['apply_user_phone']) ?>">
+      <button type="submit" class="w-full bg-[#111115] border border-[rgba(0,193,213,0.4)] text-white py-3.5 font-bold hover:border-[#00C1D5] transition-all flex items-center justify-center gap-2">
+        <svg class="w-5 h-5 text-[#00C1D5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+        <?= e(t('cert_btn')) ?>
+      </button>
+    </form>
+    <?php elseif ($is_paid): ?>
+    <p class="text-xs text-[#71717a] mb-4 text-center"><?= $lang==='en' ? 'Your certificate of participation will be available from '.e($cert_avail_disp['en']).'.' : '참가확인증은 '.e($cert_avail_disp['ko']).'부터 다운로드하실 수 있습니다.' ?></p>
+    <?php endif; ?>
 
     <div class="flex gap-3 mt-6">
       <form method="post" class="flex-1">

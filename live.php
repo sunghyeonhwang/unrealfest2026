@@ -40,6 +40,7 @@ $__la_manual = (lv_get('live_active') === '1');
 $__ls = lv_get('live_start'); $__le = lv_get('live_end'); $__lnow = date('Y-m-d H:i');
 $live_active = $__la_manual || ($__ls !== '' && $__le !== '' && $__lnow >= $__ls && $__lnow <= $__le);
 $live_notice = lv_get('live_notice');
+$live_ended = (lv_get('live_ended') === '1');   // 관리자 토글: 온라인 라이브 종료(영상·채팅 내리고 종료 안내 표시)
 
 // 관리자 여부(공개측 동일 세션)
 $is_adm = (isset($member['mb_id']) && $member['mb_id']!=='' && (
@@ -302,12 +303,21 @@ a{color:inherit;text-decoration:none}
   <div class="lv-logo">
     <a href="index.php" aria-label="Unreal Fest Seoul 2026"><img class="lv-toplogo" src="white_logo.svg" alt="Unreal Fest Seoul 2026"></a>
   </div>
-  <?php if ($verified): ?>
+  <?php if ($verified && !$live_ended): ?>
   <div class="lv-user"><span><b><?= e($viewer) ?></b>님</span><a class="lv-out" href="live.php?logout=1">로그아웃</a></div>
   <?php endif; ?>
 </header>
 
-<?php if (!$verified): ?>
+<?php if ($live_ended): ?>
+  <div class="lv-gate">
+    <div class="lv-gcard" style="text-align:center">
+      <img class="lv-glogo" src="white_logo.svg" alt="Unreal Fest Seoul 2026" style="margin:0 auto 24px">
+      <h1>온라인 라이브가 종료되었습니다</h1>
+      <p>다시보기는 곧 오픈될 예정입니다.<br>준비되는 대로 안내드리겠습니다.</p>
+      <a href="index.php" style="display:inline-block;margin-top:6px;padding:14px 28px;background:var(--teal);color:#00232a;font-size:15px;font-weight:900;letter-spacing:.01em">홈으로</a>
+    </div>
+  </div>
+<?php elseif (!$verified): ?>
   <div class="lv-gate">
     <div class="lv-gcard">
       <img class="lv-glogo" src="white_logo.svg" alt="Unreal Fest Seoul 2026">

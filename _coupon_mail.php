@@ -72,8 +72,8 @@ function ufs_coupon_mail($row, $lang = 'ko') {
               . $contactBlock;
         $cta = '초대권 등록하기';
         $textbody = "[언리얼 페스트 서울 2026] 스폰서사 무료 초대권\n쿠폰 번호: ".$code."\n등록 페이지: ".$link."\n문의: 02-326-3701 / ".$CONTACT_EMAIL;
-    } elseif ($lang !== 'en' && $category === '기타') {
-        // ── 기타(게스트) 무료 초대권 ──
+    } elseif ($lang !== 'en' && ($category === '기타' || $category === '초대')) {
+        // ── 기타(게스트)·초대 무료 초대권 ──
         $subject = '[언리얼 페스트 서울 2026] 무료 초대권 제공 안내';
         $preheader = '언리얼 페스트 서울 2026 무료 초대권이 발급되었습니다.';
         $title = '무료 초대권 제공 안내';

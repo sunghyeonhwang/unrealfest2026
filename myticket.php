@@ -479,7 +479,7 @@ $other_lang = ($lang === 'en') ? 'ko' : 'en';
       </button>
     </form>
     <?php elseif ($is_paid): ?>
-    <p class="text-xs text-[#71717a] mb-4 text-center"><?= $lang==='en' ? 'Your certificate of participation will be available from '.e($cert_avail_disp['en']).'.' : '참가확인증은 '.e($cert_avail_disp['ko']).'부터 다운로드하실 수 있습니다.' ?></p>
+    <p class="text-xs text-[#71717a] mb-4 text-center"><?= $lang==='en' ? 'Your certificate of participation will be available after the event.' : '참가확인증은 행사 종료 후 다운로드하실 수 있습니다.' ?></p>
     <?php endif; ?>
 
     <div class="flex gap-3 mt-6">

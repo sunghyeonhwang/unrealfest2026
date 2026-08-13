@@ -6,7 +6,16 @@
 include_once "../common.php";
 if (!function_exists('e')) { function e($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); } }
 
-function lv_get($k){ $r=@sql_fetch("SELECT cfg_val FROM cb_unreal_2026_config WHERE cfg_key='".sql_real_escape_string($k)."'"); return $r?$r['cfg_val']:''; }
+// [2026-08-13] config 전체를 요청당 1회만 조회 후 정적 캐시 → 매 로드 개별 SELECT 5~7회를 1회로 감축(동접 대비).
+function lv_get($k){
+    static $C = null;
+    if ($C === null) {
+        $C = array();
+        $r = @sql_query("SELECT cfg_key, cfg_val FROM cb_unreal_2026_config");
+        if ($r) { while ($x = $r->fetch_assoc()) { $C[$x['cfg_key']] = $x['cfg_val']; } }
+    }
+    return isset($C[$k]) ? $C[$k] : '';
+}
 // 라이브 접속 로그 upsert(이메일 기준). 실패해도 로그인 흐름에 영향 없도록 @ 처리.
 function ufs_live_log($row, $day, $trk){
     @sql_query("CREATE TABLE IF NOT EXISTS cb_unreal_2026_event2_apply_live (la_no INT NOT NULL AUTO_INCREMENT, apply_no INT NOT NULL DEFAULT 0, apply_user_email VARCHAR(190) NOT NULL DEFAULT '', apply_user_name VARCHAR(100) NOT NULL DEFAULT '', apply_user_phone VARCHAR(30) NOT NULL DEFAULT '', la_day CHAR(1) NOT NULL DEFAULT '', la_trk CHAR(1) NOT NULL DEFAULT '', la_free CHAR(1) NOT NULL DEFAULT '', first_at DATETIME DEFAULT NULL, last_at DATETIME DEFAULT NULL, hits INT NOT NULL DEFAULT 0, la_ip VARCHAR(45) NOT NULL DEFAULT '', d1_at DATETIME DEFAULT NULL, d2_at DATETIME DEFAULT NULL, win_yn CHAR(1) NOT NULL DEFAULT 'N', win_at DATETIME DEFAULT NULL, PRIMARY KEY (la_no), UNIQUE KEY uq_email (apply_user_email)) DEFAULT CHARSET=utf8");

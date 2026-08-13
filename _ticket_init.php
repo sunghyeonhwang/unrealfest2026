@@ -9,12 +9,28 @@ require __DIR__ . '/_assets.php';
 include_once "../common.php";
 
 // 트랙 잔여 (오프라인 정원 — 온라인은 무제한)
+// [2026-08-13] 표시용 잔여석 60초 파일캐시. 매 로드마다 등록테이블을 트랙 수만큼
+//   COUNT(LIKE '%..%')로 풀스캔하던 부하 제거(마감 스파이크·동접 대비). 파일쓰기 불가 시 즉시 실시간 계산으로 폴백(무회귀).
+//   ⚠️ 정원 초과 방지 자체는 apply_pay.php 등록확정 시점의 실시간 COUNT가 담당 → 표시 지연(≤60s)은 안전.
 $trackRemain = array();
-$_tk = sql_query("SELECT name,date1 FROM 2026_event_ticket");
-if ($_tk) { while ($x = $_tk->fetch_assoc()) {
-    $reg = sql_fetch("SELECT count(*) c FROM cb_unreal_2026_event2_apply WHERE apply_temp_yn='N' AND apply_pay_status<>0 AND apply_track LIKE '%".sql_real_escape_string($x['name'])."%'");
-    $trackRemain[$x['name']] = (int)$x['date1'] - ($reg ? (int)$reg['c'] : 0);
-}}
+$__trk_cache = sys_get_temp_dir() . '/ufs2026_trackremain.json';
+$__trk_ttl   = 60;
+$__trk_hit   = false;
+$__trk_raw = @file_get_contents($__trk_cache);
+if ($__trk_raw !== false) {
+    $__trk_j = json_decode($__trk_raw, true);
+    if (is_array($__trk_j) && isset($__trk_j['t'], $__trk_j['d']) && is_array($__trk_j['d']) && (time() - (int)$__trk_j['t'] < $__trk_ttl)) {
+        $trackRemain = $__trk_j['d']; $__trk_hit = true;
+    }
+}
+if (!$__trk_hit) {
+    $_tk = sql_query("SELECT name,date1 FROM 2026_event_ticket");
+    if ($_tk) { while ($x = $_tk->fetch_assoc()) {
+        $reg = sql_fetch("SELECT count(*) c FROM cb_unreal_2026_event2_apply WHERE apply_temp_yn='N' AND apply_pay_status<>0 AND apply_track LIKE '%".sql_real_escape_string($x['name'])."%'");
+        $trackRemain[$x['name']] = (int)$x['date1'] - ($reg ? (int)$reg['c'] : 0);
+    }}
+    @file_put_contents($__trk_cache, json_encode(array('t'=>time(), 'd'=>$trackRemain)), LOCK_EX);
+}
 
 // 본인인증 결과(세션) — ../common.php 연동 시 채워짐. 미연동 환경 폴백.
 $sess_ci   = isset($_SESSION['CI']) ? $_SESSION['CI'] : '';

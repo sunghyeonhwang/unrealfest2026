@@ -180,10 +180,14 @@ function ufs_group_member_cancel($apply_no, $admin_manual = false) {
 
     if ($auto) {
         require_once __DIR__ . '/_refund.php';
-        if ($remain <= 0) {
-            // 마지막 남은 인원 → 잔액 전액취소(부분취소 confirmPrice=0 회피)
+        // 이미 부분취소 이력이 있으면(refunded_amount>0) 전액취소(type=Refund)는 INICIS가 거부('부분취소 원거래 취소불가').
+        // → 마지막 인원도 부분취소(잔액 price, confirmPrice=$remain=0)로 호출. 부분취소 이력이 전혀 없을 때만 전액취소.
+        $__had_partial = ((int)$r['refunded_amount'] > 0);
+        if ($remain <= 0 && !$__had_partial) {
+            // 부분취소 이력 없음(단일 구성원 or 최초 취소가 곧 전체) → 전체취소
             $rf = ufs_inicis_refund($tid, 'Card', '단체 마지막 구성원 취소', $apply_no);
         } else {
+            // 부분취소 이력 있는 마지막 인원(confirmPrice=0) 또는 중간 인원 → 부분취소
             $rf = ufs_inicis_partial_refund($tid, 'Card', $price, $remain, '단체 구성원 취소', $apply_no);
         }
         // 성공(ok) 또는 이미취소(already) 아니면 실패 → 락 원복 후 중단

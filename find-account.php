@@ -140,7 +140,7 @@ a{color:inherit;text-decoration:none}
         <?php endif; ?>
         <button type="submit">찾기</button>
       </form>
-      <p class="fa-note">등록 정보가 조회되지 않으면 사무국으로 문의해 주세요.<br>02-326-3701 · info@epiclounge.co.kr</p>
+      <p class="fa-note">등록 정보가 조회되지 않으면 사무국으로 문의해 주세요.<br>info@epiclounge.co.kr</p>
     <?php endif; ?>
   </div>
 </div>

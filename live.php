@@ -347,7 +347,7 @@ a{color:inherit;text-decoration:none}
         <button type="submit">입장하기 →</button>
       </form>
       <p style="text-align:center;margin:14px 0 0"><a href="find-account.php" style="font-size:13px;color:var(--teal);font-weight:700;border-bottom:1px solid rgba(0,193,213,.4);padding-bottom:1px">이메일·전화번호가 기억나지 않으세요? 등록정보 찾기</a></p>
-      <p style="font-size:12px;color:#6b6b76;margin:16px 0 0;line-height:1.7">등록 확인이 안 되면 사무국으로 문의해 주세요.<br>02-326-3701 · info@epiclounge.co.kr</p>
+      <p style="font-size:12px;color:#6b6b76;margin:16px 0 0;line-height:1.7">등록 확인이 안 되면 사무국으로 문의해 주세요.<br>info@epiclounge.co.kr</p>
     </div>
   </div>
 <?php else: ?>

@@ -8,16 +8,8 @@ require_once __DIR__ . '/data/lib.php';
 require_once __DIR__ . '/data/agenda_db.php';
 require_once __DIR__ . '/data/agenda_grid.php';   // 그리드(타임테이블) 렌더 — 랜딩 아젠다
 require_once __DIR__ . '/_pricing.php';   // 가격 단일 소스(얼리버드/정가 자동)
-// 트랙 마감 임박(판촉): 정원 설정된 트랙 중 잔여 10석 이하가 하나라도 있으면 true
-$ufs_track_nearfull = false;
-if (function_exists('sql_query')) {
-  $__tr = @sql_query("SELECT name, date1 FROM 2026_event_ticket WHERE date1 > 0");
-  if ($__tr) { while ($__t = $__tr->fetch_assoc()) {
-    $__reg = @sql_fetch("SELECT count(*) c FROM cb_unreal_2026_event2_apply WHERE apply_temp_yn='N' AND apply_pay_status<>0 AND apply_track LIKE '%".sql_real_escape_string($__t['name'])."%'");
-    $__rem = (int)$__t['date1'] - ($__reg ? (int)$__reg['c'] : 0);
-    if ($__rem > 0 && $__rem <= 10) { $ufs_track_nearfull = true; break; }
-  }}
-}
+// [2026-08-13] '인기 트랙 마감 임박' 배지 제거. 이 배지 하나를 위해 매 홈 로드마다
+// 등록 테이블(cb_unreal_2026_event2_apply) 풀스캔 COUNT(LIKE)를 티켓 수만큼 돌아 원본 부하가 컸음 → 삭제.
 include __DIR__ . '/_head.php';
 ?>
 
@@ -251,7 +243,7 @@ $ov_icons = array(
         <h3 class="text-[38px] text-white mt-[18px] mb-[26px] leading-[46px] font-jamjil font-medium">오프라인 양일권</h3>
         <?php if (ufs_is_earlybird()): ?><div class="mb-1"><span class="text-[18px] text-[#71717a] line-through tracking-tight">₩ <?= number_format(ufs_ticket_orig('NORMAL_ALL')) ?></span></div><?php endif; ?>
         <div class="mb-2"><span class="text-[40px] font-bold text-white tracking-tight">₩ <?= number_format(ufs_ticket_price('NORMAL_ALL')) ?></span></div>
-        <?php if (ufs_is_earlybird()): ?><p class="text-[13px] text-[#9adbe8] mb-auto"><?= e(ufs_promo_card_note()) ?></p><?php elseif ($ufs_track_nearfull): ?><p class="text-[13px] text-[#ffb4a2] font-bold mb-auto">인기 트랙 마감 임박</p><?php else: ?><div class="mb-auto"></div><?php endif; ?>
+        <?php if (ufs_is_earlybird()): ?><p class="text-[13px] text-[#9adbe8] mb-auto"><?= e(ufs_promo_card_note()) ?></p><?php else: ?><div class="mb-auto"></div><?php endif; ?>
         <div class="flex items-baseline justify-center gap-1 mt-2 text-[#9adbe8]" data-ev-cd data-deadline="2026-08-20T00:00:00+09:00">
           <span class="ufs-cd-num text-lg font-bold" data-cd-days>00</span><span class="text-[10px] text-[#71717a] mr-1">일</span>
           <span class="ufs-cd-num text-lg font-bold" data-cd-hours>00</span><span class="text-[#3f3f46]">:</span>
@@ -269,7 +261,7 @@ $ov_icons = array(
         <h3 class="text-[38px] text-white mt-[18px] mb-[26px] leading-[46px] font-jamjil font-medium">오프라인 1일권</h3>
         <?php if (ufs_is_earlybird()): ?><div class="mb-1"><span class="text-[18px] text-[#71717a] line-through tracking-tight">₩ <?= number_format(ufs_ticket_orig('NORMAL_20')) ?></span></div><?php endif; ?>
         <div class="mb-2"><span class="text-[40px] font-bold text-white tracking-tight">₩ <?= number_format(ufs_ticket_price('NORMAL_20')) ?></span></div>
-        <?php if (ufs_is_earlybird()): ?><p class="text-[13px] text-[#9adbe8] mb-auto"><?= e(ufs_promo_card_note()) ?></p><?php elseif ($ufs_track_nearfull): ?><p class="text-[13px] text-[#ffb4a2] font-bold mb-auto">인기 트랙 마감 임박</p><?php else: ?><div class="mb-auto"></div><?php endif; ?>
+        <?php if (ufs_is_earlybird()): ?><p class="text-[13px] text-[#9adbe8] mb-auto"><?= e(ufs_promo_card_note()) ?></p><?php else: ?><div class="mb-auto"></div><?php endif; ?>
         <div class="flex items-baseline justify-center gap-1 mt-2 text-[#9adbe8]" data-ev-cd data-deadline="2026-08-20T00:00:00+09:00">
           <span class="ufs-cd-num text-lg font-bold" data-cd-days>00</span><span class="text-[10px] text-[#71717a] mr-1">일</span>
           <span class="ufs-cd-num text-lg font-bold" data-cd-hours>00</span><span class="text-[#3f3f46]">:</span>

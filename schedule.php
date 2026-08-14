@@ -10,6 +10,7 @@ require_once __DIR__ . '/data/lib.php';
 require_once __DIR__ . '/data/agenda_db.php';
 require_once __DIR__ . '/_pricing.php';   // ufs_is_preview() — 프리뷰 시 가림 세션 실내용 렌더
 require_once __DIR__ . '/data/no_online.php';   // 온라인 중계 제외 배지/리본(리스트+그리드 공용 단일소스)
+require_once __DIR__ . '/_edge_cache.php'; ufs_edge_cache(300, 60);   // 엣지 캐시(비개인화 공개 페이지) — 프리뷰/관리자/POST 는 자동 제외
 
 // 시간 슬롯을 등장(=ag_sort 정렬) 순서대로, 중복 제거하여 수집
 function ufs_s_sched_slots($sessions) {

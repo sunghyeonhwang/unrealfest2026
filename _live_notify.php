@@ -121,101 +121,143 @@ function ufs_ln_cfg($k, $def = '') {
 }
 }
 
-/* ── 발송 어댑터 ───────────────────────────────────────────────
- * ufs_ln_send_one($row, $day, $channel) → array(ok=>bool, channel=>'', msg=>'')
- *
- * 알림톡(DirectSend): 아래 설정이 모두 채워져야 시도한다. 하나라도 비면 곧바로 SMS 대체.
- *   live_notify_at_url        발송 API 엔드포인트 (DirectSend 알림톡 API URL)
- *   live_notify_at_senderkey  발신프로필 키(senderKey)
- *   live_notify_at_tpl_d1/d2  승인된 템플릿 코드
- * ⚠️ DirectSend 알림톡 API 파라미터명은 계정/버전마다 다를 수 있어 실제 규격 확인 후
- *    아래 $post 매핑을 맞춰야 한다. 실패하면 자동으로 SMS 로 대체되므로 발송 누락은 없다. */
-if (!function_exists('ufs_ln_send_alimtalk')) {
-function ufs_ln_send_alimtalk($name, $phone, $day) {
-    $url = ufs_ln_cfg('live_notify_at_url');
-    $sk  = ufs_ln_cfg('live_notify_at_senderkey');
-    $tpl = ufs_ln_cfg('live_notify_at_tpl_d' . (($day === '2') ? '2' : '1'));
-    if ($url === '' || $sk === '' || $tpl === '' || !function_exists('curl_init')) {
+/* ── 알림톡 발송 (DirectSend api_v2/kakao_notice) ───────────────────────────
+ * ★ 배치 전체를 receiver 배열에 담아 API 1회 호출 → 60명 발송에 호출 1회.
+ *   (DirectSend 제한: 분당 300 호출. 1인 1호출이면 60호출/분이라 낭비 + 느림)
+ * ★ 대체발송은 DirectSend 내장 기능 사용: kakao_faild_type=2(LMS) + message/title/sender.
+ *   알림톡이 안 가는 수신자에게 자동으로 LMS 가 나가므로 누락이 없다.
+ * 설정(관리자): live_notify_at_plusid(발신프로필 @아이디) · live_notify_at_tpl_d1|d2(템플릿 번호)
+ * 응답: {"status":"1"} = 정상. 그 외는 실패 코드(302 인증, 305 프로필키, 306 잔액 등). */
+if (!function_exists('ufs_ln_send_alimtalk_batch')) {
+function ufs_ln_send_alimtalk_batch($rows, $day) {
+    $d      = ($day === '2') ? '2' : '1';
+    $plusid = ufs_ln_cfg('live_notify_at_plusid');
+    $tpl    = ufs_ln_cfg('live_notify_at_tpl_d' . $d);
+    if ($plusid === '' || $tpl === '' || !function_exists('curl_init') || !count($rows)) {
         return array('ok' => false, 'msg' => 'alimtalk_not_configured');
     }
-    require_once __DIR__ . '/_sms.php';   // DirectSend 계정 상수 재사용
-    $phone = ufs_normalize_phone($phone);
-    if ($phone === '') return array('ok' => false, 'msg' => 'bad_phone');
+    require_once __DIR__ . '/_sms.php';   // DirectSend 계정 상수·헬퍼 재사용
+
+    $rcv = array();
+    foreach ($rows as $r) {
+        $p = ufs_normalize_phone($r['ph']);
+        if ($p === '') continue;
+        $rcv[] = '{"name":"' . ufs_sms_json_escape($r['nm']) . '","mobile":"' . $p . '"}';
+    }
+    if (!count($rcv)) return array('ok' => false, 'msg' => 'no_valid_phone');
 
     $post = array(
-        'username'      => UFS_SMS_USERNAME,
-        'key'           => UFS_SMS_KEY,
-        'sender_key'    => $sk,
-        'template_code' => $tpl,
-        'message_type'  => 'AT',
-        'sender'        => UFS_SMS_SENDER,
-        'receiver'      => '[{"name":"' . ufs_sms_json_escape($name) . '","mobile":"' . $phone . '"}]',
-        'message'       => ufs_ln_template_body($day),
-        'fall_back_yn'  => 'N',          // 대체발송은 우리 코드가 직접 처리(로그 일관성)
+        'username'         => UFS_SMS_USERNAME,
+        'key'              => UFS_SMS_KEY,
+        'kakao_plus_id'    => $plusid,
+        'user_template_no' => $tpl,
+        'receiver'         => '[' . implode(',', $rcv) . ']',
+        // 알림톡 미수신자 자동 대체발송(LMS)
+        'kakao_faild_type' => '2',
+        'sender'           => UFS_SMS_SENDER,
+        'title'            => '언리얼 페스트 서울 2026 온라인 시청 안내',
+        'message'          => ufs_ln_message('', $d),
     );
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_URL, 'https://directsend.co.kr/index.php/api_v2/kakao_notice');
     curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($post));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8', 'cache-control: no-cache'));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
     $send = 'curl_' . 'exec';
     $resp = $send($ch);
     $err  = curl_errno($ch);
     curl_close($ch);
+
     if (function_exists('sql_query')) {
-        @sql_query("insert into 2025_event_log(log_idx,log_text,rdate) values('0','[ALIMTALK d" . (($day==='2')?'2':'1') . "] "
+        @sql_query("insert into 2025_event_log(log_idx,log_text,rdate) values('0','[ALIMTALK d" . $d . " n=" . count($rcv) . "] "
             . str_replace("'", "`", $err ? ('CURL_ERR ' . $err) : substr((string)$resp, 0, 400)) . "',now())");
     }
     if ($err) return array('ok' => false, 'msg' => 'curl_err_' . $err);
-    $ok = (strpos((string)$resp, '"status":"0"') !== false) || (strpos((string)$resp, '"code":"0"') !== false)
-       || (stripos((string)$resp, 'success') !== false);
-    return array('ok' => $ok, 'msg' => $ok ? 'ok' : substr((string)$resp, 0, 150));
+    $ok = (strpos((string)$resp, '"status":"1"') !== false);   // DirectSend 알림톡: 1 = 정상
+    return array('ok' => $ok, 'msg' => substr((string)$resp, 0, 180));
 }
 }
 
-if (!function_exists('ufs_ln_send_one')) {
-function ufs_ln_send_one($row, $day, $prefer = 'alimtalk') {
-    $name  = (string)$row['nm'];
-    $phone = (string)$row['ph'];
-
-    if ($prefer === 'alimtalk') {
-        $r = ufs_ln_send_alimtalk($name, $phone, $day);
-        if (!empty($r['ok'])) return array('ok' => true, 'channel' => 'alimtalk', 'msg' => 'ok');
-        // 알림톡 실패 → SMS 대체
-    }
+/* SMS 개별 발송(알림톡 API 자체가 실패했을 때의 최종 폴백) */
+if (!function_exists('ufs_ln_send_sms_one')) {
+function ufs_ln_send_sms_one($row, $day) {
     require_once __DIR__ . '/_sms.php';
-    $resp = ufs_send_text_sms($name, $phone, '언리얼 페스트 서울 2026 온라인 라이브 안내', ufs_ln_message($name, $day), 'live_notify');
+    $resp = ufs_send_text_sms($row['nm'], $row['ph'], '언리얼 페스트 서울 2026 온라인 시청 안내', ufs_ln_message($row['nm'], $day), 'live_notify');
     $st = ufs_sms_ok($resp);
-    if ($st === null) return array('ok' => true,  'channel' => 'sms', 'msg' => 'test_mode');
-    if ($st === true) return array('ok' => true,  'channel' => 'sms', 'msg' => 'ok');
-    return array('ok' => false, 'channel' => 'sms', 'msg' => substr((string)$resp, 0, 200));
+    if ($st === null) return array('ok' => true, 'msg' => 'test_mode');
+    if ($st === true) return array('ok' => true, 'msg' => 'ok');
+    return array('ok' => false, 'msg' => substr((string)$resp, 0, 180));
 }
 }
 
-/* 배치 실행: 대상 N명에게 발송하고 기록.
+/* 테스트 발송 — 지정한 번호로 1건만. 실제 등록자 대상이 아니며 발송 기록도 남기지 않는다.
+ * (행사 전 알림톡 도착·링크버튼·문구 확인용) */
+if (!function_exists('ufs_ln_test_send')) {
+function ufs_ln_test_send($phone, $name, $day, $channel = 'alimtalk') {
+    $d = ($day === '2') ? '2' : '1';
+    $row = array('nm' => ($name !== '' ? $name : '테스트'), 'ph' => $phone);
+    if ($channel === 'alimtalk') {
+        $r = ufs_ln_send_alimtalk_batch(array($row), $d);
+        if (!empty($r['ok'])) return array('ok' => true, 'channel' => 'alimtalk', 'msg' => $r['msg']);
+        $s = ufs_ln_send_sms_one($row, $d);
+        return array('ok' => !empty($s['ok']), 'channel' => 'sms(폴백)', 'msg' => '알림톡 실패: ' . $r['msg'] . ' / SMS: ' . $s['msg']);
+    }
+    $s = ufs_ln_send_sms_one($row, $d);
+    return array('ok' => !empty($s['ok']), 'channel' => 'sms', 'msg' => $s['msg']);
+}
+}
+
+/* 배치 실행: 대상 N명 선점 → 알림톡 1회 호출(대체발송 포함) → 결과 기록.
  *  $dry=true 면 실제 발송 없이 대상만 반환(검증용). */
 if (!function_exists('ufs_ln_run_batch')) {
 function ufs_ln_run_batch($day, $limit, $dry = true, $prefer = 'alimtalk') {
     ufs_ln_table();
     $d = ($day === '2' || $day === 2) ? '2' : '1';
     $targets = ufs_ln_targets($d, $limit);
-    $res = array('day' => $d, 'picked' => count($targets), 'sent' => 0, 'fail' => 0, 'dry' => $dry, 'rows' => array());
+    $res = array('day' => $d, 'picked' => count($targets), 'sent' => 0, 'fail' => 0, 'dry' => $dry, 'rows' => array(), 'detail' => '');
+    if ($dry) {
+        foreach ($targets as $t) $res['rows'][] = array($t['apply_no'], $t['nm'], substr($t['ph'], -4));
+        $res['remaining'] = ufs_ln_remaining($d);
+        return $res;
+    }
+
+    // 1) 선점 INSERT — UNIQUE(apply_no, ln_day) 로 동시 실행·재호출 시 중복 발송 차단
+    $claimed = array();
     foreach ($targets as $t) {
-        if ($dry) { $res['rows'][] = array($t['apply_no'], $t['nm'], substr($t['ph'], -4)); continue; }
-        // 선점 INSERT — UNIQUE 제약으로 동시 실행/재호출 시 중복 발송 차단
-        $ok_claim = @sql_query("INSERT INTO cb_unreal_2026_live_notify (apply_no, ln_day, ln_name, ln_phone, ln_status, ln_at)
+        $ok = @sql_query("INSERT INTO cb_unreal_2026_live_notify (apply_no, ln_day, ln_name, ln_phone, ln_status, ln_at)
             VALUES (" . (int)$t['apply_no'] . ", '$d', '" . sql_real_escape_string($t['nm']) . "', '" . sql_real_escape_string($t['ph']) . "', 'P', now())");
-        if (!$ok_claim) { continue; }   // 이미 다른 배치가 가져감
-        $r = ufs_ln_send_one($t, $d, $prefer);
-        $st = !empty($r['ok']) ? 'S' : 'F';
+        if ($ok) $claimed[] = $t;
+    }
+    if (!count($claimed)) { $res['remaining'] = ufs_ln_remaining($d); return $res; }
+
+    // 2) 발송
+    $ids = array(); foreach ($claimed as $c) $ids[] = (int)$c['apply_no'];
+    $in  = implode(',', $ids);
+    if ($prefer === 'alimtalk') {
+        $r = ufs_ln_send_alimtalk_batch($claimed, $d);
+        if (!empty($r['ok'])) {
+            $res['sent'] = count($claimed); $res['detail'] = 'alimtalk';
+            @sql_query("UPDATE cb_unreal_2026_live_notify SET ln_status='S', ln_channel='alimtalk',
+                        ln_result='" . sql_real_escape_string($r['msg']) . "', ln_at=now()
+                        WHERE ln_day='$d' AND apply_no IN ($in)");
+            $res['remaining'] = ufs_ln_remaining($d);
+            return $res;
+        }
+        $res['detail'] = 'alimtalk 실패(' . $r['msg'] . ') → SMS 대체';
+    }
+    // 3) 알림톡 API 자체 실패 → 개별 SMS 폴백
+    foreach ($claimed as $c) {
+        $s = ufs_ln_send_sms_one($c, $d);
+        $st = !empty($s['ok']) ? 'S' : 'F';
         if ($st === 'S') $res['sent']++; else $res['fail']++;
-        @sql_query("UPDATE cb_unreal_2026_live_notify SET ln_status='$st', ln_channel='" . sql_real_escape_string($r['channel']) . "',
-                    ln_result='" . sql_real_escape_string($r['msg']) . "', ln_at=now()
-                    WHERE apply_no=" . (int)$t['apply_no'] . " AND ln_day='$d'");
+        @sql_query("UPDATE cb_unreal_2026_live_notify SET ln_status='$st', ln_channel='sms',
+                    ln_result='" . sql_real_escape_string($s['msg']) . "', ln_at=now()
+                    WHERE ln_day='$d' AND apply_no=" . (int)$c['apply_no']);
     }
     $res['remaining'] = ufs_ln_remaining($d);
     return $res;

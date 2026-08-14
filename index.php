@@ -10,6 +10,24 @@ require_once __DIR__ . '/data/agenda_grid.php';   // 그리드(타임테이블) 
 require_once __DIR__ . '/_pricing.php';   // 가격 단일 소스(얼리버드/정가 자동)
 // [2026-08-13] '인기 트랙 마감 임박' 배지 제거. 이 배지 하나를 위해 매 홈 로드마다
 // 등록 테이블(cb_unreal_2026_event2_apply) 풀스캔 COUNT(LIKE)를 티켓 수만큼 돌아 원본 부하가 컸음 → 삭제.
+
+// [2026-08-14] 라이브 배너 노출기간(관리자 설정 Day1/Day2 2구간) — config 1회 조회.
+//   표시 여부 판정은 서버가 아니라 브라우저가 하므로(아래 data-ranges + JS) 페이지를 엣지 캐시해도 전환 시각이 정확하다.
+$__branges = array();
+$__bq = @sql_query("SELECT cfg_key,cfg_val FROM cb_unreal_2026_config WHERE cfg_key LIKE 'live_banner_%'");
+if ($__bq) {
+    $__bcfg = array();
+    while ($__br = $__bq->fetch_assoc()) { $__bcfg[$__br['cfg_key']] = $__br['cfg_val']; }
+    foreach (array('d1','d2') as $__bd) {
+        $__s = isset($__bcfg['live_banner_'.$__bd.'_start']) ? $__bcfg['live_banner_'.$__bd.'_start'] : '';
+        $__e = isset($__bcfg['live_banner_'.$__bd.'_end'])   ? $__bcfg['live_banner_'.$__bd.'_end']   : '';
+        if ($__s !== '' && $__e !== '') {
+            $__branges[] = array(str_replace(' ', 'T', $__s) . ':00+09:00', str_replace(' ', 'T', $__e) . ':00+09:00');
+        }
+    }
+}
+
+require_once __DIR__ . '/_edge_cache.php'; ufs_edge_cache(300, 60);   // 엣지 캐시(비개인화 공개 페이지) — 프리뷰/관리자/POST 자동 제외
 include __DIR__ . '/_head.php';
 ?>
 
@@ -77,15 +95,32 @@ include __DIR__ . '/_head.php';
     <!-- 연장(전체 세션 공개 기념) 프로모 문구 — 자정 전에는 노출 안 됨. 날짜/장소는 로고 이미지에 포함. -->
     <p class="text-[#00C1D5] font-bold text-base md:text-lg -mt-4 mb-6 tracking-tight"><?= e(ufs_promo_hero_line()) ?></p>
     <?php endif; ?>
-    <?php /* 행사기간(8/20~21) 온라인 라이브 자동 배너 · ?livebanner=1 로 미리보기 */
-      $__ld = date('Y-m-d'); if (($__ld >= '2026-08-20' && $__ld <= '2026-08-21') || isset($_GET['livebanner'])): ?>
-    <a href="live.php" class="flex items-center gap-3 mb-8 px-6 py-4 font-bold text-lg text-white transition-all hover:opacity-90" style="background:linear-gradient(90deg,rgba(239,68,68,.95),rgba(0,193,213,.95));box-shadow:0 8px 30px rgba(239,68,68,.25)">
+    <?php /* 온라인 라이브 배너 — 노출기간(관리자 Day1/Day2 설정)을 data-ranges 로 심고 표시 여부는 브라우저가 실시간 판단.
+             페이지가 엣지 캐시돼도 ON/OFF 전환은 초 단위로 정확하다. ?livebanner=1 로 강제 미리보기. */ ?>
+    <a href="live.php" id="ufsLiveBanner" data-ranges="<?= e(json_encode($__branges)) ?>" class="flex items-center gap-3 mb-8 px-6 py-4 font-bold text-lg text-white transition-all hover:opacity-90" style="display:none;background:linear-gradient(90deg,rgba(239,68,68,.95),rgba(0,193,213,.95));box-shadow:0 8px 30px rgba(239,68,68,.25)">
       <span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#fff;animation:ufsLiveBlink 1.2s infinite"></span>
       지금 온라인 라이브 진행 중 — 시청하기
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
     </a>
     <style>@keyframes ufsLiveBlink{50%{opacity:.25}}</style>
-    <?php endif; ?>
+    <script>
+    /* 라이브 배너 ON/OFF — 브라우저 현재 시각으로 판단(페이지 캐시와 무관하게 정확).
+       구간은 관리자 설정(Day1/Day2)에서 온 data-ranges. 30초마다 재판단해 열어둔 탭도 자동 전환. */
+    (function(){
+      var b=document.getElementById('ufsLiveBanner'); if(!b) return;
+      var rs=[]; try{ rs=JSON.parse(b.getAttribute('data-ranges')||'[]')||[]; }catch(e){ rs=[]; }
+      var force=(location.search.indexOf('livebanner')>=0);
+      function upd(){
+        var on=force, now=Date.now();
+        for(var i=0;i<rs.length && !on;i++){
+          var s=Date.parse(rs[i][0]), t=Date.parse(rs[i][1]);
+          if(!isNaN(s)&&!isNaN(t)&&now>=s&&now<=t) on=true;
+        }
+        b.style.display = on ? '' : 'none';
+      }
+      upd(); setInterval(upd, 30000);
+    })();
+    </script>
     <div class="flex flex-col sm:flex-row items-start gap-4 mb-10">
       <button type="button" data-scroll="register" class="bg-[#00C1D5] hover:bg-[#004F59] text-white px-8 py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-lg clip-btn">
         지금 등록하기

@@ -97,10 +97,27 @@ include __DIR__ . '/_head.php';
     <?php endif; ?>
     <?php /* 온라인 라이브 배너 — 노출기간(관리자 Day1/Day2 설정)을 data-ranges 로 심고 표시 여부는 브라우저가 실시간 판단.
              페이지가 엣지 캐시돼도 ON/OFF 전환은 초 단위로 정확하다. ?livebanner=1 로 강제 미리보기. */ ?>
-    <a href="live.php" target="_blank" rel="noopener" id="ufsLiveBanner" data-ranges="<?= e(json_encode($__branges)) ?>" class="inline-flex items-center justify-center gap-2 mb-8 px-7 py-4 font-bold text-lg text-white transition-all hover:opacity-90" style="display:none;min-width:min(400px,86vw);background:linear-gradient(90deg,rgba(239,68,68,.95),rgba(0,193,213,.95));box-shadow:0 8px 30px rgba(239,68,68,.25)">
+    <a href="live.php" target="_blank" rel="noopener" id="ufsLiveBanner" data-ranges="<?= e(json_encode($__branges)) ?>" class="inline-flex items-center justify-center gap-2 mb-8 px-7 py-4 font-bold text-lg text-white" style="display:none;min-width:min(400px,86vw);background:linear-gradient(90deg,rgba(239,68,68,.95),rgba(0,193,213,.95));box-shadow:0 8px 30px rgba(239,68,68,.25)">
       시청하기
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
     </a>
+    <style>
+    /* 배너 hover — 살짝 떠오르며 밝아지고 화살표가 밀려나간다. 클릭 시 눌리는 느낌. */
+    #ufsLiveBanner{position:relative;overflow:hidden;transition:transform .18s cubic-bezier(.2,.8,.3,1),box-shadow .18s ease,filter .18s ease}
+    #ufsLiveBanner svg{transition:transform .18s cubic-bezier(.2,.8,.3,1)}
+    #ufsLiveBanner::after{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;pointer-events:none;
+      background:linear-gradient(100deg,transparent,rgba(255,255,255,.32),transparent);transform:skewX(-18deg);transition:left .45s ease}
+    #ufsLiveBanner:hover{transform:translateY(-3px);filter:brightness(1.08);box-shadow:0 16px 42px rgba(239,68,68,.45)}
+    #ufsLiveBanner:hover svg{transform:translateX(6px)}
+    #ufsLiveBanner:hover::after{left:120%}
+    #ufsLiveBanner:active{transform:translateY(-1px);box-shadow:0 8px 24px rgba(239,68,68,.4)}
+    #ufsLiveBanner:focus-visible{outline:3px solid #fff;outline-offset:3px}
+    @media (prefers-reduced-motion:reduce){
+      #ufsLiveBanner,#ufsLiveBanner svg,#ufsLiveBanner::after{transition:none}
+      #ufsLiveBanner:hover{transform:none}
+      #ufsLiveBanner:hover svg{transform:none}
+    }
+    </style>
     <script>
     /* 라이브 배너 ON/OFF — 브라우저 현재 시각으로 판단(페이지 캐시와 무관하게 정확).
        구간은 관리자 설정(Day1/Day2)에서 온 data-ranges. 30초마다 재판단해 열어둔 탭도 자동 전환. */

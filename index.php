@@ -97,7 +97,7 @@ include __DIR__ . '/_head.php';
     <?php endif; ?>
     <?php /* 온라인 라이브 배너 — 노출기간(관리자 Day1/Day2 설정)을 data-ranges 로 심고 표시 여부는 브라우저가 실시간 판단.
              페이지가 엣지 캐시돼도 ON/OFF 전환은 초 단위로 정확하다. ?livebanner=1 로 강제 미리보기. */ ?>
-    <a href="live.php" id="ufsLiveBanner" data-ranges="<?= e(json_encode($__branges)) ?>" class="inline-flex items-center gap-2 mb-8 px-7 py-4 font-bold text-lg text-white transition-all hover:opacity-90" style="display:none;background:linear-gradient(90deg,rgba(239,68,68,.95),rgba(0,193,213,.95));box-shadow:0 8px 30px rgba(239,68,68,.25)">
+    <a href="live.php" target="_blank" rel="noopener" id="ufsLiveBanner" data-ranges="<?= e(json_encode($__branges)) ?>" class="inline-flex items-center justify-center gap-2 mb-8 px-7 py-4 font-bold text-lg text-white transition-all hover:opacity-90" style="display:none;min-width:min(400px,86vw);background:linear-gradient(90deg,rgba(239,68,68,.95),rgba(0,193,213,.95));box-shadow:0 8px 30px rgba(239,68,68,.25)">
       시청하기
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
     </a>

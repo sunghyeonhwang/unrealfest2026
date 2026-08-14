@@ -1,46 +1,9 @@
-@font-face {
-	font-family: 'InterTight';
-	src: url('font/InterTight-Light.woff2') format('woff2'),
-		url('font/InterTight-Light.woff') format('woff');
-	font-weight: 200;
-	font-style: normal;
-	font-display: swap;
-	/* 추가 */
-}
-
-@font-face {
-	font-family: 'InterTight';
-	src: url('font/InterTight-Medium.woff2') format('woff2'),
-		url('font/InterTight-Medium.woff') format('woff');
-	font-weight: normal;
-	font-style: normal;
-	font-display: swap;
-	/* 추가 */
-}
-
-@font-face {
-	font-family: 'InterTight';
-	src: url('font/InterTight-SemiBold.woff2') format('woff2'),
-		url('font/InterTight-SemiBold.woff') format('woff');
-	font-weight: 600;
-	font-style: normal;
-	font-display: swap;
-	/* 추가 */
-}
-
-@font-face {
-	font-family: 'InterTight';
-	src: url('font/InterTight-Black.woff2') format('woff2'),
-		url('font/InterTight-Black.woff') format('woff');
-	font-weight: bold;
-	font-style: normal;
-	font-display: swap;
-	/* 추가 */
-}
-
-
-
-
+/* [2026-08-14] 폰트 정리
+ *  - Freesentation: 로컬 파일(font/*.woff2) 전부 404 → jsDelivr CDN 으로 교체, font-display:swap 보장
+ *  - InterTight   : 로컬 파일 전부 404 + 이 CSS 내 실제 사용처 없음(죽은 선언) → @font-face 4개 제거
+ *    ※ 라운지 어느 CSS/HTML 에서도 Inter 계열 미사용이라 Google Fonts 링크는 넣지 않음.
+ *      추후 Inter Tight 를 쓰게 되면 그때 <link>/@import 추가할 것.
+ */
 @font-face {
 	font-family: 'Freesentation';
 	font-style: normal;

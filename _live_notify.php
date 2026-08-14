@@ -23,7 +23,7 @@ function ufs_ln_table() {
     @sql_query("CREATE TABLE IF NOT EXISTS cb_unreal_2026_live_notify (
         ln_no INT NOT NULL AUTO_INCREMENT,
         apply_no INT NOT NULL DEFAULT 0,
-        ln_day CHAR(1) NOT NULL DEFAULT '',
+        ln_day VARCHAR(8) NOT NULL DEFAULT '',
         ln_name VARCHAR(100) NOT NULL DEFAULT '',
         ln_phone VARCHAR(30) NOT NULL DEFAULT '',
         ln_channel VARCHAR(12) NOT NULL DEFAULT '',
@@ -34,45 +34,90 @@ function ufs_ln_table() {
         UNIQUE KEY uq_apply_day (apply_no, ln_day),
         KEY idx_day_status (ln_day, ln_status)
     ) DEFAULT CHARSET=utf8");
+    // 슬롯 코드(d1am/d1pm/d2am/d2pm) 저장을 위해 폭 확장 — 이미 넓으면 무해
+    @sql_query("ALTER TABLE cb_unreal_2026_live_notify MODIFY ln_day VARCHAR(8) NOT NULL DEFAULT ''");
 }
+}
+
+/* 발송 슬롯 정의 — 오전(진입 분산용, 미접속자만) / 오후(복귀 유도, 전체)
+ *   key   : 슬롯 코드(발송 기록·설정 키에 사용)
+ *   day   : 접속여부 판정에 쓸 Day(1|2)
+ *   only_unvisited : true 면 그날 아직 라이브에 안 들어온 사람만 */
+if (!function_exists('ufs_ln_slots')) {
+function ufs_ln_slots() {
+    return array(
+        'd1am' => array('label'=>'Day1 오전(시청 안내)', 'day'=>'1', 'only_unvisited'=>true,  'tpl_def'=>'328'),
+        'd1pm' => array('label'=>'Day1 오후 세션',       'day'=>'1', 'only_unvisited'=>false, 'tpl_def'=>'331'),
+        'd2am' => array('label'=>'Day2 오전(시청 안내)', 'day'=>'2', 'only_unvisited'=>true,  'tpl_def'=>'337'),
+        'd2pm' => array('label'=>'Day2 오후 세션',       'day'=>'2', 'only_unvisited'=>false, 'tpl_def'=>'340'),
+    );
+}
+}
+if (!function_exists('ufs_ln_slot')) {
+function ufs_ln_slot($k) { $s = ufs_ln_slots(); return isset($s[$k]) ? $s[$k] : $s['d1am']; }
 }
 
 /* 그날(day=1|2) 아직 안내를 못 받았고 아직 접속도 안 한 온라인 등록자 조회
  *  - 접속 여부: cb_unreal_2026_event2_apply_live 의 d1_at / d2_at (Day별 최초접속 스탬프)
  *  - $limit=0 이면 개수만 셀 때 쓰도록 전체를 반환하지 않고 COUNT 용 쿼리를 따로 쓴다 */
 if (!function_exists('ufs_ln_sql_where')) {
-function ufs_ln_sql_where($day) {
-    $d = ($day === '2' || $day === 2) ? '2' : '1';
-    $dcol = ($d === '2') ? 'd2_at' : 'd1_at';
-    return array($d, $dcol,
+function ufs_ln_sql_where($slot) {
+    $sl  = ufs_ln_slot($slot);
+    $k   = sql_real_escape_string($slot);
+    $dcol = ($sl['day'] === '2') ? 'd2_at' : 'd1_at';
+    // 오후 슬롯은 이미 시청한 사람도 대상(복귀 유도) → 접속 조인 생략
+    $join_visit = $sl['only_unvisited']
+        ? "LEFT JOIN cb_unreal_2026_event2_apply_live lv
+                  ON lv.apply_user_email = a.apply_user_email AND lv.$dcol IS NOT NULL"
+        : "";
+    $cond_visit = $sl['only_unvisited'] ? " AND lv.la_no IS NULL" : "";
+    return array($sl, 
         "FROM cb_unreal_2026_event2_apply a
          LEFT JOIN cb_unreal_2026_live_notify n
-                ON n.apply_no = a.apply_no AND n.ln_day = '$d'
-         LEFT JOIN cb_unreal_2026_event2_apply_live lv
-                ON lv.apply_user_email = a.apply_user_email AND lv.$dcol IS NOT NULL
+                ON n.apply_no = a.apply_no AND n.ln_day = '$k'
+         $join_visit
          WHERE a.apply_temp_yn='N' AND a.apply_pay_status<>0
            AND (a.apply_product_code='ONLINE' OR a.free_yn='Y')
            AND a.apply_user_phone <> ''
-           AND n.ln_no IS NULL
-           AND lv.la_no IS NULL");
+           AND n.ln_no IS NULL" . $cond_visit);
 }
 }
 
 /* 남은 대상 수 */
 if (!function_exists('ufs_ln_remaining')) {
-function ufs_ln_remaining($day) {
+function ufs_ln_remaining($slot) {
     ufs_ln_table();
-    list($d, $dcol, $w) = ufs_ln_sql_where($day);
+    list($sl, $w) = ufs_ln_sql_where($slot);
     $r = sql_fetch("SELECT COUNT(*) c " . $w);
     return $r ? (int)$r['c'] : 0;
 }
 }
 
+/* 1회 발송 인원 자동 계산 — 남은 대상 ÷ 남은 시간(분).
+ *  · 스스로 먼저 입장한 사람은 대상에서 빠지므로 배치가 자동으로 작아지고,
+ *    등록자가 늘면 자동으로 커진다. 창 종료까지 균등하게 소진되도록 매분 재계산.
+ *  · 상한(기본 200/분)은 도착 폭주 방지용. 200명/분이어도 원본 부하는 약 7 req/s 수준. */
+if (!function_exists('ufs_ln_auto_batch')) {
+function ufs_ln_auto_batch($slot, $end_str, $start_str = '', $min = 10, $max = 200) {
+    $remain = ufs_ln_remaining($slot);
+    if ($remain <= 0) return 0;
+    $end = ($end_str !== '') ? strtotime($end_str) : false;
+    if ($end === false) return $min;
+    // 기준 시각 = 지금과 창 시작 중 늦은 쪽 → 창 시작 전 미리보기에서도 실제와 같은 값이 나온다
+    $base = time();
+    if ($start_str !== '') { $st = strtotime($start_str); if ($st !== false && $st > $base) $base = $st; }
+    $left = (int)ceil(($end - $base) / 60);
+    if ($left < 1) $left = 1;                       // 창 종료 임박·초과 → 남은 전량(상한 적용)
+    $n = (int)ceil($remain / $left);
+    return max($min, min($max, $n));
+}
+}
+
 /* 이번 배치 대상 N명 */
 if (!function_exists('ufs_ln_targets')) {
-function ufs_ln_targets($day, $limit) {
+function ufs_ln_targets($slot, $limit) {
     ufs_ln_table();
-    list($d, $dcol, $w) = ufs_ln_sql_where($day);
+    list($sl, $w) = ufs_ln_sql_where($slot);
     $limit = max(1, min(500, (int)$limit));
     $out = array();
     $q = sql_query("SELECT a.apply_no, a.apply_user_name nm, a.apply_user_phone ph " . $w . " ORDER BY a.apply_no ASC LIMIT " . $limit);
@@ -85,26 +130,38 @@ function ufs_ln_targets($day, $limit) {
  * 변수 치환 없음(전원 동일 본문). 링크는 템플릿의 웹링크 버튼으로 나가고,
  * SMS 대체발송 시에는 버튼이 없으므로 본문 끝에 링크를 덧붙인다. */
 if (!function_exists('ufs_ln_template_body')) {
-function ufs_ln_template_body($day) {
-    if ($day === '2') {
-        return "언리얼 페스트 서울 2026 ㅣDay 2 온라인 시청 안내\n\n"
-             . "사전 등록하신 Day 2 온라인 세션이 곧 시작됩니다.\n"
-             . "아래 링크에서 온라인 체크인을 완료한 후, 원하는 트랙으로 입장해 주세요!\n\n"
-             . "Day 1에 이어 오늘도 온라인 체크인을 완료하시면 ‘출석 체크 이벤트’에 자동 응모되며, 추첨을 통해 200분께 한정판 티셔츠를 드립니다.\n\n"
-             . "언리얼 페스트 사무국";
+function ufs_ln_template_body($slot) {
+    switch ($slot) {
+        case 'd1pm':   // 템플릿 331
+            return "언리얼 페스트 서울 2026ㅣDay 1 오후 세션 시작!\n\n"
+                 . "사전 등록하신 Day 1 오후 세션이 시작되었습니다.\n"
+                 . "아래 링크를 클릭해 지금 바로 시청해 보세요!\n\n"
+                 . "언리얼 페스트 사무국";
+        case 'd2pm':   // 템플릿 340
+            return "언리얼 페스트 서울 2026ㅣDay 2 오후 세션 시작!\n\n"
+                 . "사전 등록하신 Day 2 오후 세션이 시작되었습니다.\n"
+                 . "아래 링크를 클릭해 지금 바로 시청해 보세요!\n\n"
+                 . "언리얼 페스트 사무국";
+        case 'd2am':   // 템플릿 337
+            return "언리얼 페스트 서울 2026 ㅣDay 2 온라인 시청 안내\n\n"
+                 . "사전 등록하신 Day 2 온라인 세션이 곧 시작됩니다.\n"
+                 . "아래 링크에서 온라인 체크인을 완료한 후, 원하는 트랙으로 입장해 주세요!\n\n"
+                 . "Day 1에 이어 오늘도 온라인 체크인을 완료하시면 ‘출석 체크 이벤트’에 자동 응모되며, 추첨을 통해 200분께 한정판 티셔츠를 드립니다.\n\n"
+                 . "언리얼 페스트 사무국";
+        default:       // d1am — 템플릿 328
+            return "언리얼 페스트 서울 2026 ㅣDay 1 온라인 시청 안내\n\n"
+                 . "사전 등록하신 Day 1 온라인 세션이 곧 시작됩니다.\n"
+                 . "아래 링크에서 온라인 체크인을 완료한 후, 원하는 트랙으로 입장해 주세요!\n\n"
+                 . "양일 온라인 체크인을 하시면 ‘출석 체크 이벤트’에 자동 응모되며, 추첨을 통해 200분께 한정판 티셔츠를 드립니다.\n\n"
+                 . "언리얼 페스트 사무국";
     }
-    return "언리얼 페스트 서울 2026 ㅣDay 1 온라인 시청 안내\n\n"
-         . "사전 등록하신 Day 1 온라인 세션이 곧 시작됩니다.\n"
-         . "아래 링크에서 온라인 체크인을 완료한 후, 원하는 트랙으로 입장해 주세요!\n\n"
-         . "양일 온라인 체크인을 하시면 ‘출석 체크 이벤트’에 자동 응모되며, 추첨을 통해 200분께 한정판 티셔츠를 드립니다.\n\n"
-         . "언리얼 페스트 사무국";
 }
 }
 
 /* SMS/LMS 대체발송 문구 — 승인 템플릿과 동일 문구 + 링크(버튼이 없으므로 본문에 포함) */
 if (!function_exists('ufs_ln_message')) {
-function ufs_ln_message($name, $day) {
-    $b = ufs_ln_template_body($day);
+function ufs_ln_message($name, $slot) {
+    $b = ufs_ln_template_body($slot);
     // '언리얼 페스트 사무국' 앞에 링크 삽입
     $link = "\n▶ 온라인 체크인: " . UFS_LN_LIVE_URL . "\n\n";
     $pos = strrpos($b, "\n\n언리얼 페스트 사무국");
@@ -129,10 +186,10 @@ function ufs_ln_cfg($k, $def = '') {
  * 설정(관리자): live_notify_at_plusid(발신프로필 @아이디) · live_notify_at_tpl_d1|d2(템플릿 번호)
  * 응답: {"status":"1"} = 정상. 그 외는 실패 코드(302 인증, 305 프로필키, 306 잔액 등). */
 if (!function_exists('ufs_ln_send_alimtalk_batch')) {
-function ufs_ln_send_alimtalk_batch($rows, $day) {
-    $d      = ($day === '2') ? '2' : '1';
+function ufs_ln_send_alimtalk_batch($rows, $slot) {
+    $sl     = ufs_ln_slot($slot);
     $plusid = ufs_ln_cfg('live_notify_at_plusid');
-    $tpl    = ufs_ln_cfg('live_notify_at_tpl_d' . $d);
+    $tpl    = ufs_ln_cfg('live_notify_at_tpl_' . $slot, $sl['tpl_def']);
     if ($plusid === '' || $tpl === '' || !function_exists('curl_init') || !count($rows)) {
         return array('ok' => false, 'msg' => 'alimtalk_not_configured');
     }
@@ -155,8 +212,8 @@ function ufs_ln_send_alimtalk_batch($rows, $day) {
         // 알림톡 미수신자 자동 대체발송(LMS)
         'kakao_faild_type' => '2',
         'sender'           => UFS_SMS_SENDER,
-        'title'            => '언리얼 페스트 서울 2026 온라인 시청 안내',
-        'message'          => ufs_ln_message('', $d),
+        'title'            => '언리얼 페스트 서울 2026 ' . $sl['label'],
+        'message'          => ufs_ln_message('', $slot),
     );
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, 'https://directsend.co.kr/index.php/api_v2/kakao_notice');
@@ -174,7 +231,7 @@ function ufs_ln_send_alimtalk_batch($rows, $day) {
     curl_close($ch);
 
     if (function_exists('sql_query')) {
-        @sql_query("insert into 2025_event_log(log_idx,log_text,rdate) values('0','[ALIMTALK d" . $d . " n=" . count($rcv) . "] "
+        @sql_query("insert into 2025_event_log(log_idx,log_text,rdate) values('0','[ALIMTALK " . $slot . " n=" . count($rcv) . "] "
             . str_replace("'", "`", $err ? ('CURL_ERR ' . $err) : substr((string)$resp, 0, 400)) . "',now())");
     }
     if ($err) return array('ok' => false, 'msg' => 'curl_err_' . $err);
@@ -185,9 +242,10 @@ function ufs_ln_send_alimtalk_batch($rows, $day) {
 
 /* SMS 개별 발송(알림톡 API 자체가 실패했을 때의 최종 폴백) */
 if (!function_exists('ufs_ln_send_sms_one')) {
-function ufs_ln_send_sms_one($row, $day) {
+function ufs_ln_send_sms_one($row, $slot) {
     require_once __DIR__ . '/_sms.php';
-    $resp = ufs_send_text_sms($row['nm'], $row['ph'], '언리얼 페스트 서울 2026 온라인 시청 안내', ufs_ln_message($row['nm'], $day), 'live_notify');
+    $sl = ufs_ln_slot($slot);
+    $resp = ufs_send_text_sms($row['nm'], $row['ph'], '언리얼 페스트 서울 2026 ' . $sl['label'], ufs_ln_message($row['nm'], $slot), 'live_notify');
     $st = ufs_sms_ok($resp);
     if ($st === null) return array('ok' => true, 'msg' => 'test_mode');
     if ($st === true) return array('ok' => true, 'msg' => 'ok');
@@ -198,16 +256,15 @@ function ufs_ln_send_sms_one($row, $day) {
 /* 테스트 발송 — 지정한 번호로 1건만. 실제 등록자 대상이 아니며 발송 기록도 남기지 않는다.
  * (행사 전 알림톡 도착·링크버튼·문구 확인용) */
 if (!function_exists('ufs_ln_test_send')) {
-function ufs_ln_test_send($phone, $name, $day, $channel = 'alimtalk') {
-    $d = ($day === '2') ? '2' : '1';
+function ufs_ln_test_send($phone, $name, $slot, $channel = 'alimtalk') {
     $row = array('nm' => ($name !== '' ? $name : '테스트'), 'ph' => $phone);
     if ($channel === 'alimtalk') {
-        $r = ufs_ln_send_alimtalk_batch(array($row), $d);
+        $r = ufs_ln_send_alimtalk_batch(array($row), $slot);
         if (!empty($r['ok'])) return array('ok' => true, 'channel' => 'alimtalk', 'msg' => $r['msg']);
-        $s = ufs_ln_send_sms_one($row, $d);
+        $s = ufs_ln_send_sms_one($row, $slot);
         return array('ok' => !empty($s['ok']), 'channel' => 'sms(폴백)', 'msg' => '알림톡 실패: ' . $r['msg'] . ' / SMS: ' . $s['msg']);
     }
-    $s = ufs_ln_send_sms_one($row, $d);
+    $s = ufs_ln_send_sms_one($row, $slot);
     return array('ok' => !empty($s['ok']), 'channel' => 'sms', 'msg' => $s['msg']);
 }
 }
@@ -215,9 +272,9 @@ function ufs_ln_test_send($phone, $name, $day, $channel = 'alimtalk') {
 /* 배치 실행: 대상 N명 선점 → 알림톡 1회 호출(대체발송 포함) → 결과 기록.
  *  $dry=true 면 실제 발송 없이 대상만 반환(검증용). */
 if (!function_exists('ufs_ln_run_batch')) {
-function ufs_ln_run_batch($day, $limit, $dry = true, $prefer = 'alimtalk') {
+function ufs_ln_run_batch($slot, $limit, $dry = true, $prefer = 'alimtalk') {
     ufs_ln_table();
-    $d = ($day === '2' || $day === 2) ? '2' : '1';
+    $d = $slot;
     $targets = ufs_ln_targets($d, $limit);
     $res = array('day' => $d, 'picked' => count($targets), 'sent' => 0, 'fail' => 0, 'dry' => $dry, 'rows' => array(), 'detail' => '');
     if ($dry) {

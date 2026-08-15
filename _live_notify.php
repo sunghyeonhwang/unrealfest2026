@@ -373,6 +373,71 @@ function ufs_ln_nl_body($slot, $email) {
 }
 }
 
+/* ── 사무국 알림 ────────────────────────────────────────────────────────────
+ * 발송은 무인으로 돌아가므로, 무슨 일이 있었는지 메일로 알려 준다.
+ *   시작   슬롯의 첫 배치가 나갔을 때 — 이 메일이 예정 시각에 안 오면 스케줄러가 멈춘 것이다
+ *   완료   남은 대상이 0 이 됐을 때
+ *   실패   발송 실패가 났을 때
+ *   미발송 발송 창이 끝났는데 아직 남아 있을 때
+ * 종류마다 슬롯당 한 번만 보낸다(설정에 보낸 시각을 기록해 중복을 막는다). */
+if (!function_exists('ufs_ln_cfg_set')) {
+function ufs_ln_cfg_set($k, $v) {
+    $k = sql_real_escape_string($k); $v = sql_real_escape_string($v);
+    $e = @sql_fetch("SELECT cfg_key FROM cb_unreal_2026_config WHERE cfg_key='$k'");
+    if ($e) @sql_query("UPDATE cb_unreal_2026_config SET cfg_val='$v' WHERE cfg_key='$k'");
+    else    @sql_query("INSERT INTO cb_unreal_2026_config (cfg_key,cfg_val) VALUES ('$k','$v')");
+}
+}
+
+if (!function_exists('ufs_ln_alert')) {
+function ufs_ln_alert($slot, $type, $head, $lines, $urgent = false) {
+    if (ufs_ln_cfg('live_notify_alert_on', '1') !== '1') return false;
+    $flag = 'live_notify_alert_' . $slot . '_' . $type;
+    if (ufs_ln_cfg($flag, '') !== '') return false;                 // 이미 보냄
+    ufs_ln_cfg_set($flag, date('Y-m-d H:i:s'));                     // 보내기 전에 먼저 기록 — 중복 방지 우선
+    require_once __DIR__ . '/_resend.php';
+    $to = ufs_ln_cfg('live_notify_alert_to', 'info@epiclounge.co.kr');
+    $sl = ufs_ln_slot($slot);
+    $c  = $urgent ? '#c0392b' : '#00707d';
+    $rows = '';
+    foreach ($lines as $k => $v) {
+        $rows .= '<tr><td style="padding:5px 14px 5px 0;color:#8a90a2;font-size:13px;white-space:nowrap">' . htmlspecialchars($k, ENT_QUOTES, 'UTF-8') . '</td>'
+               . '<td style="padding:5px 0;font-size:13px;font-weight:700">' . htmlspecialchars($v, ENT_QUOTES, 'UTF-8') . '</td></tr>';
+    }
+    $html = '<div style="font-family:-apple-system,BlinkMacSystemFont,\'Malgun Gothic\',sans-serif;max-width:520px">'
+      . '<div style="font-size:12px;font-weight:700;letter-spacing:.1em;color:' . $c . '">UNREAL FEST SEOUL 2026 · 안내 발송</div>'
+      . '<h2 style="margin:8px 0 14px;font-size:19px;color:#1f2330">' . htmlspecialchars($head, ENT_QUOTES, 'UTF-8') . '</h2>'
+      . '<table cellpadding="0" cellspacing="0" border="0">' . $rows . '</table>'
+      . '<p style="margin:18px 0 0;font-size:12.5px;color:#8a90a2;line-height:1.7">'
+      . '관리자 화면: <a href="https://epiclounge.co.kr/v3/adm/2026_live_notify.php" style="color:' . $c . '">라이브 안내 분산 발송</a>'
+      . ($urgent ? '<br><b style="color:#c0392b">조치가 필요할 수 있습니다.</b> 스케줄러가 멈춘 것으로 보이면 관리자 화면에서 <b>백업 실행</b>을 켜 주세요.' : '')
+      . '</p></div>';
+    $r = ufs_resend_send($to, '[UFS26 발송] ' . $head . ' — ' . $sl['label'], $html);
+    return !empty($r['ok']);
+}
+}
+
+/* 발송 창이 끝났는데 아직 남은 슬롯이 있으면 알린다(창 밖에서도 매번 확인) */
+if (!function_exists('ufs_ln_watchdog')) {
+function ufs_ln_watchdog() {
+    if (ufs_ln_cfg('live_notify_enabled', '0') !== '1') return array();
+    $now = date('Y-m-d H:i');
+    $out = array();
+    foreach (ufs_ln_slots() as $k => $sl) {
+        $e = ufs_ln_cfg('live_notify_' . $k . '_end');
+        if ($e === '' || $now <= $e) continue;                       // 아직 안 끝났다
+        if (strtotime($now) - strtotime($e) > 86400) continue;       // 하루 넘게 지난 건 새삼 알리지 않는다
+        $rem = ufs_ln_remaining($k);
+        if ($rem <= 0) continue;
+        if (ufs_ln_alert($k, 'undone', '발송 창이 끝났는데 ' . number_format($rem) . '명이 남았습니다',
+            array('슬롯' => $sl['label'], '남은 대상' => number_format($rem) . '명', '창 종료' => $e, '확인 시각' => $now), true)) {
+            $out[] = $k;
+        }
+    }
+    return $out;
+}
+}
+
 /* 수신거부 기록 — 여기 있는 주소는 이후 뉴스레터 대상에서 빠진다 */
 if (!function_exists('ufs_ln_optout_table')) {
 function ufs_ln_optout_table() {
@@ -503,8 +568,8 @@ function ufs_ln_run_bulk($slot, $dry = true, $prefer = 'alimtalk', $chunk = 300,
 
 /* 배치 실행: 대상 N명 선점 → 알림톡 1회 호출(대체발송 포함) → 결과 기록.
  *  $dry=true 면 실제 발송 없이 대상만 반환(검증용). */
-if (!function_exists('ufs_ln_run_batch')) {
-function ufs_ln_run_batch($slot, $limit, $dry = true, $prefer = 'alimtalk') {
+if (!function_exists('ufs_ln_run_batch_core')) {
+function ufs_ln_run_batch_core($slot, $limit, $dry = true, $prefer = 'alimtalk') {
     ufs_ln_table();
     $d = $slot;
     $targets = ufs_ln_targets($d, $limit);
@@ -580,5 +645,43 @@ function ufs_ln_run_batch($slot, $limit, $dry = true, $prefer = 'alimtalk') {
     }
     $res['remaining'] = ufs_ln_remaining($d);
     return $res;
+}
+}
+
+/* 어느 경로로 끝나든 알림 판정을 한 번 거치도록 감싼다 */
+if (!function_exists('ufs_ln_run_batch')) {
+function ufs_ln_run_batch($slot, $limit, $dry = true, $prefer = 'alimtalk') {
+    $res = ufs_ln_run_batch_core($slot, $limit, $dry, $prefer);
+    ufs_ln_after_batch($slot, $res);
+    return $res;
+}
+}
+
+/* 배치가 한 번 돌 때마다 상태를 보고 알림을 건다(미리보기는 제외) */
+if (!function_exists('ufs_ln_after_batch')) {
+function ufs_ln_after_batch($slot, $res) {
+    if (!empty($res['dry'])) return;
+    $sl = ufs_ln_slot($slot);
+    $ch = ($sl['ch'] === 'email') ? '이메일' : '알림톡';
+    if ($res['sent'] > 0) {
+        ufs_ln_alert($slot, 'start', '발송을 시작했습니다',
+            array('슬롯' => $sl['label'], '채널' => $ch, '첫 회차' => number_format($res['sent']) . '명',
+                  '남은 대상' => number_format($res['remaining']) . '명', '시각' => date('Y-m-d H:i')));
+    }
+    if ($res['fail'] > 0) {
+        ufs_ln_alert($slot, 'fail', '발송 실패가 발생했습니다',
+            array('슬롯' => $sl['label'], '채널' => $ch, '실패' => number_format($res['fail']) . '명',
+                  '성공' => number_format($res['sent']) . '명', '남은 대상' => number_format($res['remaining']) . '명',
+                  '원인' => ($res['detail'] !== '' ? $res['detail'] : '(응답 없음)'), '시각' => date('Y-m-d H:i')), true);
+    }
+    if ($res['remaining'] <= 0 && $res['sent'] > 0) {
+        $ke = sql_real_escape_string($slot);
+        $st = sql_fetch("SELECT SUM(ln_status='S') s, SUM(ln_status='F') f FROM cb_unreal_2026_live_notify WHERE ln_day='$ke'");
+        ufs_ln_alert($slot, 'done', '발송을 마쳤습니다',
+            array('슬롯' => $sl['label'], '채널' => $ch,
+                  '누적 성공' => number_format((int)(isset($st['s']) ? $st['s'] : 0)) . '명',
+                  '누적 실패' => number_format((int)(isset($st['f']) ? $st['f'] : 0)) . '명',
+                  '시각' => date('Y-m-d H:i')));
+    }
 }
 }

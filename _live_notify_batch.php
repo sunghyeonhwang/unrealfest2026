@@ -95,6 +95,11 @@ if (!$go) {
 }
 
 if (!$enabled && !$force) { echo "발송 비활성화 상태(live_notify_enabled=0) — 아무것도 하지 않음\n"; exit; }
+
+/* 창이 끝났는데 남은 슬롯이 있으면 사무국에 알린다(창 밖 호출에서도 매번 확인) */
+$wd = ufs_ln_watchdog();
+if (count($wd)) echo "[알림] 미발송 경고 발송: " . implode(', ', $wd) . "\n";
+
 if ($active === '')       { echo "발송 창 밖 — 아무것도 하지 않음\n"; exit; }
 
 if (ufs_ln_remaining($active) <= 0) { echo "[$active] 남은 대상 없음 — 발송 완료 상태\n"; exit; }

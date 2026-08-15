@@ -45,12 +45,25 @@ function ufs_ln_table() {
  *   only_unvisited : true 면 그날 아직 라이브에 안 들어온 사람만 */
 if (!function_exists('ufs_ln_slots')) {
 function ufs_ln_slots() {
+    // audience: online(온라인 무료) / offline(현장 참석) / all(전체 확정 등록자)
+    // only_unvisited: 그날 라이브 미접속자만(진입 분산용) — 온라인 오전 슬롯에만 적용
     return array(
-        'd1am' => array('label'=>'Day1 오전(시청 안내)', 'day'=>'1', 'only_unvisited'=>true,  'tpl_def'=>'328'),
-        'd1pm' => array('label'=>'Day1 오후 세션',       'day'=>'1', 'only_unvisited'=>false, 'tpl_def'=>'331'),
-        'd2am' => array('label'=>'Day2 오전(시청 안내)', 'day'=>'2', 'only_unvisited'=>true,  'tpl_def'=>'337'),
-        'd2pm' => array('label'=>'Day2 오후 세션',       'day'=>'2', 'only_unvisited'=>false, 'tpl_def'=>'340'),
+        'd1chk'  => array('label'=>'Day1 체크인 오픈',   'day'=>'1', 'audience'=>'offline', 'only_unvisited'=>false, 'tpl_def'=>'325'),
+        'd1am'   => array('label'=>'Day1 온라인 시청안내','day'=>'1', 'audience'=>'online',  'only_unvisited'=>true,  'tpl_def'=>'328'),
+        'd1pm'   => array('label'=>'Day1 오후 세션',      'day'=>'1', 'audience'=>'online',  'only_unvisited'=>false, 'tpl_def'=>'331'),
+        'd2chk'  => array('label'=>'Day2 체크인 오픈',   'day'=>'2', 'audience'=>'offline', 'only_unvisited'=>false, 'tpl_def'=>'334'),
+        'd2am'   => array('label'=>'Day2 온라인 시청안내','day'=>'2', 'audience'=>'online',  'only_unvisited'=>true,  'tpl_def'=>'337'),
+        'd2pm'   => array('label'=>'Day2 오후 세션',      'day'=>'2', 'audience'=>'online',  'only_unvisited'=>false, 'tpl_def'=>'340'),
+        'thanks' => array('label'=>'감사 인사(행사 후)',  'day'=>'2', 'audience'=>'all',     'only_unvisited'=>false, 'tpl_def'=>'343'),
     );
+}
+}
+/* 대상(audience) → SQL 조건 */
+if (!function_exists('ufs_ln_audience_sql')) {
+function ufs_ln_audience_sql($a) {
+    if ($a === 'offline') return " AND a.apply_product_code<>'ONLINE' AND a.free_yn='N'";
+    if ($a === 'all')     return "";
+    return " AND (a.apply_product_code='ONLINE' OR a.free_yn='Y')";   // online(기본)
 }
 }
 if (!function_exists('ufs_ln_slot')) {
@@ -77,9 +90,10 @@ function ufs_ln_sql_where($slot) {
                 ON n.apply_no = a.apply_no AND n.ln_day = '$k'
          $join_visit
          WHERE a.apply_temp_yn='N' AND a.apply_pay_status<>0
-           AND (a.apply_product_code='ONLINE' OR a.free_yn='Y')
            AND a.apply_user_phone <> ''
-           AND n.ln_no IS NULL" . $cond_visit);
+           AND n.ln_no IS NULL"
+        . ufs_ln_audience_sql(isset($sl['audience']) ? $sl['audience'] : 'online')
+        . $cond_visit);
 }
 }
 
@@ -142,6 +156,24 @@ function ufs_ln_template_body($slot) {
                  . "사전 등록하신 Day 2 오후 세션이 시작되었습니다.\n"
                  . "아래 링크를 클릭해 지금 바로 시청해 보세요!\n\n"
                  . "언리얼 페스트 사무국";
+        case 'd1chk':  // 템플릿 325 (오프라인 체크인)
+            return "언리얼 페스트 서울 2026ㅣ오늘 시작! Day 1 입장 안내\n\n"
+                 . "사전 등록 시 입력하신 연락처로 발송된 QR 코드를 준비해 주세요. 셀프 체크인 또는 유인 데스크에서 체크인하신 후 명찰을 수령해 주세요.\n\n"
+                 . "오프라인 참석자 전원께 한정판 티셔츠를 드립니다. 현장 체크인 선착순 300분께는 ‘얼리버드 체크인 이벤트’ 쿠폰을 드리며, 쿠폰 소지자에 한해 추가 굿즈를 증정합니다.\n\n"
+                 . "체크인: 8월 20일(목) 09:00\n장소: 웨스틴 서울 파르나스 지하 1층 하모니 볼룸 앞";
+        case 'd2chk':  // 템플릿 334 (오프라인 체크인)
+            return "언리얼 페스트 서울 2026 | 오늘 시작! Day 2 입장 안내\n\n"
+                 . "오늘 처음 방문하시는 참석자는 사전 등록 시 입력하신 연락처로 발송된 QR 코드를 준비해 주세요. 셀프 체크인 또는 유인 데스크에서 체크인하신 후 명찰을 수령해 주세요.\n\n"
+                 . "Day 2 일일권 참석자는 한정판 티셔츠를 수령하실 수 있습니다.\n\n"
+                 . "Day 1에 명찰을 수령하신 양일권 참석자는 기존 명찰을 지참해 주세요.\n\n"
+                 . "체크인: 8월 21일(금) 09:30\n장소: 웨스틴 서울 파르나스 지하 1층 하모니 볼룸 앞";
+        case 'thanks': // 템플릿 343 (행사 후 감사)
+            return "언리얼 페스트 서울 2026ㅣ함께해 주셔서 감사합니다!\n\n"
+                 . "지난 8월 20일(목) ~ 21일(금) 진행된 언리얼 페스트 서울 2026이 성황리에 마무리되었습니다. \n"
+                 . "현장과 온라인에서 함께해 주신 모든 분께 진심으로 감사드립니다.\n\n"
+                 . "세션 다시보기는 2개월 내 에픽 라운지와 에픽게임즈 코리아 유튜브 채널을 통해 공개될 예정이니, 언리얼 페스트 서울 2026의 다양한 세션을 다시 만나보세요.\n\n"
+                 . "내년 언리얼 페스트에서 다시 만나요!\n\n"
+                 . "언리얼 페스트 사무국";
         case 'd2am':   // 템플릿 337
             return "언리얼 페스트 서울 2026 ㅣDay 2 온라인 시청 안내\n\n"
                  . "사전 등록하신 Day 2 온라인 세션이 곧 시작됩니다.\n"
@@ -162,6 +194,8 @@ function ufs_ln_template_body($slot) {
 if (!function_exists('ufs_ln_message')) {
 function ufs_ln_message($name, $slot) {
     $b = ufs_ln_template_body($slot);
+    // 체크인 안내·감사 인사는 시청 링크가 필요 없다(원문 그대로 발송)
+    if ($slot === 'd1chk' || $slot === 'd2chk' || $slot === 'thanks') return $b;
     // '언리얼 페스트 사무국' 앞에 링크 삽입
     $link = "\n▶ 온라인 체크인: " . UFS_LN_LIVE_URL . "\n\n";
     $pos = strrpos($b, "\n\n언리얼 페스트 사무국");

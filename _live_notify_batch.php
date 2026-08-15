@@ -42,19 +42,22 @@ $force   = (($_GET['force'] ?? '') === '1');
 $go      = (($_GET['go'] ?? '') === '1');
 $SLOTS   = ufs_ln_slots();
 
-// 지금이 어느 슬롯의 발송 창인지 판정
-$active = '';
+// 지금 발송 창인 슬롯을 모두 찾는다.
+// 하나만 고르고 멈추면(예전 방식) 창이 겹치는 순간 뒤쪽 슬롯이 영영 발송되지 않는다
+// — 카톡 시청안내(09:30~10:20)와 뉴스레터가 겹치는 경우가 실제로 그랬다.
+$actives = array();
 foreach ($SLOTS as $k => $sl) {
     $s = ln_cfg('live_notify_' . $k . '_start');
     $e = ln_cfg('live_notify_' . $k . '_end');
-    if ($s !== '' && $e !== '' && $now >= $s && $now <= $e) { $active = $k; break; }
+    if ($s !== '' && $e !== '' && $now >= $s && $now <= $e) $actives[] = $k;
 }
-if ($force) { $active = isset($SLOTS[$_GET['slot'] ?? '']) ? $_GET['slot'] : 'd1am'; }
+if ($force) { $actives = array(isset($SLOTS[$_GET['slot'] ?? '']) ? $_GET['slot'] : 'd1am'); }
+$active = count($actives) ? $actives[0] : '';
 
 echo "== 라이브 안내 배치 ==\n";
 echo "  서버시각 : $now\n";
 echo "  활성화   : " . ($enabled ? 'ON' : 'OFF') . "\n";
-echo "  발송 창  : " . ($active !== '' ? ($active . ($force ? ' (강제)' : '')) : '(창 밖 — 발송 안 함)') . "\n";
+echo "  발송 창  : " . (count($actives) ? (implode(', ', $actives) . ($force ? ' (강제)' : '')) : '(창 밖 — 발송 안 함)') . "\n";
 echo "  채널     : $channel | 1회 인원: " . ($cfg_bat > 0 ? $cfg_bat . '명(고정)' : '자동(남은 대상 ÷ 남은 분)') . "\n\n";
 foreach ($SLOTS as $k => $sl) {
     $s = ln_cfg('live_notify_' . $k . '_start');
@@ -100,11 +103,14 @@ if (!$enabled && !$force) { echo "발송 비활성화 상태(live_notify_enabled
 $wd = ufs_ln_watchdog();
 if (count($wd)) echo "[알림] 미발송 경고 발송: " . implode(', ', $wd) . "\n";
 
-if ($active === '')       { echo "발송 창 밖 — 아무것도 하지 않음\n"; exit; }
+if (!count($actives)) { echo "발송 창 밖 — 아무것도 하지 않음\n"; exit; }
 
-if (ufs_ln_remaining($active) <= 0) { echo "[$active] 남은 대상 없음 — 발송 완료 상태\n"; exit; }
-list($r, $n) = ln_run($active, $cfg_bat, false, $channel);
-printf("[발송] %s | 이번 %d명%s → 성공 %d · 실패 %d | 남은 %d명 %s\n",
-    $r['day'], $r['picked'], ($n > 0 ? ('(계산 ' . $n . ')') : ('(일괄 ' . $r['calls'] . '회 호출)')),
-    $r['sent'], $r['fail'], $r['remaining'],
-    ($r['detail'] !== '' ? ('· ' . $r['detail']) : ''));
+// 창이 겹치면 겹친 슬롯을 모두 처리한다(카톡과 뉴스레터가 같은 시간대일 수 있다)
+foreach ($actives as $slot) {
+    if (ufs_ln_remaining($slot) <= 0) { echo "[$slot] 남은 대상 없음 — 발송 완료 상태\n"; continue; }
+    list($r, $n) = ln_run($slot, $cfg_bat, false, $channel);
+    printf("[발송] %s | 이번 %d명%s → 성공 %d · 실패 %d | 남은 %d명 %s\n",
+        $r['day'], $r['picked'], ($n > 0 ? ('(계산 ' . $n . ')') : ('(일괄 ' . $r['calls'] . '회 호출)')),
+        $r['sent'], $r['fail'], $r['remaining'],
+        ($r['detail'] !== '' ? ('· ' . $r['detail']) : ''));
+}

@@ -93,8 +93,11 @@ function ufs_ln_sql_where($slot) {
     // 이메일 슬롯은 연락처 대신 이메일이 있어야 하고, 광고성으로 운영할 경우 수신동의자만 추릴 수 있다
     $is_mail = (isset($sl['ch']) && $sl['ch'] === 'email');
     $cond_ch = $is_mail ? " AND a.apply_user_email <> ''" : " AND a.apply_user_phone <> ''";
-    if ($is_mail && ufs_ln_cfg('live_notify_nl_agree_only', '0') === '1') {
-        $cond_ch .= " AND a.apply_user_event_agree='1'";
+    if ($is_mail) {
+        ufs_ln_optout_table();
+        // 수신거부한 주소는 제외
+        $cond_ch .= " AND NOT EXISTS (SELECT 1 FROM cb_unreal_2026_mail_optout mo WHERE mo.mo_email = LOWER(a.apply_user_email))";
+        if (ufs_ln_cfg('live_notify_nl_agree_only', '0') === '1') $cond_ch .= " AND a.apply_user_event_agree='1'";
     }
     return array($sl,
         "FROM cb_unreal_2026_event2_apply a
@@ -294,67 +297,87 @@ function ufs_ln_send_alimtalk_batch($rows, $slot) {
 if (!function_exists('ufs_ln_nl_text')) {
 function ufs_ln_nl_text($slot) {
     $t = array(
-        'nl_d1' => array(
-            'subj' => '[Unreal Fest Seoul 2026] 오늘, Day 1이 시작됩니다',
-            'kick' => 'DAY 1 · 8월 20일',
-            'head' => '오늘 Unreal Fest Seoul 2026이 시작됩니다',
-            'body' => '기다려 주셔서 감사합니다. 오늘 오전 10시 30분, 첫 세션이 시작됩니다.<br>시작 10분 전에는 미리 입장해 주시면 접속이 한결 수월합니다.',
-            'btn'  => '온라인 체크인하기',
-        ),
-        'nl_d2' => array(
-            'subj' => '[Unreal Fest Seoul 2026] Day 2, 오늘도 함께해 주세요',
-            'kick' => 'DAY 2 · 8월 21일',
-            'head' => '오늘도 10시 30분에 시작합니다',
-            'body' => '어제에 이어 오늘도 다양한 세션이 준비되어 있습니다.<br>시작 10분 전에 미리 입장해 주세요.',
-            'btn'  => '온라인 체크인하기',
-        ),
-        'nl_thx' => array(
-            'subj' => '[Unreal Fest Seoul 2026] 함께해 주셔서 감사합니다',
-            'kick' => 'THANK YOU',
-            'head' => '이틀간 함께해 주셔서 감사합니다',
-            'body' => 'Unreal Fest Seoul 2026은 여러분 덕분에 무사히 마무리되었습니다.<br>놓치신 세션은 다시보기로 준비하고 있으니 아래에서 확인해 주세요.',
-            'btn'  => '다시보기 바로가기',
-        ),
+        'nl_d1'  => array('subj' => '[언리얼 페스트 서울 2026] 오늘 Day 1, 10시 30분에 시작합니다'),
+        'nl_d2'  => array('subj' => '[언리얼 페스트 서울 2026] 오늘 Day 2, 10시 30분에 시작합니다'),
+        'nl_thx' => array('subj' => '[언리얼 페스트 서울 2026] 함께해 주셔서 감사합니다'),
     );
     $d = isset($t[$slot]) ? $t[$slot] : $t['nl_d1'];
     $d['subj'] = ufs_ln_cfg('live_notify_nl_subj_' . $slot, $d['subj']);
-    $d['btn']  = ufs_ln_cfg('live_notify_nl_btn_' . $slot,  $d['btn']);
     $d['url']  = ufs_ln_cfg('live_notify_nl_url_' . $slot,  '');
     return $d;
 }
 }
 
-/* 뉴스레터 HTML — 메일 클라이언트 호환을 위해 table 레이아웃 + 인라인 스타일만 사용 */
-if (!function_exists('ufs_ln_nl_html')) {
-function ufs_ln_nl_html($slot, $name) {
-    $d  = ufs_ln_nl_text($slot);
-    $nm = htmlspecialchars($name !== '' ? $name : '참가자', ENT_QUOTES, 'UTF-8');
-    $u  = htmlspecialchars($d['url'], ENT_QUOTES, 'UTF-8');
-    return '<!doctype html><html lang="ko"><head><meta charset="utf-8">'
-      . '<meta name="viewport" content="width=device-width,initial-scale=1">'
-      . '<title>' . htmlspecialchars($d['subj'], ENT_QUOTES, 'UTF-8') . '</title></head>'
-      . '<body style="margin:0;padding:0;background:#0b0b0f;">'
-      . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0b0b0f;padding:32px 16px;">'
-      . '<tr><td align="center">'
-      . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:#14141b;border-radius:16px;overflow:hidden;">'
-      . '<tr><td style="padding:36px 32px 8px;">'
-      . '<div style="font:700 12px/1 -apple-system,BlinkMacSystemFont,\'Malgun Gothic\',sans-serif;letter-spacing:.14em;color:#00FFC8;">' . $d['kick'] . '</div>'
-      . '</td></tr>'
-      . '<tr><td style="padding:12px 32px 0;">'
-      . '<h1 style="margin:0;font:700 25px/1.35 -apple-system,BlinkMacSystemFont,\'Malgun Gothic\',sans-serif;color:#fff;word-break:keep-all;">' . $d['head'] . '</h1>'
-      . '</td></tr>'
-      . '<tr><td style="padding:18px 32px 0;">'
-      . '<p style="margin:0;font:400 15px/1.75 -apple-system,BlinkMacSystemFont,\'Malgun Gothic\',sans-serif;color:#b9b9c6;word-break:keep-all;">'
-      . $nm . '님, ' . $d['body'] . '</p></td></tr>'
-      . ($u !== '' ? ('<tr><td style="padding:28px 32px 0;">'
-          . '<a href="' . $u . '" style="display:block;background:#00FFC8;color:#06060a;text-decoration:none;text-align:center;padding:16px 20px;border-radius:10px;font:700 16px/1 -apple-system,BlinkMacSystemFont,\'Malgun Gothic\',sans-serif;">'
-          . htmlspecialchars($d['btn'], ENT_QUOTES, 'UTF-8') . '</a></td></tr>') : '')
-      . '<tr><td style="padding:30px 32px 34px;">'
-      . '<div style="border-top:1px solid #2a2a36;padding-top:18px;font:400 12px/1.7 -apple-system,BlinkMacSystemFont,\'Malgun Gothic\',sans-serif;color:#6e6e80;">'
-      . 'Unreal Fest Seoul 2026 · 언리얼 페스트 사무국<br>'
-      . '본 메일은 Unreal Fest Seoul 2026에 등록하신 분께 행사 진행 안내를 위해 발송되었습니다.<br>'
-      . '문의: <a href="mailto:info@epiclounge.co.kr" style="color:#8a8a9c;">info@epiclounge.co.kr</a>'
-      . '</div></td></tr></table></td></tr></table></body></html>';
+/* 뉴스레터 본문 = 설정한 주소의 HTML 그대로.
+ * 매 발송마다 받아오지 않도록 5분 캐시하고, 받아오지 못하면 마지막 캐시를 쓴다.
+ * 둘 다 없으면 빈 문자열 → 발송하지 않는다(빈 메일 방지). */
+if (!function_exists('ufs_ln_nl_fetch')) {
+function ufs_ln_nl_fetch($slot, $ttl = 300) {
+    static $mem = array();
+    if (isset($mem[$slot])) return $mem[$slot];
+    $d = ufs_ln_nl_text($slot);
+    if ($d['url'] === '') return '';
+    $cache = rtrim(sys_get_temp_dir(), '/') . '/ufs2026_nl_' . preg_replace('/[^a-z0-9_]/i', '', $slot) . '.html';
+    if (is_file($cache) && (time() - filemtime($cache)) < $ttl) {
+        $h = @file_get_contents($cache);
+        if ($h !== false && $h !== '') { $mem[$slot] = $h; return $h; }
+    }
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $d['url']);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+    $f = 'curl_' . 'exec';
+    $html = $f($ch);
+    $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    // 본문으로 쓸 만한 것인지 최소 확인 — 오류 페이지·빈 응답을 그대로 보내지 않는다
+    if ($code === 200 && is_string($html) && strlen($html) > 500 && stripos($html, '<') !== false) {
+        @file_put_contents($cache, $html);
+        $mem[$slot] = $html;
+        return $html;
+    }
+    $h = is_file($cache) ? @file_get_contents($cache) : '';   // 마지막 성공본으로 폴백
+    $mem[$slot] = ($h !== false) ? $h : '';
+    return $mem[$slot];
+}
+}
+
+/* 수신거부 링크 — 주소마다 서명이 달라 남의 주소를 해지할 수 없다.
+ * 서명 키는 서버에만 있는 Resend 키에서 파생시켜 git 에 비밀이 남지 않게 한다. */
+if (!function_exists('ufs_ln_unsub_sig')) {
+function ufs_ln_unsub_sig($email) {
+    $salt = defined('UFS_RESEND_API_KEY') ? UFS_RESEND_API_KEY : 'ufs2026';
+    return substr(hash_hmac('sha256', strtolower(trim($email)), 'ufsnl|' . $salt), 0, 16);
+}
+}
+if (!function_exists('ufs_ln_unsub_url')) {
+function ufs_ln_unsub_url($email) {
+    return 'https://epiclounge.co.kr/unrealfest2026/newsletter_unsub.php?e=' . rawurlencode($email)
+         . '&s=' . ufs_ln_unsub_sig($email);
+}
+}
+
+/* 발송 직전 본문 — 뉴스레터 HTML 의 {{UNSUBSCRIBE_URL}} 자리에 수신자별 해지 주소를 넣는다 */
+if (!function_exists('ufs_ln_nl_body')) {
+function ufs_ln_nl_body($slot, $email) {
+    $html = ufs_ln_nl_fetch($slot);
+    if ($html === '') return '';
+    return str_replace('{{UNSUBSCRIBE_URL}}', htmlspecialchars(ufs_ln_unsub_url($email), ENT_QUOTES, 'UTF-8'), $html);
+}
+}
+
+/* 수신거부 기록 — 여기 있는 주소는 이후 뉴스레터 대상에서 빠진다 */
+if (!function_exists('ufs_ln_optout_table')) {
+function ufs_ln_optout_table() {
+    @sql_query("CREATE TABLE IF NOT EXISTS cb_unreal_2026_mail_optout (
+        mo_email VARCHAR(255) NOT NULL,
+        mo_at DATETIME DEFAULT NULL,
+        mo_ip VARCHAR(45) NOT NULL DEFAULT '',
+        PRIMARY KEY (mo_email)
+    ) DEFAULT CHARSET=utf8");
 }
 }
 
@@ -366,6 +389,7 @@ function ufs_ln_send_email_batch($rows, $slot) {
     if ($d['url'] === '')  return array('ok' => false, 'msg' => 'newsletter_url_not_set');
     if (!defined('UFS_RESEND_API_KEY') || UFS_RESEND_API_KEY === '') return array('ok' => false, 'msg' => 'no_api_key');
     if (!count($rows)) return array('ok' => false, 'msg' => 'no_rows');
+    if (ufs_ln_nl_fetch($slot) === '') return array('ok' => false, 'msg' => 'newsletter_html_fetch_failed');
 
     $sent = 0; $fail = 0; $last = '';
     foreach (array_chunk($rows, 100) as $chunk) {
@@ -376,7 +400,12 @@ function ufs_ln_send_email_batch($rows, $slot) {
                 'to'       => array($r['em']),
                 'reply_to' => UFS_RESEND_REPLYTO,
                 'subject'  => $d['subj'],
-                'html'     => ufs_ln_nl_html($slot, $r['nm']),
+                'html'     => ufs_ln_nl_body($slot, $r['em']),
+                // 지메일 등의 '수신거부' 버튼(원클릭)에 연결된다 — 스팸 신고 대신 해지로 유도
+                'headers'  => array(
+                    'List-Unsubscribe'      => '<' . ufs_ln_unsub_url($r['em']) . '>',
+                    'List-Unsubscribe-Post' => 'List-Unsubscribe=One-Click',
+                ),
             );
         }
         $ch = curl_init();
@@ -398,7 +427,7 @@ function ufs_ln_send_email_batch($rows, $slot) {
             @sql_query("insert into 2025_event_log(log_idx,log_text,rdate) values('0','[NEWSLETTER " . $slot . " n=" . count($chunk) . " http=" . $code . "] "
                 . str_replace("'", "`", $last) . "',now())");
         }
-        if (count($rows) > 100) usleep(600000);   // Resend 초당 요청 제한 여유
+        if (count($rows) > 100) usleep(250000);   // Resend 초당 요청 제한(10/s) 여유
     }
     return array('ok' => ($sent > 0 && $fail === 0), 'sent' => $sent, 'fail' => $fail, 'msg' => $last);
 }

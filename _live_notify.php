@@ -57,10 +57,13 @@ function ufs_ln_slots() {
         'd2pm'   => array('label'=>'Day2 오후 세션',      'day'=>'2', 'audience'=>'online',  'only_unvisited'=>false, 'tpl_def'=>'340', 'ch'=>'kakao', 'mode'=>'spread'),
         'thanks' => array('label'=>'감사 인사(행사 후)',  'day'=>'2', 'audience'=>'all',     'only_unvisited'=>false, 'tpl_def'=>'343', 'ch'=>'kakao', 'mode'=>'bulk'),
         // ── 이메일 뉴스레터(Resend) ────────────────────────────────────
-        // 본문 CTA 링크는 관리자 설정(live_notify_nl_url_{slot})이며, 링크가 없으면 발송하지 않는다.
-        'nl_d1'  => array('label'=>'뉴스레터 Day1',       'day'=>'1', 'audience'=>'online',  'only_unvisited'=>false, 'tpl_def'=>'',    'ch'=>'email', 'mode'=>'bulk'),
-        'nl_d2'  => array('label'=>'뉴스레터 Day2',       'day'=>'2', 'audience'=>'online',  'only_unvisited'=>false, 'tpl_def'=>'',    'ch'=>'email', 'mode'=>'bulk'),
-        'nl_thx' => array('label'=>'뉴스레터 감사인사',   'day'=>'2', 'audience'=>'all',     'only_unvisited'=>false, 'tpl_def'=>'',    'ch'=>'email', 'mode'=>'bulk'),
+        // 본문은 관리자 설정(live_notify_nl_url_{slot})의 HTML 그대로. 주소가 없으면 발송하지 않는다.
+        // 분산으로 보낸다 — 우리 서버 부하 때문이 아니라, 수천 통을 한 번에 쏟으면
+        // 수신측 스팸 필터가 대량 발송으로 보기 쉬워서다. 상한은 200이 아니라 500/분
+        // (200 은 원본 서버로 몰리는 것을 막는 값이고, 메일은 원본을 거치지 않는다).
+        'nl_d1'  => array('label'=>'뉴스레터 Day1',       'day'=>'1', 'audience'=>'online',  'only_unvisited'=>false, 'tpl_def'=>'',    'ch'=>'email', 'mode'=>'spread', 'max_batch'=>500),
+        'nl_d2'  => array('label'=>'뉴스레터 Day2',       'day'=>'2', 'audience'=>'online',  'only_unvisited'=>false, 'tpl_def'=>'',    'ch'=>'email', 'mode'=>'spread', 'max_batch'=>500),
+        'nl_thx' => array('label'=>'뉴스레터 감사인사',   'day'=>'2', 'audience'=>'all',     'only_unvisited'=>false, 'tpl_def'=>'',    'ch'=>'email', 'mode'=>'spread', 'max_batch'=>500),
     );
 }
 }
@@ -127,7 +130,8 @@ function ufs_ln_remaining($slot) {
  *    등록자가 늘면 자동으로 커진다. 창 종료까지 균등하게 소진되도록 매분 재계산.
  *  · 상한(기본 200/분)은 도착 폭주 방지용. 200명/분이어도 원본 부하는 약 7 req/s 수준. */
 if (!function_exists('ufs_ln_auto_batch')) {
-function ufs_ln_auto_batch($slot, $end_str, $start_str = '', $min = 10, $max = 200) {
+function ufs_ln_auto_batch($slot, $end_str, $start_str = '', $min = 10, $max = 0) {
+    if ($max <= 0) { $sl = ufs_ln_slot($slot); $max = isset($sl['max_batch']) ? (int)$sl['max_batch'] : 200; }
     $remain = ufs_ln_remaining($slot);
     if ($remain <= 0) return 0;
     $end = ($end_str !== '') ? strtotime($end_str) : false;

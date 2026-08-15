@@ -6,8 +6,9 @@
  *       "미리 입장"을 유도해 진입을 분산시킨다.
  *
  * 설계 포인트
- *  - 대상 = 온라인 무료 등록자(apply_product_code='ONLINE' 또는 free_yn='Y') 중
- *           ① 아직 그날 라이브에 접속하지 않았고 ② 아직 그날 안내를 못 받은 사람.
+ *  - 대상은 슬롯마다 다르다(ufs_ln_audience_sql). 온라인 시청 안내는 apply_product_code='ONLINE',
+ *    현장 체크인 안내는 그날 오는 현장 참석자, 감사 인사는 전원.
+ *    온라인 오전 슬롯은 여기에 ① 아직 그날 라이브 미접속 ② 아직 그날 미발송 조건이 더 붙는다.
  *           (등록자는 계속 늘어날 수 있으므로 발송 시점에 매번 동적으로 조회)
  *  - 중복 발송 방지 = cb_unreal_2026_live_notify 의 UNIQUE(apply_no, ln_day)
  *  - 발송 채널은 어댑터로 분리(alimtalk / sms). 알림톡 실패 시 SMS 자동 대체.
@@ -45,7 +46,7 @@ function ufs_ln_table() {
  *   only_unvisited : true 면 그날 아직 라이브에 안 들어온 사람만 */
 if (!function_exists('ufs_ln_slots')) {
 function ufs_ln_slots() {
-    // audience: online(온라인 무료) / offline(현장 참석) / all(전체 확정 등록자)
+    // audience: online(온라인 중계) / offline(그날 오는 현장 참석자) / all(전체 확정 등록자)
     // only_unvisited: 그날 라이브 미접속자만(진입 분산용) — 온라인 오전 슬롯에만 적용
     return array(
         // ── 알림톡(카카오) ─────────────────────────────────────────────
@@ -67,12 +68,28 @@ function ufs_ln_slots() {
     );
 }
 }
-/* 대상(audience) → SQL 조건 */
+/* 대상(audience) → SQL 조건
+ *
+ * 분류 기준은 결제 여부가 아니라 '무엇을 신청했는가'(상품코드)다.
+ *   ONLINE      온라인 중계 — 전원 무료
+ *   NORMAL_ALL  현장 양일권 / NORMAL_20 현장 Day1권 / NORMAL_21 현장 Day2권
+ *
+ * 과거에 online 조건에 free_yn='Y' 를 넣었던 것은 "온라인=무료"라는 이유였는데,
+ * ONLINE 은 전원 무료라 이 조건이 하는 일이 없으면서 무료 쿠폰으로 현장 등록한
+ * 사람(스피커·스폰서·초청 등)까지 online 으로 끌어왔다. 그 결과 현장에 오는 사람이
+ * 체크인 안내 대신 온라인 시청 안내를 받았다. → 상품코드만으로 판정한다.
+ *
+ * 또 체크인 안내는 '그날 오는 사람'에게만 가야 한다. 하루권 소지자에게 다른 날
+ * 체크인 안내가 가지 않도록 $day 로 반대편 하루권을 제외한다. */
 if (!function_exists('ufs_ln_audience_sql')) {
-function ufs_ln_audience_sql($a) {
-    if ($a === 'offline') return " AND a.apply_product_code<>'ONLINE' AND a.free_yn='N'";
-    if ($a === 'all')     return "";
-    return " AND (a.apply_product_code='ONLINE' OR a.free_yn='Y')";   // online(기본)
+function ufs_ln_audience_sql($a, $day = '') {
+    if ($a === 'all')    return "";
+    if ($a === 'online') return " AND a.apply_product_code='ONLINE'";
+    // offline — 현장 참석자(온라인 중계가 아닌 모든 상품). 새 현장 상품이 생겨도 자동으로 포함된다.
+    $s = " AND a.apply_product_code<>'ONLINE'";
+    if ($day === '1') $s .= " AND a.apply_product_code<>'NORMAL_21'";   // Day2권만 가진 사람 제외
+    if ($day === '2') $s .= " AND a.apply_product_code<>'NORMAL_20'";   // Day1권만 가진 사람 제외
+    return $s;
 }
 }
 if (!function_exists('ufs_ln_slot')) {
@@ -110,7 +127,7 @@ function ufs_ln_sql_where($slot) {
          WHERE a.apply_temp_yn='N' AND a.apply_pay_status<>0
            AND n.ln_no IS NULL"
         . $cond_ch
-        . ufs_ln_audience_sql(isset($sl['audience']) ? $sl['audience'] : 'online')
+        . ufs_ln_audience_sql(isset($sl['audience']) ? $sl['audience'] : 'online', $sl['day'])
         . $cond_visit);
 }
 }

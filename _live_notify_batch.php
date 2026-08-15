@@ -57,10 +57,15 @@ echo "  활성화   : " . ($enabled ? 'ON' : 'OFF') . "\n";
 echo "  발송 창  : " . ($active !== '' ? ($active . ($force ? ' (강제)' : '')) : '(창 밖 — 발송 안 함)') . "\n";
 echo "  채널     : $channel | 1회 인원: " . ($cfg_bat > 0 ? $cfg_bat . '명(고정)' : '자동(남은 대상 ÷ 남은 분)') . "\n\n";
 foreach ($SLOTS as $k => $sl) {
-    $s = ln_cfg('live_notify_' . $k . '_start', '(미설정)');
-    $e = ln_cfg('live_notify_' . $k . '_end', '(미설정)');
-    printf("  %-5s %-22s %s ~ %s | 남은 대상 %d명 | 템플릿 %s\n", $k, $sl['label'],
-        substr($s, 5), substr($e, 11), ufs_ln_remaining($k), ln_cfg('live_notify_at_tpl_' . $k, $sl['tpl_def']));
+    $s = ln_cfg('live_notify_' . $k . '_start');
+    $e = ln_cfg('live_notify_' . $k . '_end');
+    $is_mail = ($sl['ch'] === 'email');
+    printf("  %-6s %-22s %s ~ %s | %-4s %-4s | 남은 대상 %4d명 | %s\n", $k, $sl['label'],
+        ($s !== '' ? substr($s, 5) : '  (미설정)'), ($e !== '' ? substr($e, 11) : '  ---'),
+        ($is_mail ? '메일' : '카톡'), ($sl['mode'] === 'bulk' ? '일괄' : '분산'),
+        ufs_ln_remaining($k),
+        $is_mail ? ('링크 ' . (ufs_ln_cfg('live_notify_nl_url_' . $k, '') !== '' ? 'OK' : '미설정 ← 발송 안 됨'))
+                 : ('템플릿 ' . ln_cfg('live_notify_at_tpl_' . $k, $sl['tpl_def'])));
 }
 echo "\n";
 
@@ -70,11 +75,19 @@ function ln_batch_size($slot, $cfg_bat) {
     return ufs_ln_auto_batch($slot, ln_cfg('live_notify_' . $slot . '_end'), ln_cfg('live_notify_' . $slot . '_start'));
 }
 
+/* 일괄 슬롯은 남은 대상을 한 번에 소진하고, 분산 슬롯만 자동 계산으로 나눠 보낸다 */
+function ln_run($slot, $cfg_bat, $dry, $channel) {
+    $sl = ufs_ln_slot($slot);
+    if ($sl['mode'] === 'bulk') return array(ufs_ln_run_bulk($slot, $dry, $channel), 0);
+    $n = ln_batch_size($slot, $cfg_bat);
+    return array(ufs_ln_run_batch($slot, max(1, $n), $dry, $channel), $n);
+}
+
 if (!$go) {
-    $sl = ($active !== '') ? $active : 'd1am';
-    $n  = ln_batch_size($sl, $cfg_bat);
-    $r  = ufs_ln_run_batch($sl, max(1, $n), true, $channel);
-    echo "[DRY-RUN] $sl · 이번 배치 {$r['picked']}명 (자동 계산 {$n}명) — 실제 발송 안 함\n";
+    $s0 = ($active !== '') ? $active : 'd1am';
+    list($r, $n) = ln_run($s0, $cfg_bat, true, $channel);
+    $mode = (ufs_ln_slot($s0)['mode'] === 'bulk') ? '일괄(남은 전량)' : ('분산 · 자동 계산 ' . $n . '명');
+    echo "[DRY-RUN] $s0 · 이번 회차 {$r['picked']}명 [$mode] — 실제 발송 안 함\n";
     foreach (array_slice($r['rows'], 0, 8) as $x) { echo "    #{$x[0]} {$x[1]} ****{$x[2]}\n"; }
     if ($r['picked'] > 8) echo "    … 외 " . ($r['picked'] - 8) . "명\n";
     echo "\n실제 발송은 &go=1 (설정 창 안에서만). 테스트는 &go=1&force=1&slot=d1pm\n";
@@ -84,9 +97,9 @@ if (!$go) {
 if (!$enabled && !$force) { echo "발송 비활성화 상태(live_notify_enabled=0) — 아무것도 하지 않음\n"; exit; }
 if ($active === '')       { echo "발송 창 밖 — 아무것도 하지 않음\n"; exit; }
 
-$n = ln_batch_size($active, $cfg_bat);
-if ($n <= 0) { echo "[$active] 남은 대상 없음 — 발송 완료 상태\n"; exit; }
-$r = ufs_ln_run_batch($active, $n, false, $channel);
-printf("[발송] %s | 이번 %d명(계산 %d) → 성공 %d · 실패 %d | 남은 %d명 %s\n",
-    $r['day'], $r['picked'], $n, $r['sent'], $r['fail'], $r['remaining'],
+if (ufs_ln_remaining($active) <= 0) { echo "[$active] 남은 대상 없음 — 발송 완료 상태\n"; exit; }
+list($r, $n) = ln_run($active, $cfg_bat, false, $channel);
+printf("[발송] %s | 이번 %d명%s → 성공 %d · 실패 %d | 남은 %d명 %s\n",
+    $r['day'], $r['picked'], ($n > 0 ? ('(계산 ' . $n . ')') : ('(일괄 ' . $r['calls'] . '회 호출)')),
+    $r['sent'], $r['fail'], $r['remaining'],
     ($r['detail'] !== '' ? ('· ' . $r['detail']) : ''));

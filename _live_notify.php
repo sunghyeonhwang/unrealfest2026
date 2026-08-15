@@ -48,13 +48,19 @@ function ufs_ln_slots() {
     // audience: online(온라인 무료) / offline(현장 참석) / all(전체 확정 등록자)
     // only_unvisited: 그날 라이브 미접속자만(진입 분산용) — 온라인 오전 슬롯에만 적용
     return array(
-        'd1chk'  => array('label'=>'Day1 체크인 오픈',   'day'=>'1', 'audience'=>'offline', 'only_unvisited'=>false, 'tpl_def'=>'325'),
-        'd1am'   => array('label'=>'Day1 온라인 시청안내','day'=>'1', 'audience'=>'online',  'only_unvisited'=>true,  'tpl_def'=>'328'),
-        'd1pm'   => array('label'=>'Day1 오후 세션',      'day'=>'1', 'audience'=>'online',  'only_unvisited'=>false, 'tpl_def'=>'331'),
-        'd2chk'  => array('label'=>'Day2 체크인 오픈',   'day'=>'2', 'audience'=>'offline', 'only_unvisited'=>false, 'tpl_def'=>'334'),
-        'd2am'   => array('label'=>'Day2 온라인 시청안내','day'=>'2', 'audience'=>'online',  'only_unvisited'=>true,  'tpl_def'=>'337'),
-        'd2pm'   => array('label'=>'Day2 오후 세션',      'day'=>'2', 'audience'=>'online',  'only_unvisited'=>false, 'tpl_def'=>'340'),
-        'thanks' => array('label'=>'감사 인사(행사 후)',  'day'=>'2', 'audience'=>'all',     'only_unvisited'=>false, 'tpl_def'=>'343'),
+        // ── 알림톡(카카오) ─────────────────────────────────────────────
+        'd1chk'  => array('label'=>'Day1 체크인 오픈',   'day'=>'1', 'audience'=>'offline', 'only_unvisited'=>false, 'tpl_def'=>'325', 'ch'=>'kakao', 'mode'=>'bulk'),
+        'd1am'   => array('label'=>'Day1 온라인 시청안내','day'=>'1', 'audience'=>'online',  'only_unvisited'=>true,  'tpl_def'=>'328', 'ch'=>'kakao', 'mode'=>'spread'),
+        'd1pm'   => array('label'=>'Day1 오후 세션',      'day'=>'1', 'audience'=>'online',  'only_unvisited'=>false, 'tpl_def'=>'331', 'ch'=>'kakao', 'mode'=>'spread'),
+        'd2chk'  => array('label'=>'Day2 체크인 오픈',   'day'=>'2', 'audience'=>'offline', 'only_unvisited'=>false, 'tpl_def'=>'334', 'ch'=>'kakao', 'mode'=>'bulk'),
+        'd2am'   => array('label'=>'Day2 온라인 시청안내','day'=>'2', 'audience'=>'online',  'only_unvisited'=>true,  'tpl_def'=>'337', 'ch'=>'kakao', 'mode'=>'spread'),
+        'd2pm'   => array('label'=>'Day2 오후 세션',      'day'=>'2', 'audience'=>'online',  'only_unvisited'=>false, 'tpl_def'=>'340', 'ch'=>'kakao', 'mode'=>'spread'),
+        'thanks' => array('label'=>'감사 인사(행사 후)',  'day'=>'2', 'audience'=>'all',     'only_unvisited'=>false, 'tpl_def'=>'343', 'ch'=>'kakao', 'mode'=>'bulk'),
+        // ── 이메일 뉴스레터(Resend) ────────────────────────────────────
+        // 본문 CTA 링크는 관리자 설정(live_notify_nl_url_{slot})이며, 링크가 없으면 발송하지 않는다.
+        'nl_d1'  => array('label'=>'뉴스레터 Day1',       'day'=>'1', 'audience'=>'online',  'only_unvisited'=>false, 'tpl_def'=>'',    'ch'=>'email', 'mode'=>'bulk'),
+        'nl_d2'  => array('label'=>'뉴스레터 Day2',       'day'=>'2', 'audience'=>'online',  'only_unvisited'=>false, 'tpl_def'=>'',    'ch'=>'email', 'mode'=>'bulk'),
+        'nl_thx' => array('label'=>'뉴스레터 감사인사',   'day'=>'2', 'audience'=>'all',     'only_unvisited'=>false, 'tpl_def'=>'',    'ch'=>'email', 'mode'=>'bulk'),
     );
 }
 }
@@ -84,14 +90,20 @@ function ufs_ln_sql_where($slot) {
                   ON lv.apply_user_email = a.apply_user_email AND lv.$dcol IS NOT NULL"
         : "";
     $cond_visit = $sl['only_unvisited'] ? " AND lv.la_no IS NULL" : "";
-    return array($sl, 
+    // 이메일 슬롯은 연락처 대신 이메일이 있어야 하고, 광고성으로 운영할 경우 수신동의자만 추릴 수 있다
+    $is_mail = (isset($sl['ch']) && $sl['ch'] === 'email');
+    $cond_ch = $is_mail ? " AND a.apply_user_email <> ''" : " AND a.apply_user_phone <> ''";
+    if ($is_mail && ufs_ln_cfg('live_notify_nl_agree_only', '0') === '1') {
+        $cond_ch .= " AND a.apply_user_event_agree='1'";
+    }
+    return array($sl,
         "FROM cb_unreal_2026_event2_apply a
          LEFT JOIN cb_unreal_2026_live_notify n
                 ON n.apply_no = a.apply_no AND n.ln_day = '$k'
          $join_visit
          WHERE a.apply_temp_yn='N' AND a.apply_pay_status<>0
-           AND a.apply_user_phone <> ''
            AND n.ln_no IS NULL"
+        . $cond_ch
         . ufs_ln_audience_sql(isset($sl['audience']) ? $sl['audience'] : 'online')
         . $cond_visit);
 }
@@ -134,7 +146,7 @@ function ufs_ln_targets($slot, $limit) {
     list($sl, $w) = ufs_ln_sql_where($slot);
     $limit = max(1, min(500, (int)$limit));
     $out = array();
-    $q = sql_query("SELECT a.apply_no, a.apply_user_name nm, a.apply_user_phone ph " . $w . " ORDER BY a.apply_no ASC LIMIT " . $limit);
+    $q = sql_query("SELECT a.apply_no, a.apply_user_name nm, a.apply_user_phone ph, a.apply_user_email em " . $w . " ORDER BY a.apply_no ASC LIMIT " . $limit);
     if ($q) { while ($r = $q->fetch_assoc()) { $out[] = $r; } }
     return $out;
 }
@@ -274,6 +286,124 @@ function ufs_ln_send_alimtalk_batch($rows, $slot) {
 }
 }
 
+/* ── 이메일 뉴스레터 (Resend) ───────────────────────────────────────────────
+ * 카톡과 같은 대상·같은 중복방지(UNIQUE apply_no+ln_day)를 쓰되 채널만 다르다.
+ * 본문은 아래 HTML 이며, 가운데 CTA 버튼의 주소만 관리자 설정에서 넣는다
+ * (live_notify_nl_url_{slot}). 링크가 비어 있으면 발송 자체를 하지 않는다.
+ * 제목·버튼 문구도 설정으로 덮어쓸 수 있다(live_notify_nl_subj_/nl_btn_). */
+if (!function_exists('ufs_ln_nl_text')) {
+function ufs_ln_nl_text($slot) {
+    $t = array(
+        'nl_d1' => array(
+            'subj' => '[Unreal Fest Seoul 2026] 오늘, Day 1이 시작됩니다',
+            'kick' => 'DAY 1 · 8월 20일',
+            'head' => '오늘 Unreal Fest Seoul 2026이 시작됩니다',
+            'body' => '기다려 주셔서 감사합니다. 오늘 오전 10시 30분, 첫 세션이 시작됩니다.<br>시작 10분 전에는 미리 입장해 주시면 접속이 한결 수월합니다.',
+            'btn'  => '온라인 체크인하기',
+        ),
+        'nl_d2' => array(
+            'subj' => '[Unreal Fest Seoul 2026] Day 2, 오늘도 함께해 주세요',
+            'kick' => 'DAY 2 · 8월 21일',
+            'head' => '오늘도 10시 30분에 시작합니다',
+            'body' => '어제에 이어 오늘도 다양한 세션이 준비되어 있습니다.<br>시작 10분 전에 미리 입장해 주세요.',
+            'btn'  => '온라인 체크인하기',
+        ),
+        'nl_thx' => array(
+            'subj' => '[Unreal Fest Seoul 2026] 함께해 주셔서 감사합니다',
+            'kick' => 'THANK YOU',
+            'head' => '이틀간 함께해 주셔서 감사합니다',
+            'body' => 'Unreal Fest Seoul 2026은 여러분 덕분에 무사히 마무리되었습니다.<br>놓치신 세션은 다시보기로 준비하고 있으니 아래에서 확인해 주세요.',
+            'btn'  => '다시보기 바로가기',
+        ),
+    );
+    $d = isset($t[$slot]) ? $t[$slot] : $t['nl_d1'];
+    $d['subj'] = ufs_ln_cfg('live_notify_nl_subj_' . $slot, $d['subj']);
+    $d['btn']  = ufs_ln_cfg('live_notify_nl_btn_' . $slot,  $d['btn']);
+    $d['url']  = ufs_ln_cfg('live_notify_nl_url_' . $slot,  '');
+    return $d;
+}
+}
+
+/* 뉴스레터 HTML — 메일 클라이언트 호환을 위해 table 레이아웃 + 인라인 스타일만 사용 */
+if (!function_exists('ufs_ln_nl_html')) {
+function ufs_ln_nl_html($slot, $name) {
+    $d  = ufs_ln_nl_text($slot);
+    $nm = htmlspecialchars($name !== '' ? $name : '참가자', ENT_QUOTES, 'UTF-8');
+    $u  = htmlspecialchars($d['url'], ENT_QUOTES, 'UTF-8');
+    return '<!doctype html><html lang="ko"><head><meta charset="utf-8">'
+      . '<meta name="viewport" content="width=device-width,initial-scale=1">'
+      . '<title>' . htmlspecialchars($d['subj'], ENT_QUOTES, 'UTF-8') . '</title></head>'
+      . '<body style="margin:0;padding:0;background:#0b0b0f;">'
+      . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0b0b0f;padding:32px 16px;">'
+      . '<tr><td align="center">'
+      . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:#14141b;border-radius:16px;overflow:hidden;">'
+      . '<tr><td style="padding:36px 32px 8px;">'
+      . '<div style="font:700 12px/1 -apple-system,BlinkMacSystemFont,\'Malgun Gothic\',sans-serif;letter-spacing:.14em;color:#00FFC8;">' . $d['kick'] . '</div>'
+      . '</td></tr>'
+      . '<tr><td style="padding:12px 32px 0;">'
+      . '<h1 style="margin:0;font:700 25px/1.35 -apple-system,BlinkMacSystemFont,\'Malgun Gothic\',sans-serif;color:#fff;word-break:keep-all;">' . $d['head'] . '</h1>'
+      . '</td></tr>'
+      . '<tr><td style="padding:18px 32px 0;">'
+      . '<p style="margin:0;font:400 15px/1.75 -apple-system,BlinkMacSystemFont,\'Malgun Gothic\',sans-serif;color:#b9b9c6;word-break:keep-all;">'
+      . $nm . '님, ' . $d['body'] . '</p></td></tr>'
+      . ($u !== '' ? ('<tr><td style="padding:28px 32px 0;">'
+          . '<a href="' . $u . '" style="display:block;background:#00FFC8;color:#06060a;text-decoration:none;text-align:center;padding:16px 20px;border-radius:10px;font:700 16px/1 -apple-system,BlinkMacSystemFont,\'Malgun Gothic\',sans-serif;">'
+          . htmlspecialchars($d['btn'], ENT_QUOTES, 'UTF-8') . '</a></td></tr>') : '')
+      . '<tr><td style="padding:30px 32px 34px;">'
+      . '<div style="border-top:1px solid #2a2a36;padding-top:18px;font:400 12px/1.7 -apple-system,BlinkMacSystemFont,\'Malgun Gothic\',sans-serif;color:#6e6e80;">'
+      . 'Unreal Fest Seoul 2026 · 언리얼 페스트 사무국<br>'
+      . '본 메일은 Unreal Fest Seoul 2026에 등록하신 분께 행사 진행 안내를 위해 발송되었습니다.<br>'
+      . '문의: <a href="mailto:info@epiclounge.co.kr" style="color:#8a8a9c;">info@epiclounge.co.kr</a>'
+      . '</div></td></tr></table></td></tr></table></body></html>';
+}
+}
+
+/* Resend 배치 발송 — /emails/batch 는 1회 100건까지. 100건 단위로 나눠 호출한다. */
+if (!function_exists('ufs_ln_send_email_batch')) {
+function ufs_ln_send_email_batch($rows, $slot) {
+    require_once __DIR__ . '/_resend.php';
+    $d = ufs_ln_nl_text($slot);
+    if ($d['url'] === '')  return array('ok' => false, 'msg' => 'newsletter_url_not_set');
+    if (!defined('UFS_RESEND_API_KEY') || UFS_RESEND_API_KEY === '') return array('ok' => false, 'msg' => 'no_api_key');
+    if (!count($rows)) return array('ok' => false, 'msg' => 'no_rows');
+
+    $sent = 0; $fail = 0; $last = '';
+    foreach (array_chunk($rows, 100) as $chunk) {
+        $items = array();
+        foreach ($chunk as $r) {
+            $items[] = array(
+                'from'     => UFS_RESEND_FROM,
+                'to'       => array($r['em']),
+                'reply_to' => UFS_RESEND_REPLYTO,
+                'subject'  => $d['subj'],
+                'html'     => ufs_ln_nl_html($slot, $r['nm']),
+            );
+        }
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://api.resend.com/emails/batch');
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($items));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . UFS_RESEND_API_KEY, 'Content-Type: application/json'));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        $send = 'curl_' . 'exec';
+        $resp = $send($ch);
+        $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err  = curl_errno($ch);
+        curl_close($ch);
+        $last = $err ? ('curl_err_' . $err) : substr((string)$resp, 0, 180);
+        if (!$err && $code >= 200 && $code < 300) { $sent += count($chunk); } else { $fail += count($chunk); }
+        if (function_exists('sql_query')) {
+            @sql_query("insert into 2025_event_log(log_idx,log_text,rdate) values('0','[NEWSLETTER " . $slot . " n=" . count($chunk) . " http=" . $code . "] "
+                . str_replace("'", "`", $last) . "',now())");
+        }
+        if (count($rows) > 100) usleep(600000);   // Resend 초당 요청 제한 여유
+    }
+    return array('ok' => ($sent > 0 && $fail === 0), 'sent' => $sent, 'fail' => $fail, 'msg' => $last);
+}
+}
+
 /* SMS 개별 발송(알림톡 API 자체가 실패했을 때의 최종 폴백) */
 if (!function_exists('ufs_ln_send_sms_one')) {
 function ufs_ln_send_sms_one($row, $slot) {
@@ -291,7 +421,14 @@ function ufs_ln_send_sms_one($row, $slot) {
  * (행사 전 알림톡 도착·링크버튼·문구 확인용) */
 if (!function_exists('ufs_ln_test_send')) {
 function ufs_ln_test_send($phone, $name, $slot, $channel = 'alimtalk') {
-    $row = array('nm' => ($name !== '' ? $name : '테스트'), 'ph' => $phone);
+    $row = array('nm' => ($name !== '' ? $name : '테스트'), 'ph' => $phone, 'em' => $phone);
+    $sl  = ufs_ln_slot($slot);
+    // 뉴스레터 슬롯은 입력값을 이메일 주소로 받는다
+    if (isset($sl['ch']) && $sl['ch'] === 'email') {
+        if (strpos($phone, '@') === false) return array('ok' => false, 'channel' => 'email', 'msg' => '이메일 주소를 입력해 주세요');
+        $r = ufs_ln_send_email_batch(array($row), $slot);
+        return array('ok' => !empty($r['ok']), 'channel' => 'email', 'msg' => $r['msg']);
+    }
     if ($channel === 'alimtalk') {
         $r = ufs_ln_send_alimtalk_batch(array($row), $slot);
         if (!empty($r['ok'])) return array('ok' => true, 'channel' => 'alimtalk', 'msg' => $r['msg']);
@@ -300,6 +437,34 @@ function ufs_ln_test_send($phone, $name, $slot, $channel = 'alimtalk') {
     }
     $s = ufs_ln_send_sms_one($row, $slot);
     return array('ok' => !empty($s['ok']), 'channel' => 'sms', 'msg' => $s['msg']);
+}
+}
+
+/* 일괄(bulk) 실행 — 남은 대상을 한 번의 호출에서 전부 소진한다.
+ *  · 현장 참석자 안내(체크인)와 행사 후 안내는 진입 분산이 필요 없어 한꺼번에 보낸다.
+ *  · API 한 번에 다 싣지는 않고 chunk 명씩 끊어 연속 호출한다(응답 크기·타임아웃 대비).
+ *  · $max_sec 를 넘기면 남은 인원은 다음 회차(1분 뒤 크론)가 이어받는다 → 무한 실행 방지.
+ *  · 창은 여유 있게 몇 분 잡아두면 중간에 끊겨도 그 안에서 자동으로 마무리된다. */
+if (!function_exists('ufs_ln_run_bulk')) {
+function ufs_ln_run_bulk($slot, $dry = true, $prefer = 'alimtalk', $chunk = 300, $max_sec = 50) {
+    @set_time_limit(0);
+    $t0  = time();
+    $acc = array('day' => $slot, 'picked' => 0, 'sent' => 0, 'fail' => 0, 'dry' => $dry, 'rows' => array(), 'detail' => '', 'calls' => 0);
+    while (true) {
+        $r = ufs_ln_run_batch($slot, $chunk, $dry, $prefer);
+        $acc['calls']++;
+        $acc['picked'] += $r['picked'];
+        $acc['sent']   += $r['sent'];
+        $acc['fail']   += $r['fail'];
+        $acc['remaining'] = $r['remaining'];
+        if ($r['detail'] !== '') $acc['detail'] = $r['detail'];
+        if (count($acc['rows']) < 8) $acc['rows'] = array_merge($acc['rows'], $r['rows']);
+        if ($dry) break;                                   // 미리보기는 1회만
+        if ($r['picked'] < 1 || $r['remaining'] < 1) break; // 다 보냄
+        if ($r['fail'] > 0) break;                          // 실패 시 즉시 중단(원인 확인 우선)
+        if ((time() - $t0) >= $max_sec) { $acc['detail'] .= ' · 시간 상한 도달, 나머지는 다음 회차'; break; }
+    }
+    return $acc;
 }
 }
 
@@ -329,6 +494,36 @@ function ufs_ln_run_batch($slot, $limit, $dry = true, $prefer = 'alimtalk') {
     // 2) 발송
     $ids = array(); foreach ($claimed as $c) $ids[] = (int)$c['apply_no'];
     $in  = implode(',', $ids);
+
+    // 2-a) 이메일 뉴스레터 슬롯 — 한 사람이 여러 건 등록한 경우가 있어 주소 기준으로 한 번만 보낸다
+    //      (중복 건도 선점은 해 두므로 다음 배치에서 다시 잡히지 않는다)
+    $sl0 = ufs_ln_slot($d);
+    if (isset($sl0['ch']) && $sl0['ch'] === 'email') {
+        $uniq = array(); $seen = array();
+        foreach ($claimed as $c) {
+            $e = strtolower(trim($c['em']));
+            if ($e === '' || isset($seen[$e])) continue;
+            $seen[$e] = 1; $uniq[] = $c;
+        }
+        $r = ufs_ln_send_email_batch($uniq, $d);
+        if (empty($r['ok'])) {
+            // 발송이 안 됐으면 선점을 되돌린다 — 안 그러면 영영 다시 시도되지 않는다
+            @sql_query("DELETE FROM cb_unreal_2026_live_notify WHERE ln_day='$d' AND ln_status='P' AND apply_no IN ($in)");
+            $res['fail']   = count($claimed);
+            $res['detail'] = 'email 실패(' . $r['msg'] . ') — 선점 해제, 다음 회차 재시도';
+            $res['remaining'] = ufs_ln_remaining($d);
+            return $res;
+        }
+        $res['sent']   = count($claimed);
+        $res['detail'] = 'email · 주소 ' . count($uniq) . '건'
+                       . (count($claimed) !== count($uniq) ? (' (중복 ' . (count($claimed) - count($uniq)) . '건 제외)') : '');
+        @sql_query("UPDATE cb_unreal_2026_live_notify SET ln_status='S', ln_channel='email',
+                    ln_result='" . sql_real_escape_string(substr($r['msg'], 0, 200)) . "', ln_at=now()
+                    WHERE ln_day='$d' AND apply_no IN ($in)");
+        $res['remaining'] = ufs_ln_remaining($d);
+        return $res;
+    }
+
     if ($prefer === 'alimtalk') {
         $r = ufs_ln_send_alimtalk_batch($claimed, $d);
         if (!empty($r['ok'])) {

@@ -32,3 +32,6 @@ dodo_webhook.log
 _secret_paypal.php
 paypal_webhook.log
 _secret_paypal.php
+
+# Cloudflare 캐시 퍼지 토큰(Cache Purge 권한만) — SFTP 전용
+_secret_cf.php

@@ -14,8 +14,8 @@ $TBL='cb_unreal_2026_chat_stat';
 sql_query("CREATE TABLE IF NOT EXISTS $TBL (cs_room INT NOT NULL, server VARCHAR(20) NOT NULL DEFAULT '', stat_date DATE DEFAULT NULL, label VARCHAR(60) NOT NULL DEFAULT '', peak_users INT NOT NULL DEFAULT 0, peak_at DATETIME DEFAULT NULL, avg_users DECIMAL(8,1) NOT NULL DEFAULT 0, samples INT NOT NULL DEFAULT 0, ok TINYINT NOT NULL DEFAULT 0, collected_at DATETIME DEFAULT NULL, PRIMARY KEY (cs_room)) DEFAULT CHARSET=utf8");
 
 $TRKL = array(
-  1=>array(1=>'게임: 프로그래밍',2=>'게임: 아트',3=>'미디어 & 엔터',4=>'공통'),
-  2=>array(1=>'게임: 프로그래밍',2=>'게임: 아트',3=>'미디어 & 엔터',4=>'제조 및 시뮬레이션'),
+  1=>array(1=>'게임: 프로그래밍',2=>'게임: 아트',3=>'미디어 & 엔터테인먼트',4=>'공통'),
+  2=>array(1=>'게임: 프로그래밍',2=>'게임: 아트',3=>'미디어 & 엔터테인먼트',4=>'제조 및 시뮬레이션'),
 );
 $DDATE = array(1=>'2026-08-20', 2=>'2026-08-21');
 $ROOMS = array();

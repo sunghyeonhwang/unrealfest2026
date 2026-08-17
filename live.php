@@ -126,9 +126,12 @@ $viewer = !empty($_SESSION['ufs_live_name']) ? $_SESSION['ufs_live_name'] : ($is
 // ── 채널 정의 ──
 $DAYS = array('1'=>'8월 20일', '2'=>'8월 21일');
 $DAYSUB = array('1'=>'Day 1 · 목', '2'=>'Day 2 · 금');
+// 화면에 보이는 채널 순서 = 이 배열의 순서다(렌더링이 $TRK 를 그대로 훑는다).
+// 트랙 '번호'는 영상 ID(live_yt_d{d}t{n})·채팅방(chIndex)·색상(TRKCOL)·외부링크(?t=n)에 묶여 있으므로
+// 번호는 그대로 두고 나열 순서만 바꾼다. 번호를 바꾸면 영상과 채팅이 통째로 어긋난다.
 $TRK  = array(
-  '1'=>array('1'=>'게임: 프로그래밍','2'=>'게임: 아트','3'=>'미디어 & 엔터','4'=>'공통'),
-  '2'=>array('1'=>'게임: 프로그래밍','2'=>'게임: 아트','3'=>'미디어 & 엔터','4'=>'제조 및 시뮬레이션'),
+  '1'=>array('2'=>'게임: 아트','1'=>'게임: 프로그래밍','3'=>'미디어 & 엔터','4'=>'공통'),
+  '2'=>array('2'=>'게임: 아트','1'=>'게임: 프로그래밍','3'=>'미디어 & 엔터','4'=>'제조 및 시뮬레이션'),
 );
 $TRKCOL = array('1'=>'#307FE2','2'=>'#FF8F1C','3'=>'#FA4616','4'=>'#DD0AB2');
 // 기본 Day = 오늘(8/20→1, 8/21→2), 그 외 1
@@ -136,7 +139,8 @@ $today = date('Y-m-d');
 $defDay = ($today==='2026-08-21') ? '2' : '1';
 $day = (isset($_GET['d']) && isset($DAYS[$_GET['d']])) ? $_GET['d'] : $defDay;
 $trk_explicit = (isset($_GET['t']) && isset($TRK[$day][$_GET['t']]));
-$trk = $trk_explicit ? $_GET['t'] : '1';
+$__tkeys = array_keys($TRK[$day]);
+$trk = $trk_explicit ? $_GET['t'] : $__tkeys[0];   // 트랙 미지정 진입 = 화면 첫 번째 채널
 $ytid = lv_get('live_yt_d'.$day.'t'.$trk);
 // 기본 진입(트랙 미지정)인데 해당 채널이 비어 있고 라이브 활성이면 → 스트림 있는 첫 채널로 자동 이동
 if (!$trk_explicit && $live_active && $ytid === '') {

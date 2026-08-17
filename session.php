@@ -13,7 +13,7 @@ $ufs_detail_time = array('d2-t4-s2a' => '11:30~11:55', 'd2-t4-s2b' => '11:55~12:
 if ($session && isset($ufs_detail_time[$session['id']])) $session['time'] = $ufs_detail_time[$session['id']];
 
 require_once __DIR__ . '/_edge_cache.php';
-if ($session) ufs_edge_cache(300, 60);   // 엣지 캐시(비개인화 공개 페이지). 존재하지 않는 id 는 캐시 안 함(캐시 오염 방지)
+if ($session) ufs_edge_cache(3600, 60);   // 엣지 캐시(비개인화 공개 페이지). 존재하지 않는 id 는 캐시 안 함(캐시 오염 방지)
 
 $page_title = $session ? ($session['title'] . ' — Unreal Fest Seoul 2026') : '세션을 찾을 수 없습니다 — Unreal Fest Seoul 2026';
 $page_desc  = $session ? $session['desc'] : 'Unreal Fest Seoul 2026 세션 정보.';

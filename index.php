@@ -27,7 +27,7 @@ if ($__bq) {
     }
 }
 
-require_once __DIR__ . '/_edge_cache.php'; ufs_edge_cache(300, 60);   // 엣지 캐시(비개인화 공개 페이지) — 프리뷰/관리자/POST 자동 제외
+require_once __DIR__ . '/_edge_cache.php'; ufs_edge_cache(3600, 60);   // 엣지 캐시(비개인화 공개 페이지) — 프리뷰/관리자/POST 자동 제외
 include __DIR__ . '/_head.php';
 ?>
 

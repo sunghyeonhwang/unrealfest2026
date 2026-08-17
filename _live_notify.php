@@ -282,7 +282,10 @@ function ufs_ln_send_alimtalk_batch($rows, $slot) {
         // 알림톡 미수신자 자동 대체발송(LMS)
         'kakao_faild_type' => '2',
         'sender'           => UFS_SMS_SENDER,
-        'title'            => '언리얼 페스트 서울 2026 ' . $sl['label'],
+        // 대체발송(LMS) 제목. 길이를 넘기면 DirectSend 가 status 312 로 요청 전체를 거부해
+        // 알림톡까지 못 나간다(2026-08-17 전체 테스트에서 7건 중 3건 실패로 확인 —
+        // 실패 57~59바이트 / 성공 50~53바이트). 슬롯명을 붙이지 않고 짧게 고정한다.
+        'title'            => '언리얼 페스트 서울 2026',
         'message'          => ufs_ln_message('', $slot),
     );
     $ch = curl_init();

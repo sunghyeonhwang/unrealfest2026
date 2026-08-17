@@ -44,10 +44,15 @@ function ufs_live_log($row, $day, $trk){
         @sql_query("INSERT INTO cb_unreal_2026_event2_apply_live (apply_no, apply_user_email, apply_user_name, apply_user_phone, la_free, la_day, la_trk, la_ip, first_at, last_at, hits, d1_at, d2_at) VALUES ($ano, '$em', '$nm', '$ph', '$free', '$d', '$t', '$ip', '$now', '$now', 1, $d1, $d2)");
     }
 }
-// 라이브 활성 = 수동 토글 ON 또는 예약 기간(live_start~end) 내 (서버 시각 기준)
+// 라이브 활성 = 수동 토글 ON 또는 예약 기간 내 (서버 시각 기준)
+//  예약 창은 2개다. 행사가 이틀이라 하나로 잡으면 20일 밤~21일 아침에도 열려 있게 된다.
+//  index 배너와 같은 시각으로 맞춰 두면, 배너가 떠 있는데 영상은 안 나오는 상황이 생기지 않는다.
 $__la_manual = (lv_get('live_active') === '1');
-$__ls = lv_get('live_start'); $__le = lv_get('live_end'); $__lnow = date('Y-m-d H:i');
-$live_active = $__la_manual || ($__ls !== '' && $__le !== '' && $__lnow >= $__ls && $__lnow <= $__le);
+$__lnow = date('Y-m-d H:i');
+$__lin = function ($s, $e) use ($__lnow) { return ($s !== '' && $e !== '' && $__lnow >= $s && $__lnow <= $e); };
+$__ls = lv_get('live_start');  $__le = lv_get('live_end');
+$__ls2 = lv_get('live_start2'); $__le2 = lv_get('live_end2');
+$live_active = $__la_manual || $__lin($__ls, $__le) || $__lin($__ls2, $__le2);
 $live_notice = lv_get('live_notice');
 $live_ended = (lv_get('live_ended') === '1');   // 관리자 토글: 온라인 라이브 종료(영상·채팅 내리고 종료 안내 표시)
 

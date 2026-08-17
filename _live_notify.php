@@ -252,8 +252,9 @@ function ufs_ln_cfg($k, $def = '') {
 /* ── 알림톡 발송 (DirectSend api_v2/kakao_notice) ───────────────────────────
  * ★ 배치 전체를 receiver 배열에 담아 API 1회 호출 → 60명 발송에 호출 1회.
  *   (DirectSend 제한: 분당 300 호출. 1인 1호출이면 60호출/분이라 낭비 + 느림)
- * ★ 대체발송은 DirectSend 내장 기능 사용: kakao_faild_type=2(LMS) + message/title/sender.
- *   알림톡이 안 가는 수신자에게 자동으로 LMS 가 나가므로 누락이 없다.
+ * ★ 대체발송(LMS)은 쓰지 않는다(kakao_faild_type=0). 알림톡 미수신자에게는 아무것도 안 간다.
+ *   QR·온라인 시청 안내는 출입 업체가 별도 솔루션으로 전원에게 LMS 를 보내므로,
+ *   여기서 또 보내면 중복이고 수신자에게 공해가 된다.
  * 설정(관리자): live_notify_at_plusid(발신프로필 @아이디) · live_notify_at_tpl_d1|d2(템플릿 번호)
  * 응답: {"status":"1"} = 정상. 그 외는 실패 코드(302 인증, 305 프로필키, 306 잔액 등). */
 if (!function_exists('ufs_ln_send_alimtalk_batch')) {
@@ -280,12 +281,11 @@ function ufs_ln_send_alimtalk_batch($rows, $slot) {
         'kakao_plus_id'    => $plusid,
         'user_template_no' => $tpl,
         'receiver'         => '[' . implode(',', $rcv) . ']',
-        // 알림톡 미수신자 자동 대체발송(LMS)
-        'kakao_faild_type' => '2',
+        // 대체발송 안 함 — 출입 업체가 전원에게 LMS 를 따로 보내므로 중복 방지
+        'kakao_faild_type' => '0',
         'sender'           => UFS_SMS_SENDER,
-        // 대체발송(LMS) 제목. 길이를 넘기면 DirectSend 가 status 312 로 요청 전체를 거부해
-        // 알림톡까지 못 나간다(2026-08-17 전체 테스트에서 7건 중 3건 실패로 확인 —
-        // 실패 57~59바이트 / 성공 50~53바이트). 슬롯명을 붙이지 않고 짧게 고정한다.
+        // 대체발송을 안 쓰므로 title 은 실사용되지 않지만, 길면 DirectSend 가 status 312
+        // ('문자 제목 최대 길이 초과')로 요청 전체를 거부하므로 짧게 유지한다.
         'title'            => '언리얼 페스트 서울 2026',
         'message'          => ufs_ln_message('', $slot),
     );

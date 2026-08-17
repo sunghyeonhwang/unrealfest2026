@@ -11,7 +11,8 @@
  *    온라인 오전 슬롯은 여기에 ① 아직 그날 라이브 미접속 ② 아직 그날 미발송 조건이 더 붙는다.
  *           (등록자는 계속 늘어날 수 있으므로 발송 시점에 매번 동적으로 조회)
  *  - 중복 발송 방지 = cb_unreal_2026_live_notify 의 UNIQUE(apply_no, ln_day)
- *  - 발송 채널은 어댑터로 분리(alimtalk / sms). 알림톡 실패 시 SMS 자동 대체.
+ *  - 발송 채널은 어댑터로 분리(alimtalk / sms). 알림톡 API 가 통째로 실패하면 SMS 로
+ *    대체하지 않고 선점을 되돌려 재시도한다(전건 LMS 발송 = 비용 폭증 방지).
  *  - 실제 발송 전에는 항상 dry-run 으로 대상 수를 확인할 수 있다.
  * PHP 7.0 호환.
  */
@@ -652,17 +653,15 @@ function ufs_ln_run_batch_core($slot, $limit, $dry = true, $prefer = 'alimtalk')
             $res['remaining'] = ufs_ln_remaining($d);
             return $res;
         }
-        $res['detail'] = 'alimtalk 실패(' . $r['msg'] . ') → SMS 대체';
     }
-    // 3) 알림톡 API 자체 실패 → 개별 SMS 폴백
-    foreach ($claimed as $c) {
-        $s = ufs_ln_send_sms_one($c, $d);
-        $st = !empty($s['ok']) ? 'S' : 'F';
-        if ($st === 'S') $res['sent']++; else $res['fail']++;
-        @sql_query("UPDATE cb_unreal_2026_live_notify SET ln_status='$st', ln_channel='sms',
-                    ln_result='" . sql_real_escape_string($s['msg']) . "', ln_at=now()
-                    WHERE ln_day='$d' AND apply_no=" . (int)$c['apply_no']);
-    }
+    // 3) 알림톡 API 자체가 실패한 경우 — 개별 SMS 로 대체하지 않는다.
+    //    API 실패는 설정 오류(제목 길이·템플릿 번호·잔액 등) 같은 '전건 실패'라, 대체발송하면
+    //    수천 건이 통째로 LMS(건당 30원대)로 나간다. 2026-08-17 제목 길이 초과 버그 때
+    //    9,806건이 그렇게 나갈 뻔했다(약 29만원). 원인을 고치고 다시 보내는 편이 맞다.
+    //    선점을 되돌려 다음 회차가 재시도하게 하고, 사무국에는 실패 알림이 나간다.
+    @sql_query("DELETE FROM cb_unreal_2026_live_notify WHERE ln_day='$d' AND ln_status='P' AND apply_no IN ($in)");
+    $res['fail']   = count($claimed);
+    $res['detail'] = 'alimtalk 실패(' . $r['msg'] . ') — 선점 해제, 다음 회차 재시도';
     $res['remaining'] = ufs_ln_remaining($d);
     return $res;
 }

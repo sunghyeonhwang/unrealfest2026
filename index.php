@@ -340,12 +340,15 @@ $ov_icons = array(
         <h3 class="text-xl font-bold text-[#fafafa] mb-2">단체 등록 및 기업 결제</h3>
         <p class="text-sm text-[#a1a1aa]">5인 이상 단체 등록 시 세금계산서 발행 및 무통장 입금을 지원합니다. 관련 문의는 운영 사무국으로 연락해 주세요.</p>
       </div>
-      <div class="flex-shrink-0 flex flex-wrap gap-3">
-        <button type="button" onclick="document.getElementById('groupDiscModal').classList.add('open')" class="btn-disc inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold whitespace-nowrap">할인 혜택 보기</button>
-        <a href="mailto:info@epiclounge.co.kr" class="inline-flex items-center gap-2 px-6 py-2.5 bg-white text-black text-sm font-bold hover:bg-white/90 transition-colors whitespace-nowrap clip-btn-8">
-          문의하기
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-        </a>
+      <div class="flex-shrink-0 flex flex-col md:items-end gap-2">
+        <div class="flex flex-wrap gap-3">
+          <button type="button" onclick="document.getElementById('groupDiscModal').classList.add('open')" class="btn-disc inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold whitespace-nowrap">할인 혜택 보기</button>
+          <button type="button" onclick="ufsGroupClosed('gcNotice1')" class="inline-flex items-center gap-2 px-6 py-2.5 bg-white text-black text-sm font-bold hover:bg-white/90 transition-colors whitespace-nowrap clip-btn-8">
+            문의하기
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </button>
+        </div>
+        <p id="gcNotice1" style="display:none;margin:0;font-size:13px;font-weight:700;color:#ff6b6b">단체 등록은 종료되었습니다.</p>
       </div>
     </div>
     <!-- 단체 규모별 할인율 모달 -->
@@ -379,11 +382,12 @@ $ov_icons = array(
             <li style="display:flex;gap:8px"><span style="color:#00C1D5;flex-shrink:0">·</span><span>단체 등록은 부분 취소가 불가능하며, 취소 시 전체 등록이 취소됩니다.</span></li>
           </ul>
         </div>
-        <div style="margin-top:20px;display:flex;justify-content:center">
-          <a href="mailto:info@epiclounge.co.kr" class="inline-flex items-center gap-2 px-8 py-3 bg-white text-black text-sm font-bold hover:bg-white/90 transition-colors clip-btn-8">
+        <div style="margin-top:20px;display:flex;flex-direction:column;align-items:center;gap:10px">
+          <button type="button" onclick="ufsGroupClosed('gcNotice2')" class="inline-flex items-center gap-2 px-8 py-3 bg-white text-black text-sm font-bold hover:bg-white/90 transition-colors clip-btn-8">
             문의하기
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-          </a>
+          </button>
+          <p id="gcNotice2" style="display:none;margin:0;font-size:13px;font-weight:700;color:#ff6b6b">단체 등록은 종료되었습니다.</p>
         </div>
       </div>
     </div>
@@ -560,6 +564,16 @@ $ov_icons = array(
   setInterval(tick, 2000);
 })();
 </script>
+<!-- 단체 등록 마감 안내: 버튼을 눌렀을 때만 문구를 드러낸다(미리 노출하지 않음) -->
+<script>
+function ufsGroupClosed(id){
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = 'block';
+  el.setAttribute('role','status');
+}
+</script>
+
 <!-- 문의 메일 버튼: 기본 메일앱이 없어도 이메일 주소 복사 + 안내(mailto 병행) -->
 <script>
 (function(){

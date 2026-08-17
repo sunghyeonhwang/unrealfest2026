@@ -5,6 +5,7 @@
  * 쿠폰: 부분할인=할인 KRW / 100%=무료 즉시확정. PHP 7.0.
  */
 require __DIR__ . '/_ticket_init.php';                          // common, $UFS_TRACKS, ufs_ticket_orig, _pricing(+_coupon)
+if (ufs_reg_closed()) ufs_reg_closed_page();   // 등록 마감(8/21 17:00)
 require_once __DIR__ . '/_group_apply.php';                     // ufs_group_make_qr (100% 무료 확정 시 QR)
 require_once "../unrealfest2025/inisis_pc/libs/INIStdPayUtil.php";
 if (is_file(__DIR__.'/_dodo_mail.php')) require_once __DIR__.'/_dodo_mail.php';   // ufs_dodo_confirm_mail (영문 메일)

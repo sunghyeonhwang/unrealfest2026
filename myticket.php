@@ -118,9 +118,12 @@ function ufs_track_select($day, $tracks, $trackRemain, $current, $lang='ko'){
     echo '</select>';
 }
 
-// 환불 마감 판정 (정책 A) — 유료건만. 얼리버드 구매(등록시각≤얼리버드마감)=7/27 23:59, 정상가=8/18 23:59. 무료/온라인=마감없음.
+// 취소 마감 판정 (정책 A)
+//   유료 : 얼리버드 구매(등록시각≤얼리버드마감)=7/27 23:59 · 정상가=8/18 23:59
+//   무료/온라인 : 8/21 23:59 — 환불할 금액은 없지만 행사 종료까지는 스스로 정리할 수 있게 열어 둔다.
 function ufs_refund_deadline_ts($row){
-    if (!$row || $row['free_yn']==='Y' || $row['apply_product_code']==='ONLINE') return 0;
+    if (!$row) return 0;
+    if ($row['free_yn']==='Y' || $row['apply_product_code']==='ONLINE') return strtotime('2026-08-21 23:59:59 +0900');
     $reg = (isset($row['apply_reg_datetime']) && $row['apply_reg_datetime'] && strpos((string)$row['apply_reg_datetime'],'0000')!==0) ? strtotime($row['apply_reg_datetime']) : 0;
     $eb_end = function_exists('ufs_earlybird_end_ts') ? ufs_earlybird_end_ts() : strtotime('2026-07-27 23:59:59 +0900');
     $is_eb_ticket = ($reg > 0 && $reg <= $eb_end);

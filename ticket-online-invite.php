@@ -1,19 +1,52 @@
 <?php
 /* Unreal Fest Seoul 2026 — 온라인 무료 등록 (ticket-online.php)
- * 로직: 2025 _applicaiton_online_ajax(무료 INSERT) + KCB 본인인증.
- * KO/EN 언어 토글(?lang=en|ko · 쿠키 ufs_ol_lang · 디폴트 ko). 본인인증(KCB)은 유지 — UI만 영문화.
+ * [무인증 외국인용] ticket-online.php 복제 — 본인인증(PASS/KCB) 제거·이름/연락처 수동입력. 비공개(noindex).
+ * 인증을 받을 수 없는 해외 게스트 대상. EN 기본. 링크 미노출·검색 미노출.
  */
 include_once "../common.php";
 require_once __DIR__ . '/_reg_gate.php';
 if (ufs_reg_closed()) ufs_reg_closed_page();   // 등록 마감(8/21 17:00) — 폼·처리 모두 차단
 require __DIR__ . '/_assets.php';
-require_once __DIR__ . '/_sms.php';   // 온라인 등록완료 안내 SMS
+require_once __DIR__ . '/_resend.php'; // 온라인 등록완료 안내 이메일(Resend, 영문)
+
+/* [무인증 초청 페이지] 온라인 등록 완료 안내 이메일(영문) — SMS 대체 */
+if (!function_exists('ufs_online_invite_mail')) {
+function ufs_online_invite_mail($name, $email) {
+    if (!function_exists('ufs_resend_send')) return false;
+    $email = trim($email);
+    if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) return false;
+    $e = function($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); };
+    $home = 'https://epiclounge.co.kr/unrealfest2026/';
+    $subject = '[Unreal Fest Seoul 2026] Online Registration Confirmed';
+    $html = '<div style="max-width:600px;margin:0 auto;font-family:Arial,Helvetica,sans-serif;color:#111;font-size:15px;line-height:1.6">'
+          . '<div style="background:#0e0f14;color:#fff;padding:22px 24px;font-size:18px;font-weight:800;letter-spacing:.5px">UNREAL FEST SEOUL 2026</div>'
+          . '<div style="padding:24px">'
+          . '<p>Hello '.($name!==''?$e($name):'there').',</p>'
+          . '<p>Your <strong>online registration</strong> for <strong>Unreal Fest Seoul 2026</strong> has been completed.</p>'
+          . '<ul style="padding-left:18px;color:#333">'
+          . '<li>On the event day, the live viewing link will be sent to your registered email about <strong>30 minutes before the first session</strong>.</li>'
+          . '<li>If you do not receive the link, you can also watch from the event website after signing in with your registration details.</li>'
+          . '</ul>'
+          . '<p style="margin:16px 0"><strong>Date:</strong> August 20 (Thu) – 21 (Fri), 2026, from 10:30 AM (KST)</p>'
+          . '<p><a href="'.$home.'" style="display:inline-block;background:#00C1D5;color:#001014;text-decoration:none;font-weight:700;padding:11px 22px;border-radius:4px">Visit event website</a></p>'
+          . '<p style="color:#666;font-size:13px;margin-top:22px">Questions? Unreal Fest Seoul Organizing Committee<br>Email: <a href="mailto:info@epiclounge.co.kr" style="color:#157EAF">info@epiclounge.co.kr</a> · Tel: +82-2-326-3701</p>'
+          . '</div></div>';
+    $text = "Hello ".($name!==''?$name:'there').",\n\n"
+          . "Your online registration for Unreal Fest Seoul 2026 has been completed.\n\n"
+          . "- On the event day, the live viewing link will be sent to your registered email about 30 minutes before the first session.\n"
+          . "- If you do not receive it, you can watch from the event website.\n\n"
+          . "Date: August 20 (Thu) - 21 (Fri), 2026, from 10:30 AM (KST)\n"
+          . "Website: ".$home."\n\n"
+          . "Unreal Fest Seoul Organizing Committee\ninfo@epiclounge.co.kr / +82-2-326-3701";
+    $r = ufs_resend_send($email, $subject, $html, '', $text);
+    return !empty($r['ok']);
+}
+}
 if (!function_exists('e')) { function e($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); } }
 
-// ── 언어 (GET ?lang > 쿠키 > ko) ──
-$lang = 'ko';
-if (isset($_GET['lang'])) { $lang = ($_GET['lang'] === 'en') ? 'en' : 'ko'; @setcookie('ufs_ol_lang', $lang, 0, '/'); $_COOKIE['ufs_ol_lang'] = $lang; }
-elseif (isset($_COOKIE['ufs_ol_lang']) && $_COOKIE['ufs_ol_lang'] === 'en') { $lang = 'en'; }
+// ── 언어: 무인증 외국인용 → EN 고정 (?lang=ko 로 강제 시에만 ko) ──
+$lang = 'en';
+if (isset($_GET['lang']) && $_GET['lang'] === 'ko') { $lang = 'ko'; }
 
 $L = array(
  'ko' => array(
@@ -84,9 +117,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = pp('apply_user_name'); $email = pp('apply_user_email'); $phone = pp('apply_user_phone');
     $job = pp('apply_user_job'); $company = pp('apply_user_company'); $depart = pp('apply_user_depart');
     $grade = pp('apply_user_grade'); $ex1 = pp('apply_user_ex1');
-    $ci = pp('apply_ci'); $di = pp('apply_di');
+    $ci = ''; $di = ''; // 무인증 페이지 — 본인인증 없음(CI/DI 미수집)
     $agree = (pp('agree_mkt') !== '') ? '1' : '0';
-    if ($ci === '')                                                                              ol_alert(t('a_auth_first'));
     if ($name === '' || $email === '' || $phone === '')                                          ol_alert(t('a_need_basic'));
     if ($job === '' || $company === '' || $depart === '' || $grade === '' || $ex1 === '')        ol_alert(t('a_need_aff'));
     $em = sql_real_escape_string($email); $ph = sql_real_escape_string($phone);
@@ -108,16 +140,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
        'N', 10, 'Y', 'Y', now())";
     sql_query($sql);
     $row = sql_query("SELECT LAST_INSERT_ID() as idx")->fetch_array();
-    ufs_send_online_sms($name, $phone);
-    $ufs_conv_row = array(
-        'apply_user_email' => $email, 'apply_user_phone' => $phone,
-        'apply_product_code' => 'ONLINE', 'apply_product_price' => 0,
-        'apply_user_event_agree' => $agree, 'free_yn' => 'Y', 'apply_no' => $row['idx'],
-    );
-    require_once __DIR__ . '/_kakao_capi.php';
-    @ufs_kakao_capi_send($ufs_conv_row);
-    require_once __DIR__ . '/_meta_capi.php';
-    @ufs_meta_capi_send($ufs_conv_row);
+    // [무인증 초청 페이지] SMS 대신 Resend 이메일 안내(영문). 전환 추적(CAPI) 미전송.
+    @ufs_online_invite_mail($name, $email);
     header("Location: ticket-complete.php?online=1&lang=".$lang."&k=".rawurlencode(base64_encode($row['idx'])));
     exit;
 }
@@ -130,24 +154,19 @@ $sess_tel = isset($_SESSION['TEL_NO']) ? $_SESSION['TEL_NO'] : '';
 <!DOCTYPE html>
 <html lang="<?= $lang ?>" class="dark"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
 <title><?= t('title') ?> — Unreal Fest Seoul 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= asset_v('assets/style.css') ?>">
 <style>*{word-break:keep-all}</style>
 <?php include __DIR__ . '/_favicon.php'; ?>
-<?php if (defined('_GNUBOARD_')) include __DIR__ . '/../inc/marketing_head.php'; /* 라운지 전역 SEO/마케팅 */ ?>
-<?php include __DIR__.'/_wcs.php'; ?>
-<?php include __DIR__.'/_adn.php'; ?>
+<?php /* [무인증 초청 페이지] 추적 제거: marketing_head(카카오/메타 픽셀)·_wcs(네이버 CTS)·_adn(ADN) 미포함 */ ?>
 </head>
 <body class="bg-[#09090b] text-white" style="font-family:system-ui,'Apple SD Gothic Neo','Noto Sans KR',sans-serif">
 <header class="fixed top-0 inset-x-0 z-50 bg-[#09090b]/95 backdrop-blur border-b border-[#27272a]">
   <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
     <a href="index.php"><img src="white_logo.svg" alt="Unreal Fest Seoul 2026" class="h-7 w-auto"></a>
     <div class="flex items-center gap-3">
-      <div class="flex text-xs border border-[#27272a] rounded overflow-hidden">
-        <a href="?lang=ko" class="px-2.5 py-1 <?= $lang==='ko'?'bg-[#00C1D5] text-black font-bold':'text-[#a1a1aa] hover:text-white' ?>">한국어</a>
-        <a href="?lang=en" class="px-2.5 py-1 <?= $lang==='en'?'bg-[#00C1D5] text-black font-bold':'text-[#a1a1aa] hover:text-white' ?>">EN</a>
-      </div>
       <a href="index.php" class="text-sm text-[#a1a1aa] hover:text-white"><?= t('home') ?></a>
     </div>
   </div>
@@ -195,23 +214,13 @@ $sess_tel = isset($_SESSION['TEL_NO']) ? $_SESSION['TEL_NO'] : '';
         </ul>
       </div>
 
-      <!-- 본인 인증 -->
-      <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
-        <h2 class="text-lg font-bold text-white mb-5 flex items-center gap-2"><svg class="w-5 h-5 text-[#00C1D5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg> <?= t('auth_h') ?></h2>
-        <p class="text-sm text-[#a1a1aa] mb-5"><?= t('auth_desc') ?> <span id="authState" class="ml-2 font-bold"></span></p>
-        <div class="flex flex-wrap gap-4">
-          <a href="#n" onclick="jsSubmit();return false;" class="px-6 py-3 bg-[#00C1D5] text-black font-bold hover:bg-[#00a8ba] transition-all"><?= t('auth_phone') ?></a>
-          <a href="#n" onclick="jsSubmitPin();return false;" class="px-6 py-3 bg-transparent text-[#a1a1aa] font-bold border border-[#27272a] hover:border-white/20 hover:text-white transition-all"><?= t('auth_ipin') ?></a>
-        </div>
-      </div>
-
-      <!-- 기본 정보 -->
+      <!-- 기본 정보 (수동 입력 · 본인인증 없음) -->
       <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8">
         <h2 class="text-lg font-bold text-white mb-5"><?= t('basic_h') ?></h2>
         <div class="grid md:grid-cols-3 gap-6">
-          <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]"><?= t('name') ?> <span class="text-[#00C1D5]">*</span></label><input type="text" name="apply_user_name" id="apply_user_name" value="<?= e($sess_name) ?>" placeholder="<?= t('ph_auto') ?>" readonly class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none text-sm"></div>
+          <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]"><?= t('name') ?> <span class="text-[#00C1D5]">*</span></label><input type="text" name="apply_user_name" id="apply_user_name" value="" placeholder="<?= $lang==='en'?'Full name':'이름' ?>" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
           <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]"><?= t('email') ?> <span class="text-[#00C1D5]">*</span></label><input type="email" name="apply_user_email" placeholder="email@example.com" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
-          <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]"><?= t('phone') ?> <span class="text-[#00C1D5]">*</span></label><input type="tel" name="apply_user_phone" id="apply_user_phone" value="<?= e($sess_tel) ?>" placeholder="<?= t('ph_auto') ?>" readonly class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none text-sm"></div>
+          <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]"><?= t('phone') ?> <span class="text-[#00C1D5]">*</span></label><input type="tel" name="apply_user_phone" id="apply_user_phone" value="" placeholder="<?= $lang==='en'?'+1 234 567 8900':'연락처' ?>" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white placeholder-[#71717a] outline-none focus:border-[#00C1D5] text-sm"></div>
         </div>
       </div>
 
@@ -266,9 +275,9 @@ function focusEmail(){if(!window._justAuthed)return;window._justAuthed=false;var
 window.addEventListener('focus',function(){refreshAuth();focusEmail();});
 setInterval(refreshAuth,1000);refreshAuth();
 function validateForm(){
-  if(!_t('apply_ci').value){alert(T.a_auth_first);return false;}
+  if(!document.querySelector('input[name="apply_user_name"]').value.trim()){alert(T.a_need_basic);return false;}
   if(!document.querySelector('input[name="apply_user_email"]').value.trim()){alert(T.a_email);return false;}
-  if(!document.querySelector('input[name="apply_user_phone"]').value.trim()){alert(T.a_auth_first);return false;}
+  if(!document.querySelector('input[name="apply_user_phone"]').value.trim()){alert(T.a_need_basic);return false;}
   if(!document.querySelector('select[name="apply_user_job"]').value){alert(T.a_job);return false;}
   if(!document.querySelector('input[name="apply_user_company"]').value.trim()){alert(T.a_company);return false;}
   if(!document.querySelector('input[name="apply_user_depart"]').value.trim()){alert(T.a_depart);return false;}

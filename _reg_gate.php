@@ -1,0 +1,98 @@
+<?php
+/* Unreal Fest Seoul 2026 — 등록 마감 게이트 (_reg_gate.php)
+ *
+ * 2026-08-21 17:00 부터 신규 등록을 받지 않는다(유료·무료·온라인·단체·초청 전부).
+ * 행사가 8/21 16:50 에 끝나므로 그 이후의 등록은 의미가 없고, 정산·명단 확정을 위해 닫는다.
+ *
+ * 두 겹으로 막는다.
+ *   ① 폼 페이지  — 입력 화면 대신 마감 안내를 보여준다(ufs_reg_closed_page)
+ *   ② 처리 엔드포인트 — 폼을 우회해 직접 POST 해도 서버에서 거절한다(ufs_reg_gate_or_die)
+ *   버튼만 숨기면 우회가 가능하므로 ②가 실질적인 차단선이다.
+ *
+ * 마감 시각은 cb_unreal_2026_config[reg_close_at] 로 조정할 수 있다('Y-m-d H:i' 또는 빈값=기본).
+ * 빈값이거나 형식이 틀리면 기본값(2026-08-21 17:00)을 쓴다 — 설정 실수로 등록이 조기 차단되지 않게.
+ *
+ * 프리뷰(ufs_is_preview)는 통과시킨다 — 마감 후에도 내부 점검이 가능해야 한다.
+ * PHP 7.0 호환.
+ */
+
+if (!function_exists('ufs_reg_close_ts')) {
+function ufs_reg_close_ts() {
+    static $ts = null;
+    if ($ts !== null) return $ts;
+    $ts = strtotime('2026-08-21 17:00:00 +0900');
+    if (function_exists('sql_fetch')) {
+        $r = @sql_fetch("SELECT cfg_val FROM cb_unreal_2026_config WHERE cfg_key='reg_close_at'");
+        if ($r && trim($r['cfg_val']) !== '') {
+            $t = strtotime(trim($r['cfg_val']) . ' +0900');
+            if ($t !== false && $t > 0) $ts = $t;
+        }
+    }
+    return $ts;
+}
+}
+
+if (!function_exists('ufs_reg_closed')) {
+function ufs_reg_closed() {
+    if (function_exists('ufs_is_preview') && ufs_is_preview()) return false;
+    return time() > ufs_reg_close_ts();
+}
+}
+
+/* 처리 엔드포인트용 — 마감이면 여기서 끊는다.
+ * $json=true 면 AJAX 응답 형식으로 돌려준다(폼 페이지의 비동기 제출 대응). */
+if (!function_exists('ufs_reg_gate_or_die')) {
+function ufs_reg_gate_or_die($json = false) {
+    if (!ufs_reg_closed()) return;
+    $msg = '등록이 마감되었습니다. (2026년 8월 21일 17:00 마감)';
+    if ($json) {
+        if (!headers_sent()) header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(array('result' => 'fail', 'ok' => 0, 'msg' => $msg, 'message' => $msg));
+        exit;
+    }
+    if (!headers_sent()) header('Content-Type: text/html; charset=utf-8');
+    echo '<script>alert(' . json_encode($msg, JSON_UNESCAPED_UNICODE) . ');location.href="/unrealfest2026/";</script>';
+    exit;
+}
+}
+
+/* 폼 페이지용 — 입력 화면 대신 보여줄 마감 안내. 출력 후 종료한다. */
+if (!function_exists('ufs_reg_closed_page')) {
+function ufs_reg_closed_page($title = '등록 마감') {
+    if (!headers_sent()) {
+        header('Content-Type: text/html; charset=utf-8');
+        header('Cache-Control: no-store');
+    }
+    $t = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
+    echo <<<HTML
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>{$t} · Unreal Fest Seoul 2026</title>
+<style>
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+    background:radial-gradient(900px 500px at 78% -8%,rgba(0,193,213,.12),transparent 60%),#08080a;
+    color:#eaeaef;font-family:system-ui,-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+    word-break:keep-all;box-sizing:border-box}
+  .b{max-width:460px;text-align:center}
+  .k{font-size:12px;font-weight:700;letter-spacing:.14em;color:#00FFC8;margin-bottom:14px}
+  h1{margin:0 0 14px;font-size:23px;font-weight:800;line-height:1.4}
+  p{margin:0;font-size:14.5px;line-height:1.85;color:#a9a9b8}
+  a{display:inline-block;margin-top:28px;background:#00C1D5;color:#06060a;text-decoration:none;
+    padding:13px 26px;border-radius:8px;font-weight:800;font-size:14.5px}
+  .s{margin-top:22px;font-size:12.5px;color:#6e6e80;line-height:1.8}
+</style></head><body>
+  <div class="b">
+    <div class="k">UNREAL FEST SEOUL 2026</div>
+    <h1>등록이 마감되었습니다</h1>
+    <p>2026년 8월 21일 17시부로 신규 등록을 받지 않습니다.<br>관심 가져 주셔서 감사합니다.</p>
+    <a href="/unrealfest2026/">행사 홈으로</a>
+    <div class="s">이미 등록하신 분은 <a href="/unrealfest2026/myticket.php" style="background:none;color:#8a8a9c;padding:0;margin:0;font-weight:700;text-decoration:underline">내 티켓 확인</a>에서 조회하실 수 있습니다.<br>
+      문의: <a href="mailto:info@epiclounge.co.kr" style="background:none;color:#8a8a9c;padding:0;margin:0;font-weight:700;text-decoration:underline">info@epiclounge.co.kr</a></div>
+  </div>
+</body></html>
+HTML;
+    exit;
+}
+}

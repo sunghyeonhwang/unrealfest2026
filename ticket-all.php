@@ -4,6 +4,7 @@
  * 공통: _ticket_init.php / _ticket_fields.php / _ticket_sidebar.php / assets/js/ticket.js
  */
 require __DIR__ . '/_ticket_init.php';
+if (ufs_reg_closed()) ufs_reg_closed_page();   // 등록 마감(8/21 17:00)
 ?>
 <!DOCTYPE html>
 <html lang="ko" class="dark">

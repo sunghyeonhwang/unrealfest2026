@@ -7,6 +7,7 @@
 if (!function_exists('e')) { function e($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); } }
 require __DIR__ . '/_assets.php';
 include_once "../common.php";
+require_once __DIR__ . '/_reg_gate.php';   // 등록 마감 판정(ufs_reg_closed / ufs_reg_gate_or_die)
 
 // 트랙 잔여 (오프라인 정원 — 온라인은 무제한)
 // [2026-08-13] 표시용 잔여석 60초 파일캐시. 매 로드마다 등록테이블을 트랙 수만큼

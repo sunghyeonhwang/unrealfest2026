@@ -5,6 +5,7 @@
  * 오케스트레이션(코드검증·중복차단·소진→삽입·롤백)은 이 파일. PHP 7.0 호환.
  */
 require __DIR__ . '/_ticket_init.php';        // common.php, e(), asset_v(), 가격/트랙(_pricing 로드=정상가 소스), $UFS_TRACKS, $trackRemain
+if (ufs_reg_closed()) ufs_reg_closed_page();   // 등록 마감(8/21 17:00)
 require_once __DIR__ . '/_invite_apply.php';  // ufs_invite_* 헬퍼
 require_once __DIR__ . '/data/i18n_invite.php'; // KO/EN 사전
 

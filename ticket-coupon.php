@@ -5,6 +5,7 @@
  * 공통 partial + assets/js/ticket.js 공유(트랙 토글). 문구는 표준 등록 페이지 톤.
  */
 require __DIR__ . '/_ticket_init.php';
+if (ufs_reg_closed()) ufs_reg_closed_page();   // 등록 마감(8/21 17:00)
 $ufs_force_coupon = true;   // 토글과 무관하게 쿠폰 패널 노출/적용
 // 무인증 모드: ?coupon= 이 유효한 100% 무료 쿠폰이면 본인인증 없이 수동입력 등록(즉시 완료·QR).
 //   부분할인(유료) 쿠폰은 기존대로 본인인증+카드 유지.

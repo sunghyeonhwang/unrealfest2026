@@ -6,6 +6,7 @@
  * 데이터/가격/트랙 정원은 _ticket_init.php 재사용. PHP 7.0 호환.
  */
 require __DIR__ . '/_ticket_init.php';   // common.php, e(), asset_v(), ufs_ticket_price/orig, $UFS_TRACKS, $trackRemain (INICIS 해외카드 KRW)
+if (ufs_reg_closed()) ufs_reg_closed_page();   // 등록 마감(8/21 17:00)
 
 // 트랙 영문 라벨 (요일별)
 function ufs_track_label_en($v) {

@@ -5,6 +5,7 @@
  * 기반: ticket-en.php UI + apply_pay 무료 경로 로직. PHP 7.0.
  */
 require __DIR__ . '/_ticket_init.php';          // common.php, e(), asset_v(), _pricing(+_coupon), $UFS_TRACKS, $trackRemain
+if (ufs_reg_closed()) ufs_reg_closed_page();   // 등록 마감(8/21 17:00)
 require_once __DIR__ . '/_group_apply.php';      // ufs_group_make_qr
 
 $PRODNAME = array('NORMAL_ALL'=>'2-Day Pass (Aug 20–21)','NORMAL_20'=>'1-Day Pass (Aug 20)','NORMAL_21'=>'1-Day Pass (Aug 21)');

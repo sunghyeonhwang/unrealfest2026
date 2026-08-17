@@ -4,6 +4,8 @@
  * PHP 7.0 호환. 세션/DB는 www/common.php(= ../../common.php) 공유.
  */
 include_once "../common.php";                 // sql_query/sql_fetch/sql_real_escape_string + 세션
+require_once __DIR__ . '/_reg_gate.php';
+ufs_reg_gate_or_die();                        // 등록 마감(8/21 17:00) 이후 신규 등록 차단
 require_once "../unrealfest2025/inisis_pc/libs/INIStdPayUtil.php";
 require_once __DIR__ . "/_pricing.php";   // 가격 단일 소스(얼리버드/정가 자동 전환)
 

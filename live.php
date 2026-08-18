@@ -370,8 +370,15 @@ a{color:inherit;text-decoration:none}
         </div>
         <button type="submit">입장하기 →</button>
       </form>
-      <p style="text-align:center;margin:14px 0 0"><a href="find-account.php" style="font-size:13px;color:var(--teal);font-weight:700;border-bottom:1px solid rgba(0,193,213,.4);padding-bottom:1px">이메일·전화번호가 기억나지 않으세요? 등록정보 찾기</a></p>
-      <p style="font-size:12px;color:#6b6b76;margin:16px 0 0;line-height:1.7">등록 확인이 안 되면 사무국으로 문의해 주세요.<br>info@epiclounge.co.kr</p>
+      <!-- 게이트 하단 안내: 못 들어오는 사람이 스스로 풀 수 있는 경로를 순서대로 -->
+      <ul style="list-style:none;margin:18px 0 0;padding:0;font-size:12.5px;color:#8a8a94;line-height:1.85">
+        <li style="display:flex;gap:7px;margin-top:7px"><span style="color:var(--teal);flex:0 0 auto">·</span>
+          <span><a href="find-account.php" style="color:var(--teal);font-weight:700;border-bottom:1px solid rgba(0,193,213,.4)">이메일·전화번호가 기억나지 않으세요? 등록정보 찾기</a></span></li>
+        <li style="display:flex;gap:7px;margin-top:7px"><span style="color:var(--teal);flex:0 0 auto">·</span>
+          <span>온라인 미등록 시, <a href="ticket-online.php" target="_blank" rel="noopener" style="color:var(--teal);font-weight:700;border-bottom:1px solid rgba(0,193,213,.4)">등록</a> 후 체크인해 주세요.</span></li>
+        <li style="display:flex;gap:7px;margin-top:7px"><span style="color:var(--teal);flex:0 0 auto">·</span>
+          <span>등록 확인이 되지 않을 경우, <a href="mailto:info@epiclounge.co.kr" target="_blank" rel="noopener" style="color:var(--teal);font-weight:700;border-bottom:1px solid rgba(0,193,213,.4)">사무국</a>으로 문의해 주세요.</span></li>
+      </ul>
     </div>
   </div>
 <?php else: ?>

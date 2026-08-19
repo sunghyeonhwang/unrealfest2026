@@ -331,7 +331,8 @@ $ov_icons = array(
         </a><?php endif; ?>
       </div>
     </div>
-    <p class="text-sm text-[#00C1D5] font-bold mt-8 text-right tracking-tight">· 오프라인 티켓은 한정 수량으로 조기 마감될 수 있습니다.</p>
+    <?php /* 마감 전에는 안내, 마감 후에는 사실을 알린다 — '마감될 수 있습니다'가 남아 있으면 아직 살 수 있는 것으로 읽힌다 */ ?>
+    <p class="text-sm font-bold mt-8 text-right tracking-tight <?= $__regclosed_off ? 'text-[#71717a]' : 'text-[#00C1D5]' ?>">· <?= $__regclosed_off ? '오프라인 티켓은 마감되었습니다.' : '오프라인 티켓은 한정 수량으로 조기 마감될 수 있습니다.' ?></p>
     <div class="mt-12 border border-[#27272a] p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
         <h3 class="text-xl font-bold text-[#fafafa] mb-2">단체 등록 및 기업 결제</h3>

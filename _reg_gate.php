@@ -32,9 +32,33 @@ function ufs_reg_close_ts() {
 }
 }
 
+/* 관리자 즉시 마감 스위치 — 정원(현장 1,680명)에 도달하면 시각과 무관하게 바로 닫는다.
+ * cb_unreal_2026_config[reg_closed_now] = '1' 이면 마감. 관리자 '온라인 라이브 설정'에서 켠다. */
+if (!function_exists('ufs_reg_closed_manual')) {
+function ufs_reg_closed_manual() {
+    if (!function_exists('sql_fetch')) return false;
+    $r = @sql_fetch("SELECT cfg_val FROM cb_unreal_2026_config WHERE cfg_key='reg_closed_now'");
+    return ($r && trim($r['cfg_val']) === '1');
+}
+}
+
+/* 쿠폰 등록은 마감 후에도 열어 둔다.
+ * 초청·스폰서 쿠폰 소지자는 이미 자리를 배정받은 사람이라 정원 마감과 성격이 다르다.
+ * 판정: 전용 페이지(ticket-coupon*.php) 또는 그 폼이 보내는 coupon_flow=1. */
+if (!function_exists('ufs_reg_is_coupon_flow')) {
+function ufs_reg_is_coupon_flow() {
+    if (isset($_POST['coupon_flow']) && $_POST['coupon_flow'] === '1') return true;
+    if (isset($_GET['coupon_flow']) && $_GET['coupon_flow'] === '1') return true;
+    $p = isset($_SERVER['SCRIPT_NAME']) ? basename($_SERVER['SCRIPT_NAME']) : '';
+    return (strpos($p, 'ticket-coupon') === 0);
+}
+}
+
 if (!function_exists('ufs_reg_closed')) {
 function ufs_reg_closed() {
     if (function_exists('ufs_is_preview') && ufs_is_preview()) return false;
+    if (ufs_reg_is_coupon_flow()) return false;          // 쿠폰 등록은 항상 허용
+    if (ufs_reg_closed_manual()) return true;            // 관리자가 즉시 마감
     return time() > ufs_reg_close_ts();
 }
 }
@@ -44,7 +68,9 @@ function ufs_reg_closed() {
 if (!function_exists('ufs_reg_gate_or_die')) {
 function ufs_reg_gate_or_die($json = false) {
     if (!ufs_reg_closed()) return;
-    $msg = '등록이 마감되었습니다. (2026년 8월 21일 17:00 마감)';
+    $msg = ufs_reg_closed_manual()
+        ? '등록이 마감되었습니다. (정원 마감)'
+        : '등록이 마감되었습니다. (2026년 8월 21일 17:00 마감)';
     if ($json) {
         if (!headers_sent()) header('Content-Type: application/json; charset=utf-8');
         echo json_encode(array('result' => 'fail', 'ok' => 0, 'msg' => $msg, 'message' => $msg));
@@ -64,6 +90,10 @@ function ufs_reg_closed_page($title = '등록 마감') {
         header('Cache-Control: no-store');
     }
     $t = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
+    // heredoc 안에서는 PHP 태그가 평가되지 않으므로 문구를 먼저 만들어 변수로 넣는다
+    $reason = ufs_reg_closed_manual()
+        ? '준비된 좌석이 모두 마감되어 신규 등록을 받지 않습니다.'
+        : '2026년 8월 21일 17시부로 신규 등록을 받지 않습니다.';
     echo <<<HTML
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
@@ -86,7 +116,7 @@ function ufs_reg_closed_page($title = '등록 마감') {
   <div class="b">
     <div class="k">UNREAL FEST SEOUL 2026</div>
     <h1>등록이 마감되었습니다</h1>
-    <p>2026년 8월 21일 17시부로 신규 등록을 받지 않습니다.<br>관심 가져 주셔서 감사합니다.</p>
+    <p>{$reason}<br>관심 가져 주셔서 감사합니다.</p>
     <a href="/unrealfest2026/">행사 홈으로</a>
     <div class="s">이미 등록하신 분은 <a href="/unrealfest2026/myticket.php" style="background:none;color:#8a8a9c;padding:0;margin:0;font-weight:700;text-decoration:underline">내 티켓 확인</a>에서 조회하실 수 있습니다.<br>
       문의: <a href="mailto:info@epiclounge.co.kr" style="background:none;color:#8a8a9c;padding:0;margin:0;font-weight:700;text-decoration:underline">info@epiclounge.co.kr</a></div>

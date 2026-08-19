@@ -28,6 +28,11 @@ if ($__bq) {
 }
 
 require_once __DIR__ . '/_edge_cache.php'; ufs_edge_cache(3600, 60);   // 엣지 캐시(비개인화 공개 페이지) — 프리뷰/관리자/POST 자동 제외
+// 등록 마감이면 등록 버튼을 '등록 마감'으로 바꾼다.
+// ⚠️ 이 페이지는 1시간 엣지 캐시된다 → 관리자에서 마감 스위치를 켜면 반드시 캐시를 비워야 즉시 반영된다
+//    (온라인 라이브 설정 저장 시 자동 퍼지되도록 연결해 둠).
+require_once __DIR__ . '/_reg_gate.php';
+$__regclosed = ufs_reg_closed();
 include __DIR__ . '/_head.php';
 ?>
 
@@ -137,8 +142,8 @@ include __DIR__ . '/_head.php';
     })();
     </script>
     <div class="flex flex-col sm:flex-row items-start gap-4 mb-10">
-      <button type="button" data-scroll="register" class="bg-[#00C1D5] hover:bg-[#004F59] text-white px-8 py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-lg clip-btn">
-        지금 등록하기
+      <button type="button" data-scroll="register" class="<?= $__regclosed ? 'bg-[#27272a] text-[#71717a] cursor-not-allowed' : 'bg-[#00C1D5] hover:bg-[#004F59] text-white hover:shadow-lg' ?> px-8 py-4 font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-sm clip-btn">
+        <?= $__regclosed ? '등록 마감' : '지금 등록하기' ?>
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </button>
       <button type="button" data-scroll="agenda" class="bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 text-white px-8 py-4 font-bold text-lg flex items-center justify-center transition-all">아젠다 보기</button>
@@ -300,10 +305,10 @@ $ov_icons = array(
           <span class="ufs-cd-num text-lg font-bold" data-cd-mins>00</span><span class="text-[#3f3f46]">:</span>
           <span class="ufs-cd-num text-lg font-bold" data-cd-secs>00</span>
         </div>
-        <a href="ticket-all.php" class="btn-off mt-[16px] w-full bg-[#00C1D5] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 font-jamjil">
+        <?php if ($__regclosed): ?><span class="btn-off w-full mt-[16px] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 font-jamjil" style="background:#27272a;color:#71717a;cursor:not-allowed">등록 마감</span><?php else: ?><a href="ticket-all.php" class="btn-off mt-[16px] w-full bg-[#00C1D5] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 font-jamjil">
           양일권 등록하기
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-        </a>
+        </a><?php endif; ?>
       </div>
       <!-- 1일권 (featured) -->
       <div class="ufs-beam spd-b relative bg-[#0e0f14] border border-[rgba(0,193,213,0.5)] p-9 flex flex-col items-center text-center shadow-[0_0_11px_rgba(0,193,213,0.1)]">
@@ -318,20 +323,20 @@ $ov_icons = array(
           <span class="ufs-cd-num text-lg font-bold" data-cd-mins>00</span><span class="text-[#3f3f46]">:</span>
           <span class="ufs-cd-num text-lg font-bold" data-cd-secs>00</span>
         </div>
-        <a href="ticket-day.php" class="btn-off mt-[16px] w-full bg-[#00C1D5] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 font-jamjil">
+        <?php if ($__regclosed): ?><span class="btn-off w-full mt-[16px] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 font-jamjil" style="background:#27272a;color:#71717a;cursor:not-allowed">등록 마감</span><?php else: ?><a href="ticket-day.php" class="btn-off mt-[16px] w-full bg-[#00C1D5] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 font-jamjil">
           1일권 등록하기
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-        </a>
+        </a><?php endif; ?>
       </div>
       <!-- 온라인 -->
       <div class="bg-[#0e0f14] border border-[#27272a] p-9 flex flex-col items-center text-center">
         <h3 class="text-[38px] text-white mt-[18px] mb-[26px] leading-[46px] font-jamjil font-medium">온라인</h3>
         <div class="mb-2"><span class="text-[26px] font-bold text-[#a1a1aa]">무료</span></div>
         <p class="text-[15px] text-[#71717a] mb-auto">(일부 세션 생중계)</p>
-        <a href="ticket-online.php" class="btn-on mt-[35px] w-full border border-[#27272a] text-[#a1a1aa] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 font-jamjil">
+        <?php if ($__regclosed): ?><span class="btn-on w-full mt-[35px] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 font-jamjil" style="background:#27272a;color:#71717a;cursor:not-allowed">등록 마감</span><?php else: ?><a href="ticket-online.php" class="btn-on mt-[35px] w-full border border-[#27272a] text-[#a1a1aa] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 font-jamjil">
           무료 등록하기
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-        </a>
+        </a><?php endif; ?>
       </div>
     </div>
     <p class="text-sm text-[#00C1D5] font-bold mt-8 text-right tracking-tight">· 오프라인 티켓은 한정 수량으로 조기 마감될 수 있습니다.</p>

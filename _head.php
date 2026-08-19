@@ -1,4 +1,12 @@
 <?php
+// 등록 마감 시 헤더의 등록 버튼을 '등록 마감'으로. 이 파일은 index 외의 페이지에서도 include 되므로
+// 호출측이 $__regclosed 를 만들지 않았을 수 있어 여기서 스스로 판정한다.
+if (!isset($__regclosed)) {
+    $__rg = __DIR__ . '/_reg_gate.php';
+    if (is_file($__rg)) { require_once $__rg; $__regclosed = function_exists('ufs_reg_closed') ? ufs_reg_closed() : false; }
+    else { $__regclosed = false; }
+}
+
 // Unreal Fest Seoul 2026 — 공통 head + 고정 Header (GNB). React Header.tsx 1:1.
 // 사용: 페이지 상단에서 $ufs_page / (선택)$page_title,$page_desc 설정 후 include __DIR__.'/_head.php'.
 //  $ufs_page: 'home'|'sessions'|'session'|'schedule'|'sponsors' — home이면 nav가 스크롤 버튼, 그 외엔 index.php#id 링크.
@@ -76,7 +84,9 @@ if (defined('_GNUBOARD_')) {
       </ul>
       <div class="flex items-center gap-4 ml-4 pl-8 border-l border-white/10">
         <a href="myticket.php" class="text-sm text-slate-400 hover:text-white transition-colors">등록 확인</a>
-        <?php if ($is_home): ?>
+        <?php if ($__regclosed): ?>
+          <span class="px-5 py-2.5 text-sm font-bold flex items-center gap-2 clip-btn-sm" style="background:#27272a;color:#71717a;cursor:not-allowed">등록 마감</span>
+        <?php elseif ($is_home): ?>
           <button type="button" data-scroll="register" class="bg-[#00C1D5] hover:bg-[#004F59] text-white px-5 py-2.5 text-sm font-bold flex items-center gap-2 transition-all clip-btn-sm">
             지금 등록하기
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
@@ -117,7 +127,9 @@ if (defined('_GNUBOARD_')) {
       <?php endforeach; ?>
     </ul>
     <div class="flex flex-col gap-4 pt-4 border-t border-white/10">
-      <?php if ($is_home): ?>
+      <?php if ($__regclosed): ?>
+        <span class="text-center px-5 py-3 font-bold clip-btn-sm" style="background:#27272a;color:#71717a;cursor:not-allowed">등록 마감</span>
+      <?php elseif ($is_home): ?>
         <button type="button" data-scroll="register" data-close-mobile class="text-center bg-[#00C1D5] hover:bg-[#004F59] text-white px-5 py-3 font-bold clip-btn-sm">지금 등록하기</button>
       <?php else: ?>
         <a href="index.php#register" data-close-mobile class="text-center bg-[#00C1D5] hover:bg-[#004F59] text-white px-5 py-3 font-bold clip-btn-sm">지금 등록하기</a>

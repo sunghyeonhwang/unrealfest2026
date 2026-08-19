@@ -55,7 +55,8 @@ include __DIR__ . '/_head.php';
   #hero .hero-inner { padding-top: 4rem; padding-bottom: 6vh; }
   #hero .hero-logo  { width: 340px; }
 }
-/* ── 판촉 데코: Border Beam(양일권·1일권) + 카운트다운 + 버튼 hover ── */
+/* ── 판촉 데코: Border Beam(1일권) + 버튼 hover ── */
+/*    양일권은 마감이라 빔 제거(2026-08-19). spd-a 는 남겨 둠 — 되살릴 때 클래스만 붙이면 된다. */
 @property --ufs-beam { syntax:'<angle>'; initial-value:0deg; inherits:false; }
 .ufs-beam { position:relative; }
 .ufs-beam::after{
@@ -296,7 +297,7 @@ $ov_icons = array(
     </div>
     <div class="grid md:grid-cols-3 gap-[26px] pt-[35px]">
       <!-- 양일권 -->
-      <div class="ufs-beam spd-a relative bg-[#0e0f14] border border-[#27272a] p-9 flex flex-col items-center text-center">
+      <div class="relative bg-[#0e0f14] border border-[#27272a] p-9 flex flex-col items-center text-center">
         <?php if (ufs_is_earlybird()): ?><div class="absolute -top-[13px] left-0 bg-[#00C1D5] text-[#090a0f] font-bold whitespace-nowrap <?= ufs_promo_is_ext() ? 'text-[12px] px-[14px] py-[7px]' : 'text-[14px] px-[18px] py-[7px]' ?>"><?= e(ufs_promo_card_badge()) ?></div><?php else: ?><div class="promo-badge absolute -top-[13px] left-0 bg-[#00C1D5] text-[#090a0f] font-bold text-[13px]">한정 수량 · 조기 마감</div><?php endif; ?>
         <h3 class="text-[38px] text-white mt-[18px] mb-[26px] leading-[46px] font-jamjil font-medium">오프라인 양일권</h3>
         <?php if (ufs_is_earlybird()): ?><div class="mb-1"><span class="text-[18px] text-[#71717a] line-through tracking-tight">₩ <?= number_format(ufs_ticket_orig('NORMAL_ALL')) ?></span></div><?php endif; ?>

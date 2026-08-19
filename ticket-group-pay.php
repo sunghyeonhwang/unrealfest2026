@@ -4,6 +4,8 @@
  * 승인 콜백 = ticket-group-pay-return.php. PHP 7.0 호환.
  */
 include_once "../common.php";
+require_once __DIR__ . '/_reg_gate.php';
+if (ufs_reg_group_closed()) ufs_reg_closed_page('단체 등록 마감');   // 단체 마감
 require_once "../unrealfest2025/inisis_pc/libs/INIStdPayUtil.php";
 
 $mid="MOIepiclou"; $signKey="Wno0S3hIQVhUZ1BKSHFYMXRIVUJpQT09"; $jsUrl="https://stdpay.inicis.com/stdjs/INIStdPay.js";

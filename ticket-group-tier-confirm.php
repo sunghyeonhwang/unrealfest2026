@@ -72,7 +72,7 @@ $member_count = 0; foreach ($attendees as $a){ if ($a['role']==='member') $membe
 $err = '';
 if ($rep['ci']==='') $err = '대표자 본인 인증이 필요합니다.';
 elseif ($rep['name']==='' || $rep['email']==='' || $rep['phone']==='' || $rep['company']==='' || $rep['depart']==='' || $rep['job']==='' || $rep['grade']==='' || $rep['ex1']==='') $err = '대표자 정보를 모두 입력해 주세요.';
-elseif ($member_count < 4) $err = '대표자 외 최소 4인을 입력해 주세요.';
+elseif ($member_count < (($rep_attend==='Y') ? 4 : 5)) $err = ($rep_attend==='Y') ? '대표자 외 최소 4인을 입력해 주세요.' : '대표자가 결제만(비참석)일 때는 참석 멤버 최소 5인을 입력해 주세요. (단체 할인은 참석 5인 이상)';
 elseif ($member_count > 99) $err = '한 번에 등록 가능한 최대 인원(대표자 포함 100명)을 초과했습니다. 사무국으로 문의해 주세요.';
 elseif (count($attendees) < 1) $err = '참석 인원이 없습니다.';
 if ($err==='') {
@@ -103,16 +103,18 @@ if ($err==='') {
     }
 }
 
-// ── 금액(서버 재계산): 전역 모드 스위치 — 일괄 모드=일괄할인(쿠폰 무시) / 쿠폰 모드=쿠폰할인
+// ── 금액(서버 재계산): 쿠폰 모드=쿠폰할인 / 그 외=[티어 단체등록] 인원 구간별 티어 할인
+require_once __DIR__ . '/_group_tier.php';
 $cpct = coupon_percent($coupon_code);
 if (ufs_group_coupon_mode()) {
     $eff = (int)$cpct;
     if ($cpct > 0) { $disc_src = 'coupon'; }
     else { $disc_src = ''; $coupon_code = ''; } // 쿠폰 무효(만료/한도초과/중지) → 저장 안 함 (cp_used 유령증가 방지)
 } else {
-    $eff = ufs_group_flat_discount();
+    // [티어 단체등록] 티어 할인 — 등록 인원(참석자 수) 기준 구간별 할인율
+    $eff = ufs_group_tier_pct(count($attendees));
     $disc_src = ($eff > 0) ? 'group' : '';
-    $coupon_code = ''; $cpct = 0;          // 일괄 모드: 쿠폰 저장/사용 안 함 (cp_used 오증가 방지)
+    $coupon_code = ''; $cpct = 0;
 }
 $sumOrig=0; $total=0;
 foreach ($attendees as &$a){ $o=ufs_ticket_orig($a['ticket']); $p=(int)(round(($o*(100-$eff)/100)/100)*100); $a['price']=$p; $sumOrig+=$o; $total+=$p; }
@@ -229,6 +231,15 @@ if ($err==='' && gp('action')==='register') {
         </ul>
       </div>
     </div>
+    <!-- 견적서 (등록 후) -->
+    <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mb-6">
+      <h2 class="text-lg font-bold text-white mb-1">견적서</h2>
+      <p class="text-[#71717a] text-sm mb-4">사내 결재·품의용 견적서를 내려받으실 수 있습니다. (부가세 10% 분리 표기)</p>
+      <div class="flex flex-col sm:flex-row gap-3">
+        <a href="ticket-group-tier-quote.php?g=<?= (int)$grp_no ?>&t=<?= rawurlencode($grp_code) ?>&fmt=print" target="_blank" class="flex-1 text-center py-3 border border-[#00C1D5] text-[#00C1D5] hover:bg-[#00C1D5]/10 font-bold transition-colors">인쇄 / PDF 저장</a>
+        <a href="ticket-group-tier-quote.php?g=<?= (int)$grp_no ?>&t=<?= rawurlencode($grp_code) ?>&fmt=doc" class="flex-1 text-center py-3 border border-[#27272a] text-[#a1a1aa] hover:text-white hover:border-white/30 font-bold transition-colors">Word(.doc) 다운로드</a>
+      </div>
+    </div>
     <a href="index.php" class="inline-block px-6 py-3 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#090a0f] font-extrabold">홈으로</a>
 
   <?php else: ?>
@@ -292,15 +303,33 @@ if ($err==='' && gp('action')==='register') {
     </div>
     <?php endif; ?>
 
-    <form method="post" action="ticket-group-confirm.php">
-      <?php
+    <?php
+    // 확인 화면에서 재전송할 공통 hidden 필드 (등록 폼 · 견적서 폼 공용)
+    $hidden_fields = function() use ($mName,$mEmail,$mPhone,$mDepart,$mGrade,$mEx1,$mTicket,$mD1,$mD2,$mTshirt) {
       foreach (array('apply_user_name','apply_user_email','apply_user_phone','apply_user_job','apply_user_company','apply_user_biznum','apply_user_depart','apply_user_grade','apply_user_ex1','apply_ci','apply_di','rep_ticket','rep_day1','rep_day2','rep_tshirt','group_paymethod','coupon_code','tax_request','tax_addr','tax_ceo','tax_biztype','tax_bizitem') as $hf) {
         echo '<input type="hidden" name="'.e($hf).'" value="'.e(gp($hf)).'">';
       }
       foreach (array('member_name'=>$mName,'member_email'=>$mEmail,'member_phone'=>$mPhone,'member_depart'=>$mDepart,'member_grade'=>$mGrade,'member_ex1'=>$mEx1,'member_ticket'=>$mTicket,'member_day1'=>$mD1,'member_day2'=>$mD2,'member_tshirt'=>$mTshirt) as $fn=>$arr) {
         foreach ($arr as $k=>$v) echo '<input type="hidden" name="'.e($fn).'['.e($k).']" value="'.e($v).'">';
       }
-      ?>
+    };
+    ?>
+
+    <?php if ($paymethod==='bank'): ?>
+    <!-- 무통장 견적서 (등록 전) -->
+    <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mb-4">
+      <h2 class="text-lg font-bold text-white mb-1">견적서</h2>
+      <p class="text-[#71717a] text-sm mb-4">사내 결재·품의용 견적서를 내려받으실 수 있습니다. (부가세 10% 분리 표기)</p>
+      <form method="post" action="ticket-group-tier-quote.php" target="_blank" class="flex flex-col sm:flex-row gap-3">
+        <?php $hidden_fields(); ?>
+        <button type="submit" name="fmt" value="print" class="flex-1 py-3 border border-[#00C1D5] text-[#00C1D5] hover:bg-[#00C1D5]/10 font-bold transition-colors">인쇄 / PDF 저장</button>
+        <button type="submit" name="fmt" value="doc" class="flex-1 py-3 border border-[#27272a] text-[#a1a1aa] hover:text-white hover:border-white/30 font-bold transition-colors">Word(.doc) 다운로드</button>
+      </form>
+    </div>
+    <?php endif; ?>
+
+    <form method="post" action="ticket-group-tier-confirm.php">
+      <?php $hidden_fields(); ?>
       <input type="hidden" name="action" value="register">
       <button type="submit" class="w-full py-4 bg-[#00C1D5] hover:bg-[#00a8ba] text-[#090a0f] font-extrabold transition-colors">등록하고 결제 진행</button>
     </form>

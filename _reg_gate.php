@@ -114,6 +114,21 @@ function ufs_reg_closed_offline() {
 }
 }
 
+/* 단체 등록 마감 — cb_unreal_2026_config[reg_group_closed]='1' 이면 닫는다.
+ * 개인 등록과 따로 두는 이유: 단체는 견적·세금계산서 등 후속 절차가 있어
+ * 마감 시점을 개인보다 앞당기는 경우가 많다.
+ * ⚠️ 관리자 무인증 등록(ticket-group-admin.php)에는 적용하지 않는다 — 현장 워크인용. */
+if (!function_exists('ufs_reg_group_closed')) {
+function ufs_reg_group_closed() {
+    if (function_exists('ufs_is_preview') && ufs_is_preview()) return false;
+    if (function_exists('sql_fetch')) {
+        $r = @sql_fetch("SELECT cfg_val FROM cb_unreal_2026_config WHERE cfg_key='reg_group_closed'");
+        if ($r && trim($r['cfg_val']) === '1') return true;
+    }
+    return ufs_reg_closed_offline();   // 전역·정원 마감이면 단체도 당연히 마감
+}
+}
+
 /* 처리 엔드포인트용 — 마감이면 여기서 끊는다.
  * $json=true 면 AJAX 응답 형식으로 돌려준다(폼 페이지의 비동기 제출 대응). */
 if (!function_exists('ufs_reg_gate_or_die')) {

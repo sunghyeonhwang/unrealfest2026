@@ -32,7 +32,10 @@ require_once __DIR__ . '/_edge_cache.php'; ufs_edge_cache(3600, 60);   // 엣지
 // ⚠️ 이 페이지는 1시간 엣지 캐시된다 → 관리자에서 마감 스위치를 켜면 반드시 캐시를 비워야 즉시 반영된다
 //    (온라인 라이브 설정 저장 시 자동 퍼지되도록 연결해 둠).
 require_once __DIR__ . '/_reg_gate.php';
-$__regclosed = ufs_reg_closed();
+$__regclosed     = ufs_reg_closed();            // 전역 마감(시각·수동)
+$__regclosed_off = ufs_reg_closed_offline();    // 현장 = 전역 + 정원(1,690명) 도달
+// 양일권(NORMAL_ALL)은 별도 마감 — 남은 좌석을 1일권에만 배정한다(사무국 결정)
+$__closed_all = true;
 include __DIR__ . '/_head.php';
 ?>
 
@@ -299,13 +302,7 @@ $ov_icons = array(
         <?php if (ufs_is_earlybird()): ?><div class="mb-1"><span class="text-[18px] text-[#71717a] line-through tracking-tight">₩ <?= number_format(ufs_ticket_orig('NORMAL_ALL')) ?></span></div><?php endif; ?>
         <div class="mb-2"><span class="text-[40px] font-bold text-white tracking-tight">₩ <?= number_format(ufs_ticket_price('NORMAL_ALL')) ?></span></div>
         <?php if (ufs_is_earlybird()): ?><p class="text-[13px] text-[#9adbe8] mb-auto"><?= e(ufs_promo_card_note()) ?></p><?php else: ?><div class="mb-auto"></div><?php endif; ?>
-        <div class="flex items-baseline justify-center gap-1 mt-2 text-[#9adbe8]" data-ev-cd data-deadline="2026-08-20T00:00:00+09:00">
-          <span class="ufs-cd-num text-lg font-bold" data-cd-days>00</span><span class="text-[10px] text-[#71717a] mr-1">일</span>
-          <span class="ufs-cd-num text-lg font-bold" data-cd-hours>00</span><span class="text-[#3f3f46]">:</span>
-          <span class="ufs-cd-num text-lg font-bold" data-cd-mins>00</span><span class="text-[#3f3f46]">:</span>
-          <span class="ufs-cd-num text-lg font-bold" data-cd-secs>00</span>
-        </div>
-        <?php if ($__regclosed): ?><span class="btn-off w-full mt-[16px] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 font-jamjil" style="background:#27272a;color:#71717a;cursor:not-allowed">등록 마감</span><?php else: ?><a href="ticket-all.php" class="btn-off mt-[16px] w-full bg-[#00C1D5] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 font-jamjil">
+        <?php if ($__closed_all || $__regclosed_off): ?><span class="btn-off w-full mt-[16px] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 font-jamjil" style="background:#27272a;color:#71717a;cursor:not-allowed">등록 마감</span><?php else: ?><a href="ticket-all.php" class="btn-off mt-[16px] w-full bg-[#00C1D5] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 font-jamjil">
           양일권 등록하기
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </a><?php endif; ?>
@@ -317,13 +314,7 @@ $ov_icons = array(
         <?php if (ufs_is_earlybird()): ?><div class="mb-1"><span class="text-[18px] text-[#71717a] line-through tracking-tight">₩ <?= number_format(ufs_ticket_orig('NORMAL_20')) ?></span></div><?php endif; ?>
         <div class="mb-2"><span class="text-[40px] font-bold text-white tracking-tight">₩ <?= number_format(ufs_ticket_price('NORMAL_20')) ?></span></div>
         <?php if (ufs_is_earlybird()): ?><p class="text-[13px] text-[#9adbe8] mb-auto"><?= e(ufs_promo_card_note()) ?></p><?php else: ?><div class="mb-auto"></div><?php endif; ?>
-        <div class="flex items-baseline justify-center gap-1 mt-2 text-[#9adbe8]" data-ev-cd data-deadline="2026-08-20T00:00:00+09:00">
-          <span class="ufs-cd-num text-lg font-bold" data-cd-days>00</span><span class="text-[10px] text-[#71717a] mr-1">일</span>
-          <span class="ufs-cd-num text-lg font-bold" data-cd-hours>00</span><span class="text-[#3f3f46]">:</span>
-          <span class="ufs-cd-num text-lg font-bold" data-cd-mins>00</span><span class="text-[#3f3f46]">:</span>
-          <span class="ufs-cd-num text-lg font-bold" data-cd-secs>00</span>
-        </div>
-        <?php if ($__regclosed): ?><span class="btn-off w-full mt-[16px] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 font-jamjil" style="background:#27272a;color:#71717a;cursor:not-allowed">등록 마감</span><?php else: ?><a href="ticket-day.php" class="btn-off mt-[16px] w-full bg-[#00C1D5] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 font-jamjil">
+        <?php if ($__regclosed_off): ?><span class="btn-off w-full mt-[16px] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 font-jamjil" style="background:#27272a;color:#71717a;cursor:not-allowed">등록 마감</span><?php else: ?><a href="ticket-day.php" class="btn-off mt-[16px] w-full bg-[#00C1D5] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 font-jamjil">
           1일권 등록하기
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </a><?php endif; ?>

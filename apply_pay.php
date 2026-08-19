@@ -5,7 +5,14 @@
  */
 include_once "../common.php";                 // sql_query/sql_fetch/sql_real_escape_string + 세션
 require_once __DIR__ . '/_reg_gate.php';
-ufs_reg_gate_or_die();                        // 등록 마감(8/21 17:00) 이후 신규 등록 차단
+// 온라인 등록은 좌석이 없어 현장 정원(1,690명)의 영향을 받지 않는다 → 상품코드로 분기
+$__is_offline_req = (isset($_POST['apply_product_code']) && $_POST['apply_product_code'] !== 'ONLINE');
+ufs_reg_gate_or_die(false, $__is_offline_req);   // 마감(시각·수동) + 현장이면 정원까지
+// 양일권 마감 — 폼을 우회해 직접 POST 해도 여기서 거절한다(쿠폰 등록은 예외)
+if (isset($_POST['apply_product_code']) && $_POST['apply_product_code'] === 'NORMAL_ALL'
+    && !ufs_reg_is_coupon_flow()) {
+    exit('<script>alert("양일권은 등록이 마감되었습니다. 1일권으로 등록해 주세요.");history.back();</script>');
+}
 require_once "../unrealfest2025/inisis_pc/libs/INIStdPayUtil.php";
 require_once __DIR__ . "/_pricing.php";   // 가격 단일 소스(얼리버드/정가 자동 전환)
 

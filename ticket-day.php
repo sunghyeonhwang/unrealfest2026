@@ -4,7 +4,7 @@
  * ?d=2 진입 시 Day 2 기본 선택. 공통 partial + assets/js/ticket.js 공유.
  */
 require __DIR__ . '/_ticket_init.php';
-if (ufs_reg_closed()) ufs_reg_closed_page();   // 등록 마감(8/21 17:00)
+if (ufs_reg_closed_offline()) ufs_reg_closed_page();   // 등록 마감(8/21 17:00) 또는 현장 정원(1,690명) 도달
 $d = (isset($_GET['d']) && $_GET['d'] === '2') ? 'DAY2' : 'DAY1';
 ?>
 <!DOCTYPE html>

@@ -4,7 +4,7 @@
  * 단일 컬럼(와이드), 요약 최하단. 제출 → ticket-group-confirm.php. 공통: _ticket_init.php / ticket.js / group.js
  */
 require __DIR__ . '/_ticket_init.php';
-if (ufs_reg_closed()) ufs_reg_closed_page();   // 등록 마감(8/21 17:00)
+if (ufs_reg_closed_offline()) ufs_reg_closed_page();   // 등록 마감(8/21 17:00) 또는 현장 정원(1,690명) 도달
 
 $GDISC   = ufs_group_discount();     // 일괄 할인율(%) — 쿠폰 모드면 0
 $GCOUPON = ufs_group_coupon_mode();  // 쿠폰 모드 여부(전역 100)

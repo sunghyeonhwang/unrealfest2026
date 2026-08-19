@@ -63,12 +63,64 @@ function ufs_reg_closed() {
 }
 }
 
+/* ── 현장(오프라인) 총 정원 ────────────────────────────────────────────────
+ * 트랙별 좌석과 별개로 '사람 수' 상한이 필요하다. 양일권 1명이 Day1·Day2 좌석을 각각
+ * 쓰기 때문에, 트랙 정원만으로는 총 인원을 정확히 묶을 수 없다.
+ * 기본 1,690명. cb_unreal_2026_config[reg_max_offline] 로 조정한다(0 이면 상한 없음).
+ *
+ * ⚠️ 온라인 등록에는 적용하지 않는다 — 온라인은 좌석 개념이 없어 무제한이다.
+ *    그래서 전역 마감(ufs_reg_closed)과 분리해 ufs_reg_closed_offline() 로만 쓴다. */
+if (!function_exists('ufs_reg_max_offline')) {
+function ufs_reg_max_offline() {
+    static $n = null;
+    if ($n !== null) return $n;
+    $n = 1690;
+    if (function_exists('sql_fetch')) {
+        $r = @sql_fetch("SELECT cfg_val FROM cb_unreal_2026_config WHERE cfg_key='reg_max_offline'");
+        if ($r && trim($r['cfg_val']) !== '' && ctype_digit(trim($r['cfg_val']))) $n = (int)trim($r['cfg_val']);
+    }
+    return $n;
+}
+}
+
+if (!function_exists('ufs_reg_offline_count')) {
+function ufs_reg_offline_count() {
+    static $c = null;
+    if ($c !== null) return $c;
+    $c = 0;
+    if (function_exists('sql_fetch')) {
+        $r = @sql_fetch("SELECT COUNT(*) c FROM cb_unreal_2026_event2_apply
+                         WHERE apply_temp_yn='N' AND apply_pay_status<>0 AND apply_product_code<>'ONLINE'");
+        if ($r) $c = (int)$r['c'];
+    }
+    return $c;
+}
+}
+
+if (!function_exists('ufs_reg_offline_full')) {
+function ufs_reg_offline_full() {
+    if (function_exists('ufs_is_preview') && ufs_is_preview()) return false;
+    if (ufs_reg_is_coupon_flow()) return false;          // 쿠폰은 정원과 무관
+    $max = ufs_reg_max_offline();
+    if ($max <= 0) return false;                          // 0 = 상한 없음
+    return ufs_reg_offline_count() >= $max;
+}
+}
+
+/* 현장 등록 경로에서 쓰는 마감 판정 = 전역 마감 또는 현장 정원 도달 */
+if (!function_exists('ufs_reg_closed_offline')) {
+function ufs_reg_closed_offline() {
+    return ufs_reg_closed() || ufs_reg_offline_full();
+}
+}
+
 /* 처리 엔드포인트용 — 마감이면 여기서 끊는다.
  * $json=true 면 AJAX 응답 형식으로 돌려준다(폼 페이지의 비동기 제출 대응). */
 if (!function_exists('ufs_reg_gate_or_die')) {
-function ufs_reg_gate_or_die($json = false) {
-    if (!ufs_reg_closed()) return;
-    $msg = ufs_reg_closed_manual()
+function ufs_reg_gate_or_die($json = false, $offline = false) {
+    // $offline=true 면 현장 정원(1,690명)도 함께 본다. 온라인 등록은 false 로 호출해야 한다.
+    if (!($offline ? ufs_reg_closed_offline() : ufs_reg_closed())) return;
+    $msg = (ufs_reg_closed_manual() || ufs_reg_offline_full())
         ? '등록이 마감되었습니다. (정원 마감)'
         : '등록이 마감되었습니다. (2026년 8월 21일 17:00 마감)';
     if ($json) {
@@ -91,7 +143,7 @@ function ufs_reg_closed_page($title = '등록 마감') {
     }
     $t = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
     // heredoc 안에서는 PHP 태그가 평가되지 않으므로 문구를 먼저 만들어 변수로 넣는다
-    $reason = ufs_reg_closed_manual()
+    $reason = (ufs_reg_closed_manual() || ufs_reg_offline_full())
         ? '준비된 좌석이 모두 마감되어 신규 등록을 받지 않습니다.'
         : '2026년 8월 21일 17시부로 신규 등록을 받지 않습니다.';
     echo <<<HTML

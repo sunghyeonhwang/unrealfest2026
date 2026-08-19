@@ -4,7 +4,10 @@
  * 공통: _ticket_init.php / _ticket_fields.php / _ticket_sidebar.php / assets/js/ticket.js
  */
 require __DIR__ . '/_ticket_init.php';
-if (ufs_reg_closed()) ufs_reg_closed_page();   // 등록 마감(8/21 17:00)
+// 양일권(NORMAL_ALL)은 사무국 결정으로 마감 — 남은 좌석은 1일권에만 배정한다.
+// 되돌리려면 아래 true 를 false 로 바꾸면 된다.
+$__all_closed = true;
+if ($__all_closed || ufs_reg_closed_offline()) ufs_reg_closed_page('양일권 등록 마감');
 ?>
 <!DOCTYPE html>
 <html lang="ko" class="dark">

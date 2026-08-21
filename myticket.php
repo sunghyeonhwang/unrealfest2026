@@ -252,16 +252,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$is_paid = $row && $row['free_yn'] === 'N' && $row['apply_product_code'] !== 'ONLINE';
+// 결제 여부(유료건)와 현장 참석 여부는 다른 개념이다.
+// 무료 쿠폰(free_yn='Y')으로 현장 등록한 사람도 QR·티셔츠·참가확인증 대상이므로
+// 화면 표시는 $is_offline 로 판단하고, 금액·환불 문구만 $is_paid 를 쓴다.
+$is_paid    = $row && $row['free_yn'] === 'N' && $row['apply_product_code'] !== 'ONLINE';
+$is_offline = $row && $row['apply_product_code'] !== 'ONLINE';
 $refund_dl = $row ? ufs_refund_deadline_ts($row) : 0;
 $refund_blocked = ($refund_dl > 0 && time() > $refund_dl);   // 마감 지남 → 셀프취소 차단(고객센터)
 $refund_note_key = ($row && ufs_refund_is_eb_ticket($row)) ? 'refund_over_note' : 'refund_over_note_reg';  // 얼리버드/정상가 문구 분기
-$qr_jpg = ($row && $is_paid && file_exists(__DIR__."/qrdata/".$row['apply_no'].".jpg")) ? "qrdata/".$row['apply_no'].".jpg" : '';
+$qr_jpg = ($row && $is_offline && file_exists(__DIR__."/qrdata/".$row['apply_no'].".jpg")) ? "qrdata/".$row['apply_no'].".jpg" : '';
 // 참가확인증(오프라인만) — 발급 가능일: 8/21권=8/21부터, 그 외(양일·8/20권)=8/20부터. 미리보기 ?certpv=ufscert2026
 $cert_avail_date = ($row && $row['apply_product_code']==='NORMAL_21') ? '2026-08-21' : '2026-08-20';
 $cert_avail_disp = ($cert_avail_date==='2026-08-21') ? array('ko'=>'8월 21일','en'=>'Aug 21') : array('ko'=>'8월 20일','en'=>'Aug 20');
 $cert_preview = (isset($_GET['certpv']) && $_GET['certpv']==='ufscert2026');
-$cert_ok = ($is_paid && (date('Y-m-d') >= $cert_avail_date || $cert_preview));
+$cert_ok = ($is_offline && (date('Y-m-d') >= $cert_avail_date || $cert_preview));
 // 현재 트랙 분해 (view/edit 공용)
 $cur_d1=''; $cur_d2='';
 if ($row) { foreach (explode(',', $row['apply_track']) as $t) { $t=trim($t); if (strpos($t,'DAY1')===0) $cur_d1=$t; else if (strpos($t,'DAY2')===0) $cur_d2=$t; } }
@@ -386,7 +390,7 @@ $other_lang = ($lang === 'en') ? 'ko' : 'en';
           <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]"><?= e(t('ex1')) ?></label>
             <select name="apply_user_ex1" class="w-full bg-[#0e0f14] border border-[#27272a] px-4 py-3 text-white outline-none focus:border-[#00C1D5] text-sm appearance-none"><option value=""><?= e(t('select')) ?></option><?php ufs_opt($OPT_EX1, $row['apply_user_ex1']); ?></select></div>
         </div>
-        <?php if ($is_paid): ?>
+        <?php if ($is_offline): /* 티셔츠는 현장 참석자 전원(무료 쿠폰 포함) */ ?>
         <div class="space-y-2"><label class="text-sm font-medium text-[#a1a1aa]"><?= e(t('tshirt_size')) ?></label>
           <div class="flex flex-wrap gap-3">
             <?php foreach (array('M','L','XL','XXL') as $size): ?>
@@ -417,7 +421,7 @@ $other_lang = ($lang === 'en') ? 'ko' : 'en';
     <p class="text-[#a1a1aa] mb-10"><?= e(t('sub_view')) ?></p>
     <?php if ($saved): ?><div class="bg-[rgba(0,193,213,0.08)] border border-[rgba(0,193,213,0.3)] text-[#9adbe8] text-sm px-4 py-3 mb-6"><?= e(t('saved')) ?></div><?php endif; ?>
 
-    <?php if ($is_paid): ?>
+    <?php if ($is_offline): /* QR 은 현장 참석자 전원 */ ?>
     <div class="bg-[#0e0f14] border border-[#27272a] p-6 md:p-8 mb-4 text-center">
       <?php if ($qr_jpg): ?>
         <p class="text-sm text-[#a1a1aa] mb-4"><?= e(t('qr_present')) ?></p>
@@ -454,7 +458,7 @@ $other_lang = ($lang === 'en') ? 'ko' : 'en';
       <h2 class="text-lg font-bold text-white mb-5"><?= e(t('reg_info')) ?></h2>
       <style>@media (min-width:640px){.tkt-br{display:none}}</style>
       <div class="space-y-3 text-sm">
-        <div class="flex justify-between gap-4"><span class="text-[#71717a]"><?= e(t('reg_type')) ?></span><span class="font-bold text-[#00C1D5]"><?= $is_paid ? e(t('offline')) : e(t('online_free')) ?></span></div>
+        <div class="flex justify-between gap-4"><span class="text-[#71717a]"><?= e(t('reg_type')) ?></span><span class="font-bold text-[#00C1D5]"><?= $is_offline ? e(t('offline')) : e(t('online_free')) ?></span></div>
         <div class="flex justify-between gap-4"><span class="text-[#71717a]"><?= e(t('ticket')) ?></span><span class="font-bold text-right"><?= str_replace('2026 ', '2026·<br class="tkt-br">', e($row['apply_product_name'])) ?></span></div>
         <?php if ($is_paid): ?>
         <div class="flex justify-between gap-4 items-start"><span class="text-[#71717a]"><?= e(t('pay_amount')) ?></span>
@@ -481,7 +485,7 @@ $other_lang = ($lang === 'en') ? 'ko' : 'en';
         <?= e(t('cert_btn')) ?>
       </button>
     </form>
-    <?php elseif ($is_paid): ?>
+    <?php elseif ($is_offline): /* 참가확인증 안내도 현장 참석자 전원 */ ?>
     <p class="text-xs text-[#71717a] mb-4 text-center"><?= $lang==='en' ? 'Your certificate of participation will be available after the event.' : '참가확인증은 행사 종료 후 다운로드하실 수 있습니다.' ?></p>
     <?php endif; ?>
 

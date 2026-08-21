@@ -476,35 +476,15 @@ $other_lang = ($lang === 'en') ? 'ko' : 'en';
       </div>
     </div>
 
-    <?php if ($cert_ok):
-      /* 양일권은 하루씩 따로 받을 수 있게 한다 — 소속 기관에 하루 단위로 제출하는 경우가 있다.
-         1일권은 자기 날짜 하나만(cert.php 가 서버에서 다시 검증한다). */
-      $__certdays = array();
-      if ($row['apply_product_code'] === 'NORMAL_20' || $row['apply_product_code'] === 'NORMAL_21') {
-        $__certdays = array(array('', t('cert_btn')));   // 1일권 — 자기 날짜 하나뿐
-      }
-      else $__certdays = array(
-        array('',  $lang==='en' ? 'Certificate (Both days)' : '참가확인증 · 양일'),
-        array('1', $lang==='en' ? 'Certificate (Day 1, Aug 20)' : '참가확인증 · 1일차(8/20)'),
-        array('2', $lang==='en' ? 'Certificate (Day 2, Aug 21)' : '참가확인증 · 2일차(8/21)'),
-      );
-      $__today = date('Y-m-d');
-      foreach ($__certdays as $__cd): list($__dv, $__dl) = $__cd;
-        // 아직 오지 않은 날짜는 버튼을 내보내지 않는다(눌러도 거절되므로 미리 감춘다)
-        if ($__dv === '2' && !$cert_preview && $__today < '2026-08-21') continue;
-        if ($__dv === '1' && !$cert_preview && $__today < '2026-08-20') continue;
-    ?>
-    <form method="post" action="cert.php<?= $cert_preview ? '?certpv=ufscert2026' : '' ?>" target="_blank" class="mb-2">
+    <?php if ($cert_ok): /* 확인증은 티켓 종류대로 한 장 — 양일권=양일, 1일권=신청한 날 */ ?>
+    <form method="post" action="cert.php<?= $cert_preview ? '?certpv=ufscert2026' : '' ?>" target="_blank" class="mb-4">
       <input type="hidden" name="email" value="<?= e($row['apply_user_email']) ?>">
       <input type="hidden" name="phone" value="<?= e($row['apply_user_phone']) ?>">
-      <input type="hidden" name="cert_day" value="<?= e($__dv) ?>">
       <button type="submit" class="w-full bg-[#111115] border border-[rgba(0,193,213,0.4)] text-white py-3.5 font-bold hover:border-[#00C1D5] transition-all flex items-center justify-center gap-2">
-        <svg class="w-5 h-5 text-[#00C1D5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
-        <?= e($__dl) ?>
+        <svg class="w-5 h-5 text-[#00C1D5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <?= e(t('cert_btn')) ?>
       </button>
     </form>
-    <?php endforeach; ?>
-    <div class="mb-4"></div>
     <?php elseif ($is_offline): /* 참가확인증 안내도 현장 참석자 전원 */ ?>
     <p class="text-xs text-[#71717a] mb-4 text-center"><?= $lang==='en' ? 'Your certificate of participation will be available after the event.' : '참가확인증은 행사 종료 후 다운로드하실 수 있습니다.' ?></p>
     <?php endif; ?>

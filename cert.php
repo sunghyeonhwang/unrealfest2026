@@ -40,29 +40,12 @@ if (!$pv && date('Y-m-d') < $avail) {
     cert_fail('참가확인증은 <b>'.$ad.'</b>부터 발급/다운로드하실 수 있습니다.');
 }
 
-// 참가 일자 — 양일권은 하루씩 따로 발급받을 수 있다(소속 기관 제출 등 하루 단위가 필요한 경우).
-// cert_day: '1'|'2' 면 해당 일자만, 그 외에는 티켓 기준 전체.
-// ⚠️ 요청 값을 그대로 믿지 않는다. 1일권 소지자가 다른 날을 찍어 받아 가면 안 된다.
+// 참가 일자 — 티켓 종류대로 정한다. 양일권=양일, 1일권=신청한 날.
+// 요청 파라미터로 다른 날을 받아 갈 수 없다(신청하지 않은 날의 확인증이 나가면 안 된다).
 $code = $row['apply_product_code'];
-$req_day = isset($_POST['cert_day']) ? trim($_POST['cert_day']) : (isset($_GET['cert_day']) ? trim($_GET['cert_day']) : '');
-$D1 = '2026년 8월 20일(목)';
-$D2 = '2026년 8월 21일(금)';
-if ($code==='NORMAL_20')      { $allow = array('1'); }
-else if ($code==='NORMAL_21') { $allow = array('2'); }
-else                          { $allow = array('1','2'); }   // 양일권·기타
-$cert_day = in_array($req_day, $allow, true) ? $req_day : '';
-if ($cert_day === '1')      $period = $D1;
-else if ($cert_day === '2') $period = $D2;
-else if ($code==='NORMAL_20') $period = $D1;
-else if ($code==='NORMAL_21') $period = $D2;
-else                          $period = $D1 . ' ~ ' . $D2;
-// 하루짜리는 그날이 지나야 발급된다(아직 참가하지 않은 날의 확인증을 막는다)
-if (!$pv && $cert_day !== '') {
-    $need = ($cert_day === '2') ? '2026-08-21' : '2026-08-20';
-    if (date('Y-m-d') < $need) {
-        cert_fail('<b>'.($cert_day==='2'?'8월 21일':'8월 20일').'</b> 참가확인증은 해당 일자부터 발급하실 수 있습니다.');
-    }
-}
+if ($code === 'NORMAL_20')      $period = '2026년 8월 20일(목)';
+else if ($code === 'NORMAL_21') $period = '2026년 8월 21일(금)';
+else                            $period = '2026년 8월 20일(목) ~ 2026년 8월 21일(금)';
 
 $name    = $row['apply_user_name'];
 $company = trim((string)$row['apply_user_company']);
@@ -70,8 +53,7 @@ $depart  = trim((string)$row['apply_user_depart']);
 $affil   = $company . ($depart!=='' ? ' / '.$depart : '');
 $product = $row['apply_product_name'];
 $today   = date('Y년 n월 j일');
-$certno  = 'UFS2026-'.str_pad((string)(int)$row['apply_no'], 6, '0', STR_PAD_LEFT)
-         . ($cert_day !== '' ? '-D'.$cert_day : '');
+$certno  = 'UFS2026-'.str_pad((string)(int)$row['apply_no'], 6, '0', STR_PAD_LEFT);
 
 // 직인 base64 임베드
 $SEAL = '';

@@ -10,7 +10,7 @@ if ($_SERVER['HTTP_HOST'] === 'www.epiclounge.co.kr') {
 
 /* ── 언리얼 페스트 서울 2026 기간 한정: 홈 접속 → 페스트 페이지로 (임시 302). 기간 밖엔 자동 해제. ── */
 $ufs_rd_start = '2026-06-23 00:00:00';
-$ufs_rd_end   = '2026-08-21 23:59:59';
+$ufs_rd_end   = '2026-08-21 17:00:00';   // 행사 종료(8/21 16:50)와 함께 해제 — 루트는 다시 라운지 홈
 $ufs_rd_now   = date('Y-m-d H:i:s');
 $ufs_rd_uri = strtok($_SERVER['REQUEST_URI'], '?');  // 쿼리 제거
 $ufs_rd_isroot = ($ufs_rd_uri === '/' || $ufs_rd_uri === '' || $ufs_rd_uri === '/v3/');

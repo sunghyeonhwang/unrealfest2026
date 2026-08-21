@@ -58,7 +58,9 @@ $url = 'http://' . $http_host . $request_uri;
 
   <ul class="top1menu clearfix">
 	
+    <!-- 행사 종료(2026-08-21)로 GNB에서 내림. 다시 노출하려면 아래 주석만 해제.
     <li class="depth1"><a href="/unrealfest2026/index.php" target="_self" class="tit depth1_ti"><span style="background: linear-gradient(90deg, #00C1D5 0%, #22D3EE 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800;">언리얼 페스트 서울 2026</span></a></li>
+    -->
     <li class="depth1"><a href="/v3/contents/v4/news_list.php" target="_self" class="tit depth1_ti"><span>새소식</span></a><div>
             <div class="menu_bg clearfix">   
 				 

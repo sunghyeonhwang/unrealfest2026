@@ -249,13 +249,18 @@ $ov_icons = array(
   );
   ?>
   <!-- Day 탭 -->
+  <?php
+  /* 기본으로 펼칠 Day — 행사 당일에는 그날 아젠다가 먼저 보여야 한다.
+     8/21 부터 Day2, 그 전에는 Day1. (행사 후에도 Day2 가 마지막 상태로 남는다) */
+  $ag_def_day = (date('Y-m-d') >= '2026-08-21') ? 2 : 1;
+  ?>
   <div class="max-w-7xl mx-auto px-6 pt-8 mb-8 flex gap-2" data-agtab>
-    <?php foreach ($grid_days as $gd => $gblock): $on = ($gd === 1); ?>
+    <?php foreach ($grid_days as $gd => $gblock): $on = ($gd === $ag_def_day); ?>
       <button type="button" data-agtab-btn="<?= $gd ?>" class="flex-1 text-center px-5 py-3 text-sm font-bold transition-colors <?= $on ? 'bg-[#00C1D5] text-black' : 'bg-white/5 text-[#a1a1aa] hover:text-white' ?>"><?= e($gblock['title']) ?></button>
     <?php endforeach; ?>
   </div>
   <?php foreach ($grid_days as $gd => $gblock): ?>
-    <div data-agtab-panel="<?= $gd ?>" class="max-w-7xl mx-auto px-6 mb-12<?= $gd !== 1 ? ' hidden' : '' ?>">
+    <div data-agtab-panel="<?= $gd ?>" class="max-w-7xl mx-auto px-6 mb-12<?= $gd !== $ag_def_day ? ' hidden' : '' ?>">
       <?php ufs_render_grid_view($gblock['sessions'], $gd); ?>
     </div>
   <?php endforeach; ?>

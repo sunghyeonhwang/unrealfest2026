@@ -26,9 +26,9 @@ $ORDERS = array(
   'kia3' => array(
     'item'  => '언리얼 페스트 서울 2026 참가비 3인 (정수빈·정주열·최규철)',
     'amount'=> 162000,
-    'name'  => '정주열',
-    'tel'   => '01072075236',
-    'email' => 'jjyeol@kia.com',
+    'name'  => '김남우',
+    'tel'   => '01022588385',
+    'email' => 'pre3ice@gmail.com',
     'token' => 'kia26-3pax-cbc726dd4b',
   ),
 );

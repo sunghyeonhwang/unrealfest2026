@@ -19,6 +19,18 @@ $ORDERS = array(
     'email' => 'jihyun.jeong@giantstepcorp.com',
     'token' => 'gs26-booth-7fa93kd2',
   ),
+  // 2026-08-26 기아 3인 — 법인카드로 결제한 3건(#5370·#5371·#5373, 각 54,000원)을
+  // 개인카드로 바꿔 달라는 요청. 이 링크로 162,000원을 먼저 받고, 입금 확인 후
+  // 기존 3건을 전액취소한다. 순서를 바꾸면 취소 즉시 정원 마감이 풀려(1,676→1,673)
+  // 다른 사람이 그 자리를 채울 수 있다.
+  'kia3' => array(
+    'item'  => '언리얼 페스트 서울 2026 참가비 3인 (정수빈·정주열·최규철)',
+    'amount'=> 162000,
+    'name'  => '정주열',
+    'tel'   => '01072075236',
+    'email' => 'jjyeol@kia.com',
+    'token' => 'kia26-3pax-cbc726dd4b',
+  ),
 );
 $slug = isset($_GET['o']) ? preg_replace('/[^a-z0-9_-]/i', '', $_GET['o']) : '';
 $key  = isset($_GET['k']) ? trim($_GET['k']) : '';

@@ -1,0 +1,14 @@
+name = "ufs2026-live-retry"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+account_id = "e1bf342e2435a04c2435feab6ad8e230"
+
+# 라이브 시청 페이지에만 건다. 원본(cafe24)이 간헐적으로 503 을 뱉는 구간에서
+# 사용자 대신 자동 재시도해 오류 화면을 안 보이게 한다.
+[[routes]]
+pattern = "epiclounge.co.kr/unrealfest2026/*"
+zone_name = "epiclounge.co.kr"
+
+[[routes]]
+pattern = "epiclounge.co.kr/v3/unrealfest2026/*"
+zone_name = "epiclounge.co.kr"

@@ -10,7 +10,7 @@
 | `replay/pdf.php` | PDF 게이트 — 서버 인증 재확인 후 Cloudflare 링크로 리다이렉트 + 이용 로그 |
 | `replay/_common_replay.php` | 공용 헬퍼(설정·로그·인증·Vimeo 임베드) |
 | `adm/2026_replay_vod.php` | 관리자(버전관리 복사본) — 배포 위치는 **`www/v3/adm/`** |
-| `adm/admin.menu700.php` | 메뉴 700370 추가(복사본 — 배포 시 서버 파일 백업 후 교체) |
+| `adm/admin.menu700.php` | 메뉴 700378 추가(복사본 — **반드시 서버 최신본 기준으로 병합** 후 배포. 2026-09-15 구버전 복사본 배포로 메뉴 유실 사고 있었음) |
 | `newsletter/replay-open.html` | 다시보기 오픈 안내 뉴스레터 본문(`nl_replay` 슬롯) |
 | `_live_notify.php` | `nl_replay` 슬롯 추가(오프라인 등록자 전체 · Resend 분산 발송) |
 

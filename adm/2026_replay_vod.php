@@ -12,7 +12,7 @@
  *  - 구 YouTube 다시보기 설정(2026_replay_config.php / cb_unreal_2026_replay)과는 별개.
  * PHP 7.0 호환. charset=utf8.
  */
-$sub_menu = '700370';
+$sub_menu = '700378';
 include_once('./_common.php');
 if (!function_exists('is_admin') || !is_admin($member['mb_id'])) { alert('관리자 로그인이 필요합니다.', G5_ADMIN_URL); }
 $g5['title'] = '다시보기(Vimeo+PDF) 관리';
@@ -156,8 +156,10 @@ $rs = sql_query("SELECT * FROM $TBL");
 if ($rs) { while ($x = sql_fetch_array($rs)) $cur[(int)$x['rv_agno']] = $x; }
 
 $sessions = array();
+// 순수 세션만 — 키노트(slot_type/트랙)와 공통 슬롯(휴식·점심·등록·경품 등)은 다시보기 대상에서 제외
 $as = sql_query("SELECT ag_no, ag_sid, ag_day, ag_track, ag_time, ag_title, ag_sp_name, ag_sp_company
-    FROM cb_unreal_2026_agenda WHERE ag_is_active='Y'
+    FROM cb_unreal_2026_agenda
+    WHERE ag_is_active='Y' AND ag_slot_type='session' AND ag_track<>'키노트'
     ORDER BY ag_day ASC, ag_sort ASC, ag_no ASC");
 if ($as) { while ($x = sql_fetch_array($as)) $sessions[] = $x; }
 

@@ -66,6 +66,9 @@ function ufs_ln_slots() {
         'nl_d1'  => array('label'=>'뉴스레터 Day1',       'day'=>'1', 'audience'=>'online',  'only_unvisited'=>false, 'tpl_def'=>'',    'ch'=>'email', 'mode'=>'spread', 'max_batch'=>500),
         'nl_d2'  => array('label'=>'뉴스레터 Day2',       'day'=>'2', 'audience'=>'online',  'only_unvisited'=>false, 'tpl_def'=>'',    'ch'=>'email', 'mode'=>'spread', 'max_batch'=>500),
         'nl_thx' => array('label'=>'뉴스레터 감사인사',   'day'=>'2', 'audience'=>'all',     'only_unvisited'=>false, 'tpl_def'=>'',    'ch'=>'email', 'mode'=>'spread', 'max_batch'=>500),
+        // 다시보기 오픈 안내 — 대상은 오프라인 등록자 전체(다시보기 이용 자격과 동일 기준).
+        // day='' 라서 offline 의 반대편 하루권 제외가 걸리지 않는다(Day1권·Day2권 모두 포함).
+        'nl_replay' => array('label'=>'뉴스레터 다시보기 오픈', 'day'=>'', 'audience'=>'offline', 'only_unvisited'=>false, 'tpl_def'=>'', 'ch'=>'email', 'mode'=>'spread', 'max_batch'=>500),
     );
 }
 }
@@ -325,6 +328,7 @@ function ufs_ln_nl_text($slot) {
         'nl_d1'  => array('subj' => '[언리얼 페스트 서울 2026] 오늘 Day 1, 10시 30분에 시작합니다'),
         'nl_d2'  => array('subj' => '[언리얼 페스트 서울 2026] 오늘 Day 2, 10시 30분에 시작합니다'),
         'nl_thx' => array('subj' => '[언리얼 페스트 서울 2026] 함께해 주셔서 감사합니다'),
+        'nl_replay' => array('subj' => '[언리얼 페스트 서울 2026] 세션 다시보기가 오픈되었습니다'),
     );
     $d = isset($t[$slot]) ? $t[$slot] : $t['nl_d1'];
     $d['subj'] = ufs_ln_cfg('live_notify_nl_subj_' . $slot, $d['subj']);

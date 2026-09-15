@@ -7,6 +7,7 @@ $menu['menu700'] = array(
     array('700320', '등록 현황', '' . G5_ADMIN_URL . '/2026_event2_list.php', '2026_event2_list'),
     array('700330', '트랙 정원', '' . G5_ADMIN_URL . '/2026_event2_remain.php', '2026_event2_remain'),
     array('700310', '스피커 신청', '' . G5_ADMIN_URL . '/2026_event_speaker.php', '2026_event_speaker'),
+    array('700370', '다시보기(Vimeo+PDF)', '' . G5_ADMIN_URL . '/2026_replay_vod.php', '2026_replay_vod'),
 
     // 시작해요 언리얼 26
     array('700400', '시작해요 언리얼 26', '' . G5_ADMIN_URL . '/2026_start_unreal_register_list.php', '2026_start_unreal_list', 1),

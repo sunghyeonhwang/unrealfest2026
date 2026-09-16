@@ -1,8 +1,10 @@
 <?php
 /* Unreal Fest Seoul 2026 — 세션 다시보기 (replay/index.php)
  *
- * 오프라인 등록자 전용 다시보기. 기획: replay/REPLAY_PLANNING.md
- *  - 체크인 = 등록 이메일 + 연락처(뒤 8자리). ONLINE(온라인 전용) 상품 제외.
+ * 등록자 전용 다시보기. 기획: replay/REPLAY_PLANNING.md
+ *  - 체크인 = 등록 이메일 + 연락처(뒤 8자리). 온라인·오프라인 등록자 모두 이용.
+ *  - 온라인 등록자(ONLINE 상품) = QA 제외 영상(rv_vimeo), 오프라인 등록자 = QA 포함 영상(rv_vimeo_qa).
+ *    오프라인용 QA 영상이 아직 없으면 "Q&A 포함 영상 준비 중" 안내.
  *  - 영상 = Vimeo(도메인 제한 임베드), 자료 = Cloudflare PDF(pdf.php 경유).
  *  - 세션 정보는 cb_unreal_2026_agenda 재사용, 다시보기 전용 값만 cb_unreal_2026_replay_vod.
  *  - 관리자(그누보드 is_admin 급)는 게이트 우회(운영 점검용) — 일반 세션에 영향 없음.
@@ -19,13 +21,21 @@ $is_adm = rv_is_adm();
 
 /* ── 로그아웃 ── */
 if (isset($_GET['logout'])) {
-    unset($_SESSION['ufs_replay_ok'], $_SESSION['ufs_replay_name'], $_SESSION['ufs_replay_no'], $_SESSION['ufs_replay_email'], $_SESSION['ufs_replay_at']);
+    unset($_SESSION['ufs_replay_ok'], $_SESSION['ufs_replay_name'], $_SESSION['ufs_replay_no'], $_SESSION['ufs_replay_email'], $_SESSION['ufs_replay_at'], $_SESSION['ufs_replay_type']);
     header('Location: ./'); exit;
 }
 
 $verified = (rv_auth_ok() || $is_adm);
 $viewer   = !empty($_SESSION['ufs_replay_name']) ? $_SESSION['ufs_replay_name'] : ($is_adm ? '관리자' : '');
 $apply_no = !empty($_SESSION['ufs_replay_no']) ? (int)$_SESSION['ufs_replay_no'] : 0;
+
+/* ── 등록 유형 — online(QA 제외 영상) / offline(QA 포함 영상). 기존 세션(유형 미저장)은 오프라인 취급 ── */
+$user_type = !empty($_SESSION['ufs_replay_type']) ? $_SESSION['ufs_replay_type'] : 'offline';
+if ($is_adm && empty($_SESSION['ufs_replay_ok'])) {
+    // 관리자 점검: 기본은 온라인 화면, ?as=offline 로 오프라인 화면 확인
+    $user_type = (isset($_GET['as']) && $_GET['as'] === 'offline') ? 'offline' : 'online';
+}
+$is_online_user = ($user_type === 'online');
 
 /* ── 이용 로그 비컨 (상세 열람 view / 재생 시작 play) ── */
 if (isset($_GET['log'])) {
@@ -70,13 +80,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['rv_email']) && $svc_o
         if ($fc && (int)$fc['c'] >= 8) {
             $gate_err = '시도 횟수가 많아 잠시 제한되었습니다. 10분 후 다시 시도해 주세요.';
         } else {
-            // 오프라인 등록 자격: 정상 등록(임시X, 취소X) + 온라인 전용 상품 제외(기획 4.1/4.2)
-            $row = sql_fetch("SELECT apply_no, apply_user_name, apply_user_email
+            // 등록 자격: 정상 등록(임시X, 취소X). 온라인/오프라인은 상품 코드로 구분해 유형 저장
+            $row = sql_fetch("SELECT apply_no, apply_user_name, apply_user_email, apply_product_code
                 FROM cb_unreal_2026_event2_apply
                 WHERE apply_user_email='" . sql_real_escape_string($em) . "'
                   AND apply_user_phone LIKE '%" . sql_real_escape_string(substr($phd, -8)) . "%'
                   AND apply_temp_yn='N' AND apply_pay_status<>0
-                  AND apply_product_code<>'ONLINE'
                 ORDER BY apply_no DESC LIMIT 1");
             if ($row) {
                 if (function_exists('session_regenerate_id')) @session_regenerate_id(true);   // 세션 고정 방지(기획 12.2)
@@ -84,6 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['rv_email']) && $svc_o
                 $_SESSION['ufs_replay_name']  = $row['apply_user_name'];
                 $_SESSION['ufs_replay_no']    = (int)$row['apply_no'];
                 $_SESSION['ufs_replay_email'] = strtolower($row['apply_user_email']);
+                $_SESSION['ufs_replay_type']  = ($row['apply_product_code'] === 'ONLINE') ? 'online' : 'offline';
                 $_SESSION['ufs_replay_at']    = time();
                 $_SESSION['ufs_replay_csrf']  = function_exists('random_bytes') ? bin2hex(random_bytes(16)) : md5(uniqid(mt_rand(), true));
                 rv_log('gate_ok', (int)$row['apply_no'], 0, rv_mask_email($em));
@@ -96,13 +106,109 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['rv_email']) && $svc_o
     }
 }
 
+/* ── 트랙별 컬러 — 메인 사이트 schedule.php 의 ufs_sched_colors 와 동일 팔레트 ── */
+function rv_track_color($track) {
+    $m = array(
+        '키노트'            => '#00C1D5',
+        '게임: 프로그래밍'   => '#5a9be6',
+        '게임: 아트'         => '#fecb8b',
+        '미디어 & 엔터테인먼트' => '#ff8674',
+        '제조 및 시뮬레이션'  => '#dd9cdf',
+        '공통'              => '#dd9cdf',
+    );
+    return isset($m[$track]) ? $m[$track] : '#00C1D5';
+}
+
+/* ── 트랙 표기 — 메인(ufs_track_label_day)과 동일: Day1 의 '제조 및 시뮬레이션'은 '공통' ── */
+function rv_track_label($track, $day) {
+    if ($track === '제조 및 시뮬레이션') return ((int)$day === 1) ? '공통' : '제조 및 시뮬레이션';
+    return $track;
+}
+
+/* ── 난이도 라벨 — 세션 상세와 동일 표기 ── */
+function rv_level_label($lv) {
+    $m = array('초보자용' => '초급', '중급자용' => '중급', '전문가용' => '고급', '전체 참가자' => '전체');
+    $lv = trim((string)$lv);
+    return isset($m[$lv]) ? $m[$lv] : ($lv !== '' ? $lv : '전체');
+}
+
+/* ── 등록 유형별 영상 선택 — 온라인: rv_vimeo(QA 제외) / 오프라인: rv_vimeo_qa(QA 포함).
+ *    오프라인용 QA 영상이 아직 없고 원본 영상은 있으면 pending(준비 중) 상태 ── */
+function rv_pick_video($s, $is_online_user) {
+    $pub = ($s['rv_video_public'] === 'Y');
+    if ($is_online_user) {
+        $id = trim((string)$s['rv_vimeo']); $hash = trim((string)$s['rv_vimeo_hash']);
+        return array('id' => $id, 'hash' => $hash, 'has' => ($pub && $id !== ''), 'pending' => false);
+    }
+    $id = trim((string)(isset($s['rv_vimeo_qa']) ? $s['rv_vimeo_qa'] : ''));
+    $hash = trim((string)(isset($s['rv_vimeo_qa_hash']) ? $s['rv_vimeo_qa_hash'] : ''));
+    $has = ($pub && $id !== '');
+    $pending = ($pub && $id === '' && trim((string)$s['rv_vimeo']) !== '');
+    return array('id' => $id, 'hash' => $hash, 'has' => $has, 'pending' => $pending);
+}
+
+/* ── 콤마 구분 컬럼 → 배열 ── */
+function rv_csv_arr($v) {
+    $out = array();
+    foreach (explode(',', (string)$v) as $p) { $p = trim($p); if ($p !== '') $out[] = $p; }
+    return $out;
+}
+
+/* ── 줄 단위 분리 ── */
+function rv_lines_arr($v) {
+    $out = array();
+    foreach (preg_split('/\r\n|\r|\n/', (string)$v) as $ln) { $ln = trim($ln); if ($ln !== '') $out[] = $ln; }
+    return $out;
+}
+
+/* ── 연사 배열 — ag_speakers(JSON) 우선, 없으면 ag_sp_* (data/agenda_db.php 와 동일 규칙) ── */
+function rv_speakers_arr($r) {
+    $json = isset($r['ag_speakers']) ? trim((string)$r['ag_speakers']) : '';
+    if ($json !== '') {
+        $arr = json_decode($json, true);
+        if (is_array($arr)) {
+            $out = array();
+            foreach ($arr as $sp) {
+                if (!is_array($sp)) continue;
+                $nm = isset($sp['name']) ? trim($sp['name']) : '';
+                if ($nm === '') continue;
+                $out[] = array('n' => $nm,
+                    'r' => isset($sp['role']) ? trim($sp['role']) : '',
+                    'c' => isset($sp['company']) ? trim($sp['company']) : '',
+                    'p' => isset($sp['photo']) ? trim($sp['photo']) : '',
+                    'b' => isset($sp['bio']) ? trim($sp['bio']) : '');
+            }
+            if ($out) return $out;
+        }
+    }
+    $name = isset($r['ag_sp_name']) ? trim($r['ag_sp_name']) : '';
+    if ($name === '') return array();
+    $comp  = isset($r['ag_sp_company']) ? trim($r['ag_sp_company']) : '';
+    $photo = isset($r['ag_sp_photo']) ? trim($r['ag_sp_photo']) : '';
+    $parts = preg_split('#\s*/\s*#u', $name);
+    if (is_array($parts) && count($parts) > 1) {
+        $out = array();
+        foreach ($parts as $i => $nm) {
+            $nm = trim($nm); if ($nm === '') continue;
+            $out[] = array('n' => $nm, 'r' => '', 'c' => $comp, 'p' => ($i === 0 ? $photo : ''), 'b' => '');
+        }
+        if ($out) return $out;
+    }
+    return array(array('n' => $name, 'r' => isset($r['ag_sp_role']) ? trim($r['ag_sp_role']) : '', 'c' => $comp, 'p' => $photo, 'b' => ''));
+}
+
+/* ── 제목 표기 — <게임명> 같은 꺾쇠 묶음이 중간에 줄바꿈되지 않도록 감싼다 ── */
+function rv_title_html($t) {
+    $e = rv_e($t);
+    return preg_replace('/&lt;([^&]{1,80}?)&gt;/u', '<span class="nb">&lt;$1&gt;</span>', $e);
+}
+
 /* ── 공개 세션 로드 (인증 후에만 — 인증 전 HTML 에 영상·PDF 정보 미포함) ── */
 $DAYS = array('1' => 'Day 1 · 8월 20일(목)', '2' => 'Day 2 · 8월 21일(금)');
 $sessions = array(); $tracks = array(); $JS = array();
 if ($verified && $svc_open) {
-    $rs = @sql_query("SELECT a.ag_no, a.ag_day, a.ag_track, a.ag_time, a.ag_title, a.ag_desc,
-               a.ag_sp_name, a.ag_sp_role, a.ag_sp_company,
-               v.rv_vimeo, v.rv_vimeo_hash, v.rv_thumb, v.rv_video_public,
+    $rs = @sql_query("SELECT a.*,
+               v.rv_vimeo, v.rv_vimeo_hash, v.rv_vimeo_qa, v.rv_vimeo_qa_hash, v.rv_thumb, v.rv_video_public,
                v.rv_pdf_url, v.rv_pdf_name, v.rv_pdf_size, v.rv_pdf_public
         FROM cb_unreal_2026_replay_vod v
         JOIN cb_unreal_2026_agenda a ON a.ag_no = v.rv_agno
@@ -111,19 +217,32 @@ if ($verified && $svc_open) {
     if ($rs) { while ($x = sql_fetch_array($rs)) $sessions[] = $x; }
 
     foreach ($sessions as $s) {
-        if ($s['ag_track'] !== '' && !in_array($s['ag_track'], $tracks, true)) $tracks[] = $s['ag_track'];
-        $has_video = ($s['rv_video_public'] === 'Y' && $s['rv_vimeo'] !== '');
+        $tlabel = rv_track_label($s['ag_track'], (int)$s['ag_day']);
+        if ($tlabel !== '' && !in_array($tlabel, $tracks, true)) $tracks[] = $tlabel;
+        $pick = rv_pick_video($s, $is_online_user);
+        $has_video = $pick['has'];  $qa_pending = $pick['pending'];
         $has_pdf   = ($s['rv_pdf_public'] === 'Y' && $s['rv_pdf_url'] !== '');
+        // 키워드: 분야 → 주제 → 제품 순, 중복 제거 (세션 상세와 동일)
+        $kw = array();
+        foreach (array('ag_field', 'ag_topic', 'ag_product') as $kk) {
+            if (!isset($s[$kk])) continue;
+            foreach (rv_csv_arr($s[$kk]) as $kv) {
+                if ($kv === '기타/Others' || $kv === '기타' || $kv === 'Others') continue;
+                if (!in_array($kv, $kw, true)) $kw[] = $kv;
+            }
+        }
         $JS[(int)$s['ag_no']] = array(
             'title'   => $s['ag_title'],
             'day'     => (int)$s['ag_day'],
             'time'    => $s['ag_time'],
-            'track'   => $s['ag_track'],
+            'track'   => $tlabel,
+            'level'   => rv_level_label(isset($s['ag_level']) ? $s['ag_level'] : ''),
             'desc'    => $s['ag_desc'],
-            'sp'      => trim($s['ag_sp_name']),
-            'sp_role' => trim($s['ag_sp_role']),
-            'sp_co'   => trim($s['ag_sp_company']),
-            'embed'   => $has_video ? rv_vimeo_embed($s['rv_vimeo'], $s['rv_vimeo_hash']) : '',
+            'kw'      => $kw,
+            'sps'     => rv_speakers_arr($s),
+            'tc'      => rv_track_color($tlabel),
+            'embed'   => $has_video ? rv_vimeo_embed($pick['id'], $pick['hash']) : '',
+            'qa'      => $qa_pending ? 1 : 0,
             'pdf'     => $has_pdf ? 1 : 0,
             'pdf_name'=> $has_pdf ? ($s['rv_pdf_name'] !== '' ? $s['rv_pdf_name'] : '강연자료 PDF') : '',
             'pdf_size'=> $has_pdf ? $s['rv_pdf_size'] : '',
@@ -137,7 +256,7 @@ $period_end = rv_cfg('replay_end', '');
 <html lang="ko"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>세션 다시보기 — Unreal Fest Seoul 2026</title>
+<title>언리얼 페스트 2026 서울 다시보기 — Unreal Fest Seoul 2026</title>
 <style>
 :root{--bg:#08080a;--panel:#0e0e12;--line:#1e1e25;--line2:#2a2a33;--teal:#00C1D5;--mint:#00FFC8;--text:#eaeaef;--muted:#8b8b96}
 *{box-sizing:border-box}html,body{margin:0}
@@ -145,7 +264,8 @@ body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,
  background-image:radial-gradient(900px 500px at 78% -8%, rgba(0,193,213,.10), transparent 60%)}
 a{color:inherit;text-decoration:none}
 button{font-family:inherit}
-.rv-top{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px clamp(16px,4vw,40px);background:rgba(8,8,10,.72);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.rv-top{position:sticky;top:0;z-index:20;padding:13px clamp(14px,4vw,40px);background:rgba(8,8,10,.72);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.rv-topin{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:14px}
 .rv-toplogo{height:24px;width:auto;display:block}
 .rv-user{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted);white-space:nowrap}
 .rv-user b{color:var(--text);font-weight:700}
@@ -163,6 +283,13 @@ button{font-family:inherit}
 .rv-tab:first-child{margin-left:0}
 .rv-tab.on{background:var(--teal);border-color:var(--teal);color:#00232a}
 .rv-sel{padding:9px 12px;background:var(--panel);border:1px solid var(--line2);color:var(--text);font-size:13px}
+/* 트랙별 필터 — 메인 사이트 트랙 컬러 적용 */
+.rv-ttabs{display:flex;flex-wrap:wrap}
+.rv-ttab{padding:9px 14px;font-size:13px;font-weight:800;background:transparent;border:1px solid var(--line2);color:var(--muted);cursor:pointer;margin-left:-1px;display:flex;align-items:center;gap:7px}
+.rv-ttab:first-child{margin-left:0}
+.rv-ttab .tdot{width:8px;height:8px;border-radius:50%;background:var(--tc,var(--muted));flex:none}
+.rv-ttab:hover{color:var(--tc,var(--teal))}
+.rv-ttab.on{border-color:var(--tc,var(--teal));color:var(--tc,var(--teal));background:rgba(255,255,255,.05);position:relative;z-index:1}
 .rv-search{flex:1;min-width:180px;max-width:320px;padding:9px 13px;background:var(--panel);border:1px solid var(--line2);color:var(--text);font-size:13px}
 .rv-search:focus,.rv-sel:focus{outline:none;border-color:var(--teal)}
 /* grid */
@@ -170,6 +297,10 @@ button{font-family:inherit}
 .rv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
 .rv-card{border:1px solid var(--line);background:var(--panel);cursor:pointer;transition:.15s;overflow:hidden;display:flex;flex-direction:column;text-align:left;padding:0;color:inherit}
 .rv-card:hover,.rv-card:focus-visible{border-color:var(--teal);transform:translateY(-2px);outline:none}
+/* 미공개 세션 — 회색 처리 + 클릭 불가 */
+.rv-card.off{opacity:.45;filter:grayscale(1);cursor:default;pointer-events:none}
+.rv-card.off:hover{border-color:var(--line);transform:none}
+.rv-card.off .rv-trk{color:var(--muted) !important}
 .rv-thumb{position:relative;width:100%;padding-top:56.25%;background:#0a0d12 center/cover no-repeat}
 .rv-thumb .ph{position:absolute;inset:0;background:linear-gradient(135deg,#0c1218 0%,#0a2026 60%,#083038 100%)}
 .rv-thumb .play{position:absolute;inset:0;display:grid;place-items:center}
@@ -207,12 +338,29 @@ button{font-family:inherit}
 .rv-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .rv-frame .noem{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:14px;background:linear-gradient(135deg,#0c1218,#0a2026);text-align:center;padding:20px;line-height:1.8}
 .rv-mbody{padding:20px 22px 26px}
-.rv-minfo{font-size:12.5px;color:var(--teal);font-weight:700;margin:0 0 8px}
-.rv-mtitle{font-size:18px;font-weight:800;color:#fff;margin:0 0 10px;line-height:1.45}
-.rv-mdesc{font-size:13.5px;color:#c9c9d2;line-height:1.8;margin:0 0 16px;white-space:pre-line}
-.rv-msp{display:flex;gap:12px;align-items:center;border:1px solid var(--line);background:var(--panel);padding:12px 15px;margin:0 0 16px;font-size:13px}
-.rv-msp .nm{font-weight:800;color:#fff}
-.rv-msp .co{color:var(--muted);font-size:12px;margin-top:2px}
+.rv-mtitle{font-size:19px;font-weight:800;color:#fff;margin:0 0 4px;line-height:1.45;word-break:keep-all;overflow-wrap:break-word}
+.nb{white-space:nowrap}
+.rv-title,.rv-mtitle{word-break:keep-all;overflow-wrap:break-word}
+.rv-mdesc{font-size:13.5px;color:#c9c9d2;line-height:1.8;margin:0;white-space:pre-line}
+/* 모달 상세 섹션 — 세션 상세 페이지와 동일 구성 */
+.rv-chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.rv-chip{font-size:11px;font-weight:800;padding:3px 9px;border:1px solid var(--line2);border-radius:4px;color:#d4d4d8;background:rgba(255,255,255,.05)}
+.rv-msec{margin:20px 0 0}
+.rv-msec h3{font-size:14px;font-weight:800;color:#fff;margin:0 0 9px}
+.rv-mlist{list-style:none;margin:0;padding:0}
+.rv-mlist li{position:relative;padding-left:14px;font-size:13px;color:#a1a1aa;line-height:1.7;margin-bottom:5px;word-break:keep-all}
+.rv-mlist li:before{content:'';position:absolute;left:0;top:.62em;width:4px;height:4px;border-radius:50%;background:var(--teal)}
+.rv-mlist li.l2{margin-left:18px}
+.rv-mlist li.l2:before{background:transparent;border:1px solid var(--teal)}
+.rv-kw span{display:inline-block;font-size:11.5px;color:#a1a1aa;border:1px solid #27272a;border-radius:4px;padding:3px 9px;margin:0 6px 6px 0}
+.rv-spcard{display:flex;gap:13px;align-items:flex-start;border:1px solid var(--line);background:var(--panel);padding:13px 15px;margin:0 0 10px;font-size:13px}
+.rv-spcard img{width:52px;height:52px;border-radius:50%;object-fit:cover;flex:none;background:#15151b}
+.rv-spcard .nm{font-weight:800;color:#fff}
+.rv-spcard .co{color:var(--muted);font-size:12px;margin-top:2px}
+.rv-spcard details{margin-top:7px}
+.rv-spcard summary{font-size:12px;font-weight:800;color:var(--teal);cursor:pointer;list-style:none}
+.rv-spcard summary::-webkit-details-marker{display:none}
+.rv-spcard .bio{font-size:12.5px;color:#a1a1aa;line-height:1.75;margin:8px 0 0;word-break:keep-all}
 .rv-pdfbox{border:1px solid var(--line);background:var(--panel);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 16px}
 .rv-pdfbox .pn{font-size:13px;font-weight:700;color:#fff}
 .rv-pdfbox .ps{font-size:11.5px;color:var(--muted);margin-top:3px}
@@ -221,12 +369,36 @@ button{font-family:inherit}
 .rv-nopdf{font-size:12.5px;color:var(--muted);border:1px dashed var(--line2);padding:11px 14px;margin:0 0 16px}
 .rv-copyright{font-size:11.5px;color:#6b6b76;line-height:1.7;border-top:1px solid var(--line);padding-top:13px}
 @media(max-width:640px){.rv-filters{gap:8px}.rv-search{max-width:none}}
+/* footer — 메인(_pf_footer.php) 구성 재현 */
+.rvf{background:#000;border-top:1px solid rgba(255,255,255,.1);padding:64px clamp(16px,4vw,40px) 40px;font-size:14px}
+.rvf-in{max-width:1280px;margin:0 auto}
+.rvf-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:48px;margin-bottom:56px}
+.rvf-logo{height:32px;width:auto;display:block;margin-bottom:28px}
+.rvf-sns{display:flex;gap:14px;margin-bottom:28px}
+.rvf-sns a{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;color:#94a3b8;transition:.15s}
+.rvf-sns a:hover{color:#fff;border-color:var(--teal)}
+.rvf-sns svg{width:16px;height:16px}
+.rvf-biz{font-size:12px;line-height:1.8;color:#64748b}
+.rvf-biz p{margin:0 0 4px}
+.rvf-biz a{text-decoration:underline}
+.rvf-biz a:hover{color:#fff}
+.rvf h4{color:#fff;font-weight:700;margin:0 0 22px;letter-spacing:.1em;font-size:12px;text-transform:uppercase}
+.rvf-links{list-style:none;margin:0;padding:0}
+.rvf-links li{margin-bottom:14px}
+.rvf-links a{color:#94a3b8;font-size:13.5px;transition:.15s}
+.rvf-links a:hover{color:var(--teal)}
+.rvf-bottom{border-top:1px solid rgba(255,255,255,.1);padding-top:28px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;color:#64748b;font-size:12.5px;line-height:1.7}
+.rvf-bottom .lg{display:flex;gap:22px}
+.rvf-bottom a:hover{color:#fff}
+@media(max-width:820px){.rvf-grid{grid-template-columns:1fr;gap:36px}.rvf-bottom{flex-direction:column;align-items:flex-start}}
 </style>
 </head>
 <body>
 <header class="rv-top">
-  <a href="../index.php" aria-label="Unreal Fest Seoul 2026"><img class="rv-toplogo" src="../white_logo.svg" alt="Unreal Fest Seoul 2026"></a>
-  <?php if ($verified && $svc_open): ?><div class="rv-user"><span><b><?= rv_e($viewer) ?></b>님</span><a class="rv-out" href="./?logout=1">로그아웃</a></div><?php endif; ?>
+  <div class="rv-topin">
+    <a href="../index.php" aria-label="Unreal Fest Seoul 2026"><img class="rv-toplogo" src="../white_logo.svg" alt="Unreal Fest Seoul 2026"></a>
+    <?php if ($verified && $svc_open): ?><div class="rv-user"><span><b><?= rv_e($viewer) ?></b>님</span><a class="rv-out" href="./?logout=1">로그아웃</a></div><?php endif; ?>
+  </div>
 </header>
 
 <?php if (!$svc_open): ?>
@@ -234,7 +406,7 @@ button{font-family:inherit}
   <div class="rv-gate">
     <div class="rv-gcard" style="text-align:center">
       <img class="rv-glogo" src="../white_logo.svg" alt="Unreal Fest Seoul 2026" style="margin-left:auto;margin-right:auto">
-      <h1>세션 다시보기</h1>
+      <h1>언리얼 페스트 2026 서울 다시보기</h1>
       <?php if ($state === 'ended'): ?>
         <p>언리얼 페스트 서울 2026 다시보기 제공 기간이 종료되었습니다.</p>
       <?php else: ?>
@@ -249,26 +421,33 @@ button{font-family:inherit}
   <div class="rv-gate">
     <div class="rv-gcard">
       <img class="rv-glogo" src="../white_logo.svg" alt="Unreal Fest Seoul 2026">
-      <h1>세션 다시보기</h1>
-      <p>언리얼 페스트 서울 2026 <b style="color:#cfd0d6">오프라인 등록자</b>를 위한 다시보기 페이지입니다. 등록 시 입력한 이메일과 연락처로 체크인해 주세요.</p>
-      <?php if ($gate_err): ?><div class="rv-err"><?= rv_e($gate_err) ?><br><span style="color:#c9a0a0">온라인 전용 등록자는 다시보기를 이용할 수 없습니다.</span></div><?php endif; ?>
+      <h1>언리얼 페스트 2026 서울 다시보기</h1>
+      <p>언리얼 페스트 서울 2026 <b style="color:#cfd0d6">등록자</b>를 위한 다시보기 페이지입니다. 등록 시 입력한 이메일과 연락처로 체크인해 주세요.</p>
+      <?php if ($gate_err): ?><div class="rv-err"><?= rv_e($gate_err) ?></div><?php endif; ?>
       <form method="post" action="./">
         <input type="hidden" name="rv_csrf" value="<?= rv_e($csrf) ?>">
         <input type="email" name="rv_email" autocapitalize="off" autocomplete="email" placeholder="등록 이메일" required autofocus>
         <input type="tel" name="rv_phone" inputmode="numeric" autocomplete="tel" placeholder="등록 연락처" required>
         <button type="submit">다시보기 입장 →</button>
       </form>
-      <p style="font-size:12px;color:#6b6b76;margin:16px 0 0;line-height:1.7">온라인 전용 등록자는 다시보기를 이용할 수 없습니다.<br>등록 확인이 안 되면 사무국으로 문의해 주세요.<br>02-326-3701 · info@epiclounge.co.kr</p>
+      <p style="font-size:12px;color:#6b6b76;margin:16px 0 0;line-height:1.7">등록 확인이 안 되면 사무국으로 문의해 주세요.<br>02-326-3701 · info@epiclounge.co.kr</p>
     </div>
   </div>
 
 <?php else: ?>
   <!-- 목록 -->
   <div class="rv-wrap">
-    <h1 class="rv-h1">세션 다시보기</h1>
+    <h1 class="rv-h1">언리얼 페스트 2026 서울 다시보기</h1>
     <p class="rv-sub">언리얼 페스트 서울 2026 세션 영상과 강연자료를 다시 확인하실 수 있습니다.<?php if ($period_end !== ''): ?> 다시보기는 <b style="color:#cfd0d6"><?= rv_e(substr($period_end, 0, 10)) ?></b>까지 제공됩니다.<?php endif; ?></p>
-    <p class="rv-legal">영상과 강연자료의 저작권은 발표자 및 각 권리자에게 있습니다. 등록자 개인의 학습 목적으로만 이용할 수 있으며, 무단 녹화·복제·배포·재업로드를 금지합니다.</p>
     <?php if ($notice !== ''): ?><div class="rv-notice"><?= nl2br(rv_e($notice)) ?></div><?php endif; ?>
+    <?php
+      // 오프라인 등록자 안내 — QA 포함 영상이 하나도 등록되지 않은 동안만 표시
+      if (!$is_online_user) {
+          $qa_ready = 0;
+          foreach ($sessions as $qs) { if (trim((string)(isset($qs['rv_vimeo_qa']) ? $qs['rv_vimeo_qa'] : '')) !== '') { $qa_ready = 1; break; } }
+          if (!$qa_ready): ?>
+    <div class="rv-notice">오프라인 참석자용 <b style="color:#cfd0d6">Q&amp;A 포함 영상</b>은 현재 준비 중입니다. 준비되는 대로 순차 공개되며, 강연자료 PDF는 지금 바로 이용하실 수 있습니다.</div>
+    <?php endif; } ?>
 
     <?php if (!$sessions): ?>
       <div class="rv-empty">다시보기가 준비 중입니다.<br>영상과 강연자료가 준비되는 대로 순차적으로 공개됩니다.</div>
@@ -281,10 +460,14 @@ button{font-family:inherit}
         <button type="button" class="rv-tab" data-day="2">Day 2</button>
       </div>
       <?php if (count($tracks) > 1): ?>
-      <select class="rv-sel" id="rvTrack" aria-label="트랙 필터">
-        <option value="">모든 트랙</option>
-        <?php foreach ($tracks as $t): ?><option value="<?= rv_e($t) ?>"><?= rv_e($t) ?></option><?php endforeach; ?>
-      </select>
+      <div class="rv-ttabs" role="tablist" aria-label="트랙 필터">
+        <button type="button" class="rv-ttab on" data-trk="">모든 트랙</button>
+        <?php foreach ($tracks as $t): if ($t === '공통' || $t === '제조 및 시뮬레이션') continue; ?>
+        <button type="button" class="rv-ttab" data-trk="<?= rv_e($t) ?>" style="--tc:<?= rv_e(rv_track_color($t)) ?>"><span class="tdot"></span><?= rv_e($t) ?></button>
+        <?php endforeach; ?>
+        <!-- 4번째 트랙 — Day1: 공통 / Day2: 제조 및 시뮬레이션 (라벨은 Day 탭에 따라 변경, 필터는 둘 다 매칭) -->
+        <button type="button" class="rv-ttab" data-trk="공통|제조 및 시뮬레이션" style="--tc:#dd9cdf"><span class="tdot"></span><span id="rvTrkCombo">공통, 제조 및 시뮬레이션</span></button>
+      </div>
       <?php endif; ?>
       <input type="search" class="rv-search" id="rvSearch" placeholder="세션명 · 발표자 검색" aria-label="세션 검색">
     </div>
@@ -295,13 +478,20 @@ button{font-family:inherit}
       <div class="rv-grid" data-daygrid="<?= $d ?>">
         <?php foreach ($dsess as $s):
           $agno = (int)$s['ag_no'];
-          $has_video = ($s['rv_video_public'] === 'Y' && $s['rv_vimeo'] !== '');
+          $pick = rv_pick_video($s, $is_online_user);
+          $has_video = $pick['has'];  $qa_pending = $pick['pending'];
           $has_pdf   = ($s['rv_pdf_public'] === 'Y' && $s['rv_pdf_url'] !== '');
+          $closed    = (!$has_video && !$has_pdf && !$qa_pending);   // 미공개 세션 — 회색 + 클릭 불가
+          $tlabel = rv_track_label($s['ag_track'], (int)$s['ag_day']);
           $thumb = trim($s['rv_thumb']);
-          $hay = mb_strtolower($s['ag_title'] . ' ' . $s['ag_sp_name'] . ' ' . $s['ag_sp_company'], 'UTF-8');
+          // 발표자 — 복수 연사(ag_speakers)면 전원 표기 (예: 심성민 · 남기호 · 엑스온스튜디오)
+          $csps = rv_speakers_arr($s);
+          $csp_names = array(); foreach ($csps as $csp) $csp_names[] = $csp['n'];
+          $csp_co = ($csps && $csps[0]['c'] !== '') ? $csps[0]['c'] : trim($s['ag_sp_company']);
+          $hay = mb_strtolower($s['ag_title'] . ' ' . implode(' ', $csp_names) . ' ' . $csp_co, 'UTF-8');
         ?>
-        <button type="button" class="rv-card" data-id="<?= $agno ?>" data-day="<?= (int)$s['ag_day'] ?>"
-                data-track="<?= rv_e($s['ag_track']) ?>" data-hay="<?= rv_e($hay) ?>">
+        <button type="button" class="rv-card<?= $closed ? ' off' : '' ?>"<?= $closed ? ' disabled tabindex="-1"' : '' ?> data-id="<?= $agno ?>" data-day="<?= (int)$s['ag_day'] ?>"
+                data-track="<?= rv_e($tlabel) ?>" data-hay="<?= rv_e($hay) ?>">
           <div class="rv-thumb"<?= $thumb !== '' ? ' style="background-image:url(\'' . rv_e($thumb) . '\')"' : '' ?>>
             <?php if ($thumb === ''): ?><div class="ph"></div><?php endif; ?>
             <?php if ($has_video): ?>
@@ -309,14 +499,13 @@ button{font-family:inherit}
             <?php endif; ?>
           </div>
           <div class="rv-meta">
-            <?php if ($s['ag_track'] !== ''): ?><div class="rv-trk"><?= rv_e($s['ag_track']) ?></div><?php endif; ?>
-            <div class="rv-title"><?= rv_e($s['ag_title']) ?></div>
-            <?php if ($s['ag_sp_name'] !== ''): ?><div class="rv-sp"><?= rv_e($s['ag_sp_name']) ?><?= $s['ag_sp_company'] !== '' ? ' · ' . rv_e($s['ag_sp_company']) : '' ?></div><?php endif; ?>
-            <?php if ($s['ag_time'] !== ''): ?><div class="rv-dt">Day <?= (int)$s['ag_day'] ?> · <?= rv_e($s['ag_time']) ?></div><?php endif; ?>
+            <?php if ($tlabel !== ''): ?><div class="rv-trk" style="color:<?= rv_e(rv_track_color($tlabel)) ?>"><?= rv_e($tlabel) ?></div><?php endif; ?>
+            <div class="rv-title"><?= rv_title_html($s['ag_title']) ?></div>
+            <?php if ($csp_names): ?><div class="rv-sp"><?= rv_e(implode(' · ', $csp_names)) ?><?= $csp_co !== '' ? ' · ' . rv_e($csp_co) : '' ?></div><?php endif; ?>
             <div class="rv-badges">
-              <?php if ($has_video): ?><span class="rv-bdg v">다시보기</span><?php endif; ?>
               <?php if ($has_pdf): ?><span class="rv-bdg p">강연자료</span><?php endif; ?>
-              <?php if (!$has_video && !$has_pdf): ?><span class="rv-bdg w">준비 중</span>
+              <?php if ($closed): ?><span class="rv-bdg w">미공개</span>
+              <?php elseif ($qa_pending): ?><span class="rv-bdg w">Q&amp;A 포함 영상 준비 중</span>
               <?php elseif (!$has_video): ?><span class="rv-bdg w">영상 준비 중</span><?php endif; ?>
             </div>
           </div>
@@ -335,16 +524,16 @@ button{font-family:inherit}
       <div class="rv-mhd"><span class="t" id="rvMTop"></span><button type="button" class="rv-mx" id="rvClose" aria-label="닫기">&times;</button></div>
       <div class="rv-frame" id="rvFrame"></div>
       <div class="rv-mbody">
-        <p class="rv-minfo" id="rvMInfo"></p>
+        <div class="rv-chips" id="rvMChips"></div>
         <h2 class="rv-mtitle" id="rvMTitle"></h2>
-        <div class="rv-msp" id="rvMSp" style="display:none"><div><div class="nm" id="rvMSpNm"></div><div class="co" id="rvMSpCo"></div></div></div>
-        <p class="rv-mdesc" id="rvMDesc"></p>
-        <div class="rv-pdfbox" id="rvMPdf" style="display:none">
+        <div class="rv-pdfbox" id="rvMPdf" style="display:none;margin-top:14px">
           <div><div class="pn" id="rvMPdfNm"></div><div class="ps" id="rvMPdfSz"></div></div>
           <a class="rv-pdfbtn" id="rvMPdfBtn" href="#" target="_blank" rel="noopener">강연자료 PDF 보기 ↗</a>
         </div>
-        <div class="rv-nopdf" id="rvMNoPdf" style="display:none">발표자료가 제공되지 않는 세션입니다.</div>
-        <p class="rv-copyright">영상과 강연자료의 저작권은 발표자 및 각 권리자에게 있습니다. 등록자 개인의 학습 목적으로만 이용할 수 있으며, 무단 녹화·복제·배포·재업로드를 금지합니다.</p>
+        <div class="rv-nopdf" id="rvMNoPdf" style="display:none;margin-top:14px">발표자료가 제공되지 않는 세션입니다.</div>
+        <div class="rv-msec" id="rvMDescW" style="display:none"><h3>세션 소개</h3><p class="rv-mdesc" id="rvMDesc"></p></div>
+        <div class="rv-msec" id="rvMKwW" style="display:none"><h3>키워드</h3><div class="rv-kw" id="rvMKw"></div></div>
+        <div class="rv-msec" id="rvMSpsW" style="display:none"><h3>연사</h3><div id="rvMSps"></div></div>
       </div>
     </div>
   </div>
@@ -356,17 +545,60 @@ button{font-family:inherit}
   function rvBeacon(type, id){
     try { var i = new Image(); i.src = './?log=' + type + '&id=' + id + '&_=' + Date.now(); } catch(e){}
   }
+  /* 제목 세팅 — <게임명> 꺾쇠 묶음은 nowrap 스팬으로 감싸 줄바꿈 방지 (textContent 만 사용) */
+  function rvSetTitle(el, t){
+    while (el.firstChild) el.removeChild(el.firstChild);
+    (t || '').split(/(<[^<>]{1,80}>)/).forEach(function(p){
+      if (!p) return;
+      if (p.charAt(0) === '<' && p.charAt(p.length - 1) === '>') {
+        var sp = document.createElement('span'); sp.className = 'nb'; sp.textContent = p; el.appendChild(sp);
+      } else {
+        el.appendChild(document.createTextNode(p));
+      }
+    });
+  }
   function rvOpen(id){
     var d = RV[id]; if (!d) return;
     $id('rvMTop').textContent = d.title;
-    $id('rvMInfo').textContent = 'Day ' + d.day + (d.time ? ' · ' + d.time : '') + (d.track ? ' · ' + d.track : '');
-    $id('rvMTitle').textContent = d.title;
+    // 뱃지: 트랙(컬러) + 난이도
+    var chips = $id('rvMChips');
+    while (chips.firstChild) chips.removeChild(chips.firstChild);
+    if (d.track) {
+      var c1 = document.createElement('span'); c1.className = 'rv-chip';
+      c1.textContent = d.track;
+      if (d.tc) { c1.style.color = d.tc; c1.style.borderColor = d.tc; c1.style.background = 'transparent'; }
+      chips.appendChild(c1);
+    }
+    if (d.level) { var c2 = document.createElement('span'); c2.className = 'rv-chip'; c2.textContent = d.level; chips.appendChild(c2); }
+    rvSetTitle($id('rvMTitle'), d.title);
+    // 세션 소개
+    $id('rvMDescW').style.display = d.desc ? '' : 'none';
     $id('rvMDesc').textContent = d.desc || '';
-    if (d.sp) {
-      $id('rvMSp').style.display = 'flex';
-      $id('rvMSpNm').textContent = d.sp;
-      $id('rvMSpCo').textContent = [d.sp_role, d.sp_co].filter(Boolean).join(' · ');
-    } else { $id('rvMSp').style.display = 'none'; }
+    // 키워드
+    var kw = $id('rvMKw');
+    while (kw.firstChild) kw.removeChild(kw.firstChild);
+    (d.kw || []).forEach(function(k){ var s = document.createElement('span'); s.textContent = k; kw.appendChild(s); });
+    $id('rvMKwW').style.display = (d.kw && d.kw.length) ? '' : 'none';
+    // 연사 (복수 지원 + 사진 + 약력)
+    var sps = $id('rvMSps');
+    while (sps.firstChild) sps.removeChild(sps.firstChild);
+    (d.sps || []).forEach(function(sp){
+      if (!sp || !sp.n) return;
+      var card = document.createElement('div'); card.className = 'rv-spcard';
+      if (sp.p) { var im = document.createElement('img'); im.src = sp.p; im.alt = sp.n; im.loading = 'lazy'; im.onerror = function(){ this.style.display = 'none'; }; card.appendChild(im); }
+      var box = document.createElement('div');
+      var nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = sp.n; box.appendChild(nm);
+      var co = [sp.r, sp.c].filter(Boolean).join(' · ');
+      if (co) { var cd = document.createElement('div'); cd.className = 'co'; cd.textContent = co; box.appendChild(cd); }
+      if (sp.b) {
+        var dt = document.createElement('details');
+        var sm = document.createElement('summary'); sm.textContent = '약력 보기'; dt.appendChild(sm);
+        var bp = document.createElement('p'); bp.className = 'bio'; bp.textContent = sp.b; dt.appendChild(bp);
+        box.appendChild(dt);
+      }
+      card.appendChild(box); sps.appendChild(card);
+    });
+    $id('rvMSpsW').style.display = (d.sps && d.sps.length) ? '' : 'none';
     var fr = $id('rvFrame');
     while (fr.firstChild) fr.removeChild(fr.firstChild);
     if (d.embed) {
@@ -381,7 +613,8 @@ button{font-family:inherit}
     } else {
       var no = document.createElement('div');
       no.className = 'noem';
-      no.textContent = '해당 세션의 다시보기 영상은 준비 중입니다.';
+      no.textContent = d.qa ? 'Q&A가 포함된 다시보기 영상을 준비 중입니다. 준비되는 대로 공개됩니다.'
+                            : '해당 세션의 다시보기 영상은 준비 중입니다.';
       fr.appendChild(no);
     }
     if (d.pdf) {
@@ -407,7 +640,7 @@ button{font-family:inherit}
   }
   document.addEventListener('click', function(ev){
     var card = ev.target.closest ? ev.target.closest('.rv-card') : null;
-    if (card) { rvOpen(parseInt(card.getAttribute('data-id'), 10)); return; }
+    if (card) { if (card.classList.contains('off')) return; rvOpen(parseInt(card.getAttribute('data-id'), 10)); return; }
     if (ev.target === $id('rvMask') || ev.target === $id('rvClose')) rvCloseModal();
   });
   document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape') rvCloseModal(); });
@@ -418,7 +651,7 @@ button{font-family:inherit}
     var shown = 0;
     document.querySelectorAll('.rv-card').forEach(function(c){
       var ok = (rvDay === 'all' || c.getAttribute('data-day') === rvDay)
-            && (rvTrk === '' || c.getAttribute('data-track') === rvTrk)
+            && (rvTrk === '' || rvTrk.split('|').indexOf(c.getAttribute('data-track')) !== -1)
             && (rvQ === '' || c.getAttribute('data-hay').indexOf(rvQ) !== -1);
       c.style.display = ok ? '' : 'none';
       if (ok) shown++;
@@ -433,16 +666,77 @@ button{font-family:inherit}
     });
     var nr = $id('rvNoResult'); if (nr) nr.style.display = shown ? 'none' : 'block';
   }
+  function rvComboLabel(){
+    var el = $id('rvTrkCombo'); if (!el) return;
+    el.textContent = (rvDay === '1') ? '공통' : (rvDay === '2') ? '제조 및 시뮬레이션' : '공통, 제조 및 시뮬레이션';
+  }
   document.querySelectorAll('.rv-tab').forEach(function(b){
     b.addEventListener('click', function(){
       document.querySelectorAll('.rv-tab').forEach(function(x){ x.classList.remove('on'); });
-      b.classList.add('on'); rvDay = b.getAttribute('data-day'); rvFilter();
+      b.classList.add('on'); rvDay = b.getAttribute('data-day'); rvComboLabel(); rvFilter();
     });
   });
-  var trkSel = $id('rvTrack');
-  if (trkSel) trkSel.addEventListener('change', function(){ rvTrk = trkSel.value; rvFilter(); });
+  document.querySelectorAll('.rv-ttab').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('.rv-ttab').forEach(function(x){ x.classList.remove('on'); });
+      b.classList.add('on'); rvTrk = b.getAttribute('data-trk'); rvFilter();
+    });
+  });
   var srch = $id('rvSearch');
   if (srch) srch.addEventListener('input', function(){ rvQ = srch.value.trim().toLowerCase(); rvFilter(); });
   </script>
 <?php endif; ?>
+
+<!-- 푸터 — 메인(_pf_footer.php) 구성 재현 -->
+<footer class="rvf">
+  <div class="rvf-in">
+    <div class="rvf-grid">
+      <div>
+        <img class="rvf-logo" src="../white_logo.svg" alt="Unreal Fest 2026">
+        <div class="rvf-sns">
+          <a href="https://www.youtube.com/@unrealenginekr" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></svg>
+          </a>
+          <a href="https://cafe.naver.com/unrealenginekr" target="_blank" rel="noopener noreferrer" aria-label="네이버 카페">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727v12.845z"/></svg>
+          </a>
+          <a href="https://pf.kakao.com/_xfdmNb" target="_blank" rel="noopener noreferrer" aria-label="카카오톡 채널">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.477 3 2 6.463 2 10.691c0 2.818 1.867 5.29 4.682 6.678-.177.63-.64 2.284-.733 2.64-.117.443.162.436.34.317.14-.093 2.23-1.516 3.132-2.132.52.078 1.053.12 1.579.12 5.523 0 10-3.463 10-7.623C22 6.463 17.523 3 12 3z"/></svg>
+          </a>
+        </div>
+        <div class="rvf-biz">
+          <p>법인명(상호): 주식회사 그리프 &nbsp;·&nbsp; 대표이사: 황성현 &nbsp;·&nbsp; 사업자등록번호: 859-88-00263 <a href="https://www.ftc.go.kr/bizCommPop.do?wrkr_no=8598800263" target="_blank" rel="noopener noreferrer">확인</a></p>
+          <p>통신판매업: 2018-서울송파-0571 &nbsp;·&nbsp; 개인정보보호책임자: 오승훈</p>
+          <p>주소: 서울 성동구 광나루로8길 31, SK V1 CENTER2, 1102-1103호</p>
+          <p>고객센터: 02-326-3701 &nbsp;·&nbsp; 대표 이메일: <a href="mailto:info@epiclounge.co.kr">info@epiclounge.co.kr</a></p>
+        </div>
+      </div>
+      <div>
+        <h4>Unreal Fest Seoul</h4>
+        <ul class="rvf-links">
+          <li><a href="../index.php#overview">소개</a></li>
+          <li><a href="../index.php#agenda">아젠다</a></li>
+          <li><a href="../index.php#venue">행사장 안내</a></li>
+          <li><a href="../index.php#faq">FAQ</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Epic Lounge</h4>
+        <ul class="rvf-links">
+          <li><a href="https://epiclounge.co.kr" target="_blank" rel="noopener noreferrer">새소식</a></li>
+          <li><a href="https://epiclounge.co.kr" target="_blank" rel="noopener noreferrer">이벤트</a></li>
+          <li><a href="https://epiclounge.co.kr" target="_blank" rel="noopener noreferrer">리소스</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="rvf-bottom">
+      <p style="margin:0">© 2026 Epic Games, Inc. All Rights Reserved. Unreal 및 그 로고의 저작권은 Epic Games, Inc. 에 있으며, 이는 미국 및 그 외 국가에 모두 해당됩니다.</p>
+      <div class="lg">
+        <a href="https://epiclounge.co.kr/v3/contents/v4/ode.php" target="_blank" rel="noopener noreferrer">이용약관</a>
+        <a href="https://epiclounge.co.kr/v3/contents/v4/personal.php" target="_blank" rel="noopener noreferrer">개인정보처리방침</a>
+        <a href="https://epiclounge.co.kr/v3/contents/v4/cookie.php" target="_blank" rel="noopener noreferrer">쿠키 정책</a>
+      </div>
+    </div>
+  </div>
+</footer>
 </body></html>

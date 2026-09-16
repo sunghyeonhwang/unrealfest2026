@@ -203,6 +203,11 @@ function rv_title_html($t) {
     return preg_replace('/&lt;([^&]{1,80}?)&gt;/u', '<span class="nb">&lt;$1&gt;</span>', $e);
 }
 
+/* ── 자막 자동 표시 — 영상 ID → 자막 언어 (Vimeo 플레이어 texttrack 파라미터) ── */
+$RV_TEXTTRACK = array(
+    '1227252168' => 'ko',   // <이환> 고밀도 오픈 월드 — 해외 연사, 한국어 자막 자동 켜기
+);
+
 /* ── 공개 세션 로드 (인증 후에만 — 인증 전 HTML 에 영상·PDF 정보 미포함) ── */
 $DAYS = array('1' => 'Day 1 · 8월 20일(목)', '2' => 'Day 2 · 8월 21일(금)');
 $sessions = array(); $tracks = array(); $JS = array();
@@ -241,7 +246,10 @@ if ($verified && $svc_open) {
             'kw'      => $kw,
             'sps'     => rv_speakers_arr($s),
             'tc'      => rv_track_color($tlabel),
-            'embed'   => $has_video ? rv_vimeo_embed($pick['id'], $pick['hash']) : '',
+            'embed'   => $has_video
+                ? rv_vimeo_embed($pick['id'], $pick['hash'])
+                  . (isset($RV_TEXTTRACK[$pick['id']]) ? '&texttrack=' . $RV_TEXTTRACK[$pick['id']] : '')
+                : '',
             'qa'      => $qa_pending ? 1 : 0,
             'pdf'     => $has_pdf ? 1 : 0,
             'pdf_name'=> $has_pdf ? ($s['rv_pdf_name'] !== '' ? $s['rv_pdf_name'] : '강연자료 PDF') : '',

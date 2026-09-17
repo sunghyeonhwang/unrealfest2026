@@ -437,7 +437,8 @@ function ufs_ln_alert($slot, $type, $head, $lines, $urgent = false) {
     if (ufs_ln_cfg($flag, '') !== '') return false;                 // 이미 보냄
     ufs_ln_cfg_set($flag, date('Y-m-d H:i:s'));                     // 보내기 전에 먼저 기록 — 중복 방지 우선
     require_once __DIR__ . '/_resend.php';
-    $to = ufs_ln_cfg('live_notify_alert_to', 'info@epiclounge.co.kr');
+    // 콤마로 여러 수신자 지정 가능 (예: "info@epiclounge.co.kr,sunghyeon.hwang@griff.co.kr")
+    $to = array_values(array_filter(array_map('trim', explode(',', ufs_ln_cfg('live_notify_alert_to', 'info@epiclounge.co.kr')))));
     $sl = ufs_ln_slot($slot);
     $c  = $urgent ? '#c0392b' : '#00707d';
     $rows = '';

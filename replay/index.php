@@ -528,8 +528,8 @@ button{font-family:inherit}
           </div>
           <div class="rv-meta">
             <?php if ($tlabel !== ''): ?><div class="rv-trk" style="color:<?= rv_e(rv_track_color($tlabel)) ?>"><?= rv_e($tlabel) ?></div><?php endif; ?>
-            <?php // 오프라인 화면에서 별도 QA(Q&A 포함) 영상이 등록된 세션은 제목 뒤 * 표시
-              $qa_mark = (!$is_online_user && trim((string)$s['rv_vimeo_qa']) !== '' && $s['rv_vimeo_qa'] !== $s['rv_vimeo']); ?>
+            <?php // 내부 프리뷰(오프라인 화면)에서만 별도 QA(Q&A 포함) 영상 세션에 제목 뒤 * 표시 — 실사용자에겐 미표시
+              $qa_mark = ($is_pv && !$is_online_user && trim((string)$s['rv_vimeo_qa']) !== '' && $s['rv_vimeo_qa'] !== $s['rv_vimeo']); ?>
             <div class="rv-title"><?= rv_title_html($s['ag_title']) ?><?= $qa_mark ? ' <b style="color:#00FFC8">*</b>' : '' ?></div>
             <?php if ($csp_names): ?><div class="rv-sp"><?= rv_e(implode(' · ', $csp_names)) ?><?= $csp_co !== '' ? ' · ' . rv_e($csp_co) : '' ?></div><?php endif; ?>
             <div class="rv-badges">

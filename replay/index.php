@@ -25,17 +25,27 @@ if (isset($_GET['logout'])) {
     header('Location: ./'); exit;
 }
 
-$verified = (rv_auth_ok() || $is_adm);
-$viewer   = !empty($_SESSION['ufs_replay_name']) ? $_SESSION['ufs_replay_name'] : ($is_adm ? '관리자' : '');
+/* ── 내부 확인용 프리뷰 — ?pv=<키> 로 체크인 없이 열람 (기본 오프라인 화면, ?as=online 로 온라인 화면) ── */
+$PV_KEY = '95d22b516b1965719d9b';
+$is_pv  = (isset($_GET['pv']) && hash_equals($PV_KEY, (string)$_GET['pv']));
+
+$verified = (rv_auth_ok() || $is_adm || $is_pv);
+$viewer   = !empty($_SESSION['ufs_replay_name']) ? $_SESSION['ufs_replay_name'] : ($is_adm ? '관리자' : ($is_pv ? '내부 확인' : ''));
 $apply_no = !empty($_SESSION['ufs_replay_no']) ? (int)$_SESSION['ufs_replay_no'] : 0;
 
 /* ── 등록 유형 — online(QA 제외 영상) / offline(QA 포함 영상). 기존 세션(유형 미저장)은 오프라인 취급 ── */
 $user_type = !empty($_SESSION['ufs_replay_type']) ? $_SESSION['ufs_replay_type'] : 'offline';
-if ($is_adm && empty($_SESSION['ufs_replay_ok'])) {
+if ($is_pv && empty($_SESSION['ufs_replay_ok'])) {
+    // 프리뷰: 기본은 오프라인 화면(QA 포함), ?as=online 로 온라인 화면 확인
+    $user_type = (isset($_GET['as']) && $_GET['as'] === 'online') ? 'online' : 'offline';
+} else if ($is_adm && empty($_SESSION['ufs_replay_ok'])) {
     // 관리자 점검: 기본은 온라인 화면, ?as=offline 로 오프라인 화면 확인
     $user_type = (isset($_GET['as']) && $_GET['as'] === 'offline') ? 'offline' : 'online';
 }
 $is_online_user = ($user_type === 'online');
+if ($is_pv && empty($_SESSION['ufs_replay_ok'])) {
+    $viewer = $is_online_user ? '온라인 참석자용' : '오프라인 참석자용';
+}
 
 /* ── 이용 로그 비컨 (상세 열람 view / 재생 시작 play) ── */
 if (isset($_GET['log'])) {
@@ -205,7 +215,19 @@ function rv_title_html($t) {
 
 /* ── 자막 자동 표시 — 영상 ID → 자막 언어 (Vimeo 플레이어 texttrack 파라미터) ── */
 $RV_TEXTTRACK = array(
-    '1227252168' => 'ko',   // <이환> 고밀도 오픈 월드 — 해외 연사, 한국어 자막 자동 켜기
+    '1227252168' => 'ko',   // <이환> 온라인용 — 해외 연사, 한국어 자막 자동 켜기
+    // 오프라인용 QA 영상 — 외국어 발화 구간 한국어 자막 (2026-09-17 업로드)
+    '1227577677' => 'ko',   // Chris_day1_QA
+    '1227578714' => 'ko',   // Shao_day1_QA
+    '1227577675' => 'ko',   // Iso_Sega_QA
+    '1227578865' => 'ko',   // shinoyama_EGJ_QA
+    '1227577678' => 'ko',   // Ari_day1_QA
+    '1227577676' => 'ko',   // Magnus_pt1_QA
+    '1227578555' => 'ko',   // Magnus_pt2_QA
+    '1227592684' => 'ko',   // Liu_Feng_이환_QA
+    '1227592682' => 'ko',   // Dmitriy_EGK_QA
+    '1227592681' => 'ko',   // Ari_day2_QA
+    '1227592683' => 'ko',   // Chris_day2_QA
 );
 
 /* ── 공개 세션 로드 (인증 후에만 — 인증 전 HTML 에 영상·PDF 정보 미포함) ── */
@@ -405,7 +427,7 @@ button{font-family:inherit}
 <header class="rv-top">
   <div class="rv-topin">
     <a href="../index.php" aria-label="Unreal Fest Seoul 2026"><img class="rv-toplogo" src="../white_logo.svg" alt="Unreal Fest Seoul 2026"></a>
-    <?php if ($verified && $svc_open): ?><div class="rv-user"><span><b><?= rv_e($viewer) ?></b>님</span><a class="rv-out" href="./?logout=1">로그아웃</a></div><?php endif; ?>
+    <?php if ($verified && $svc_open): ?><div class="rv-user"><span><b><?= rv_e($viewer) ?></b><?= ($is_pv && empty($_SESSION['ufs_replay_ok'])) ? '' : '님' ?></span><a class="rv-out" href="./?logout=1">로그아웃</a></div><?php endif; ?>
   </div>
 </header>
 
@@ -504,7 +526,9 @@ button{font-family:inherit}
           </div>
           <div class="rv-meta">
             <?php if ($tlabel !== ''): ?><div class="rv-trk" style="color:<?= rv_e(rv_track_color($tlabel)) ?>"><?= rv_e($tlabel) ?></div><?php endif; ?>
-            <div class="rv-title"><?= rv_title_html($s['ag_title']) ?></div>
+            <?php // 프리뷰(오프라인 화면)에서 별도 QA 영상이 등록된 세션은 제목 뒤 * 표시
+              $qa_mark = ($is_pv && !$is_online_user && trim((string)$s['rv_vimeo_qa']) !== '' && $s['rv_vimeo_qa'] !== $s['rv_vimeo']); ?>
+            <div class="rv-title"><?= rv_title_html($s['ag_title']) ?><?= $qa_mark ? ' <b style="color:#00FFC8">*</b>' : '' ?></div>
             <?php if ($csp_names): ?><div class="rv-sp"><?= rv_e(implode(' · ', $csp_names)) ?><?= $csp_co !== '' ? ' · ' . rv_e($csp_co) : '' ?></div><?php endif; ?>
             <div class="rv-badges">
               <?php if ($has_pdf): ?><span class="rv-bdg p">강연자료</span><?php endif; ?>

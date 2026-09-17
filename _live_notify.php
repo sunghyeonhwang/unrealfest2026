@@ -131,9 +131,10 @@ function ufs_ln_sql_where($slot) {
         $cond_ch .= " AND NOT EXISTS (SELECT 1 FROM cb_unreal_2026_mail_optout mo WHERE mo.mo_email = LOWER(a.apply_user_email))";
         if (ufs_ln_cfg('live_notify_nl_agree_only', '0') === '1') $cond_ch .= " AND a.apply_user_event_agree='1'";
         // 같은 이메일로 등록이 여러 건이면 슬롯당 1통만 — 같은 대상 조건의 더 최신(큰 apply_no) 행이 있으면 이 행은 건너뜀
+        // (LOWER() 없이 = 비교 — ci collation 이라 대소문자는 무시되고 인덱스를 탈 수 있다)
         $aud3 = str_replace('a.', 'a3.', ufs_ln_audience_sql(isset($sl['audience']) ? $sl['audience'] : 'online', $sl['day']));
         $cond_ch .= " AND NOT EXISTS (SELECT 1 FROM cb_unreal_2026_event2_apply a3
-            WHERE LOWER(a3.apply_user_email) = LOWER(a.apply_user_email)
+            WHERE a3.apply_user_email = a.apply_user_email
               AND a3.apply_temp_yn='N' AND a3.apply_pay_status<>0 AND a3.apply_user_email<>''
               AND a3.apply_no > a.apply_no" . $aud3 . ")";
     }

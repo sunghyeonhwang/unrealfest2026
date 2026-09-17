@@ -130,6 +130,12 @@ function ufs_ln_sql_where($slot) {
         // 수신거부한 주소는 제외
         $cond_ch .= " AND NOT EXISTS (SELECT 1 FROM cb_unreal_2026_mail_optout mo WHERE mo.mo_email = LOWER(a.apply_user_email))";
         if (ufs_ln_cfg('live_notify_nl_agree_only', '0') === '1') $cond_ch .= " AND a.apply_user_event_agree='1'";
+        // 같은 이메일로 등록이 여러 건이면 슬롯당 1통만 — 같은 대상 조건의 더 최신(큰 apply_no) 행이 있으면 이 행은 건너뜀
+        $aud3 = str_replace('a.', 'a3.', ufs_ln_audience_sql(isset($sl['audience']) ? $sl['audience'] : 'online', $sl['day']));
+        $cond_ch .= " AND NOT EXISTS (SELECT 1 FROM cb_unreal_2026_event2_apply a3
+            WHERE LOWER(a3.apply_user_email) = LOWER(a.apply_user_email)
+              AND a3.apply_temp_yn='N' AND a3.apply_pay_status<>0 AND a3.apply_user_email<>''
+              AND a3.apply_no > a.apply_no" . $aud3 . ")";
     }
     return array($sl,
         "FROM cb_unreal_2026_event2_apply a

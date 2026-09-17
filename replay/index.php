@@ -264,7 +264,7 @@ $period_end = rv_cfg('replay_end', '');
 <html lang="ko"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>언리얼 페스트 2026 서울 다시보기 — Unreal Fest Seoul 2026</title>
+<title>언리얼 페스트 서울 2026 다시보기 — Unreal Fest Seoul 2026</title>
 <style>
 :root{--bg:#08080a;--panel:#0e0e12;--line:#1e1e25;--line2:#2a2a33;--teal:#00C1D5;--mint:#00FFC8;--text:#eaeaef;--muted:#8b8b96}
 *{box-sizing:border-box}html,body{margin:0}
@@ -414,7 +414,7 @@ button{font-family:inherit}
   <div class="rv-gate">
     <div class="rv-gcard" style="text-align:center">
       <img class="rv-glogo" src="../white_logo.svg" alt="Unreal Fest Seoul 2026" style="margin-left:auto;margin-right:auto">
-      <h1>언리얼 페스트 2026 서울 다시보기</h1>
+      <h1>언리얼 페스트 서울 2026 다시보기</h1>
       <?php if ($state === 'ended'): ?>
         <p>언리얼 페스트 서울 2026 다시보기 제공 기간이 종료되었습니다.</p>
       <?php else: ?>
@@ -429,7 +429,7 @@ button{font-family:inherit}
   <div class="rv-gate">
     <div class="rv-gcard">
       <img class="rv-glogo" src="../white_logo.svg" alt="Unreal Fest Seoul 2026">
-      <h1>언리얼 페스트 2026 서울 다시보기</h1>
+      <h1>언리얼 페스트 서울 2026 다시보기</h1>
       <p>언리얼 페스트 서울 2026 <b style="color:#cfd0d6">등록자</b>를 위한 다시보기 페이지입니다. 등록 시 입력한 이메일과 연락처로 체크인해 주세요.</p>
       <?php if ($gate_err): ?><div class="rv-err"><?= rv_e($gate_err) ?></div><?php endif; ?>
       <form method="post" action="./">
@@ -445,7 +445,7 @@ button{font-family:inherit}
 <?php else: ?>
   <!-- 목록 -->
   <div class="rv-wrap">
-    <h1 class="rv-h1">언리얼 페스트 2026 서울 다시보기</h1>
+    <h1 class="rv-h1">언리얼 페스트 서울 2026 다시보기</h1>
     <p class="rv-sub">언리얼 페스트 서울 2026 세션 영상과 강연자료를 다시 확인하실 수 있습니다.<?php if ($period_end !== ''): ?> 다시보기는 <b style="color:#cfd0d6"><?= rv_e(substr($period_end, 0, 10)) ?></b>까지 제공됩니다.<?php endif; ?></p>
     <?php if ($notice !== ''): ?><div class="rv-notice"><?= nl2br(rv_e($notice)) ?></div><?php endif; ?>
     <?php
@@ -467,16 +467,12 @@ button{font-family:inherit}
         <button type="button" class="rv-tab" data-day="1">Day 1</button>
         <button type="button" class="rv-tab" data-day="2">Day 2</button>
       </div>
-      <?php if (count($tracks) > 1): ?>
       <div class="rv-ttabs" role="tablist" aria-label="트랙 필터">
         <button type="button" class="rv-ttab on" data-trk="">모든 트랙</button>
-        <?php foreach ($tracks as $t): if ($t === '공통' || $t === '제조 및 시뮬레이션') continue; ?>
+        <?php foreach (array('공통', '게임: 아트', '게임: 프로그래밍', '미디어 & 엔터테인먼트', '제조 및 시뮬레이션') as $t): ?>
         <button type="button" class="rv-ttab" data-trk="<?= rv_e($t) ?>" style="--tc:<?= rv_e(rv_track_color($t)) ?>"><span class="tdot"></span><?= rv_e($t) ?></button>
         <?php endforeach; ?>
-        <!-- 4번째 트랙 — Day1: 공통 / Day2: 제조 및 시뮬레이션 (라벨은 Day 탭에 따라 변경, 필터는 둘 다 매칭) -->
-        <button type="button" class="rv-ttab" data-trk="공통|제조 및 시뮬레이션" style="--tc:#dd9cdf"><span class="tdot"></span><span id="rvTrkCombo">공통, 제조 및 시뮬레이션</span></button>
       </div>
-      <?php endif; ?>
       <input type="search" class="rv-search" id="rvSearch" placeholder="세션명 · 발표자 검색" aria-label="세션 검색">
     </div>
 
@@ -674,14 +670,10 @@ button{font-family:inherit}
     });
     var nr = $id('rvNoResult'); if (nr) nr.style.display = shown ? 'none' : 'block';
   }
-  function rvComboLabel(){
-    var el = $id('rvTrkCombo'); if (!el) return;
-    el.textContent = (rvDay === '1') ? '공통' : (rvDay === '2') ? '제조 및 시뮬레이션' : '공통, 제조 및 시뮬레이션';
-  }
   document.querySelectorAll('.rv-tab').forEach(function(b){
     b.addEventListener('click', function(){
       document.querySelectorAll('.rv-tab').forEach(function(x){ x.classList.remove('on'); });
-      b.classList.add('on'); rvDay = b.getAttribute('data-day'); rvComboLabel(); rvFilter();
+      b.classList.add('on'); rvDay = b.getAttribute('data-day'); rvFilter();
     });
   });
   document.querySelectorAll('.rv-ttab').forEach(function(b){

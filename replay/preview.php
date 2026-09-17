@@ -14,10 +14,10 @@ header('Cache-Control: private, no-store');
 header('X-Robots-Tag: noindex, nofollow');
 
 $SECRET = '691878dfc21a1dcfa7540fe9';
-$ALLOW  = array('d2-t1-s5');   // 공유 허용 세션 (이환)
+$ALLOW  = array('d2-t1-s5', 'd2-t2-s3');   // 공유 허용 세션 (이환, 모범 사례 오해와 진실)
 
 /* 자막 자동 표시 — replay/index.php 의 $RV_TEXTTRACK 와 동일 규칙 */
-$TEXTTRACK = array('1227252168' => 'ko');
+$TEXTTRACK = array('1227252168' => 'ko', '1227592684' => 'ko', '1227592681' => 'ko');
 
 $sid = isset($_GET['s']) ? preg_replace('/[^a-z0-9\-]/', '', $_GET['s']) : '';
 $key = isset($_GET['k']) ? $_GET['k'] : '';
@@ -26,14 +26,18 @@ $ok  = ($sid !== '' && in_array($sid, $ALLOW, true)
 
 $title = ''; $embed = '';
 if ($ok) {
-    $r = sql_fetch("SELECT a.ag_title, v.rv_vimeo, v.rv_vimeo_hash, v.rv_video_public
+    $r = sql_fetch("SELECT a.ag_title, v.rv_vimeo, v.rv_vimeo_hash, v.rv_vimeo_qa, v.rv_vimeo_qa_hash, v.rv_video_public
         FROM cb_unreal_2026_replay_vod v
         JOIN cb_unreal_2026_agenda a ON a.ag_no = v.rv_agno
         WHERE a.ag_sid = '" . sql_real_escape_string($sid) . "'");
-    if ($r && $r['rv_video_public'] === 'Y' && $r['rv_vimeo'] !== '') {
-        $title = $r['ag_title'];
-        $embed = rv_vimeo_embed($r['rv_vimeo'], $r['rv_vimeo_hash']);
-        if (isset($TEXTTRACK[$r['rv_vimeo']])) $embed .= '&texttrack=' . $TEXTTRACK[$r['rv_vimeo']];
+    // ?v=qa 면 오프라인용(QA 포함) 영상, 기본은 온라인용(QA 제외)
+    $use_qa = (isset($_GET['v']) && $_GET['v'] === 'qa');
+    $vid  = $use_qa ? $r['rv_vimeo_qa'] : $r['rv_vimeo'];
+    $vh   = $use_qa ? $r['rv_vimeo_qa_hash'] : $r['rv_vimeo_hash'];
+    if ($r && $r['rv_video_public'] === 'Y' && $vid !== '') {
+        $title = $r['ag_title'] . ($use_qa ? ' (Q&A 포함)' : '');
+        $embed = rv_vimeo_embed($vid, $vh);
+        if (isset($TEXTTRACK[$vid])) $embed .= '&texttrack=' . $TEXTTRACK[$vid];
     }
 }
 if ($embed === '') { http_response_code(404); die('Not Found'); }

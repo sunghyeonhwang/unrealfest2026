@@ -249,6 +249,7 @@ if ($verified && $svc_open) {
         $pick = rv_pick_video($s, $is_online_user);
         $has_video = $pick['has'];  $qa_pending = $pick['pending'];
         $has_pdf   = ($s['rv_pdf_public'] === 'Y' && $s['rv_pdf_url'] !== '');
+        if (!$has_video && !$has_pdf && !$qa_pending) continue;   // 미공개 세션 — 데이터 미포함
         // 키워드: 분야 → 주제 → 제품 순, 중복 제거 (세션 상세와 동일)
         $kw = array();
         foreach (array('ag_field', 'ag_topic', 'ag_product') as $kk) {
@@ -507,7 +508,8 @@ button{font-family:inherit}
           $pick = rv_pick_video($s, $is_online_user);
           $has_video = $pick['has'];  $qa_pending = $pick['pending'];
           $has_pdf   = ($s['rv_pdf_public'] === 'Y' && $s['rv_pdf_url'] !== '');
-          $closed    = (!$has_video && !$has_pdf && !$qa_pending);   // 미공개 세션 — 회색 + 클릭 불가
+          $closed    = (!$has_video && !$has_pdf && !$qa_pending);   // 미공개 세션 — 목록에서 제외
+          if ($closed) continue;
           $tlabel = rv_track_label($s['ag_track'], (int)$s['ag_day']);
           $thumb = trim($s['rv_thumb']);
           // 발표자 — 복수 연사(ag_speakers)면 전원 표기 (예: 심성민 · 남기호 · 엑스온스튜디오)
@@ -526,8 +528,8 @@ button{font-family:inherit}
           </div>
           <div class="rv-meta">
             <?php if ($tlabel !== ''): ?><div class="rv-trk" style="color:<?= rv_e(rv_track_color($tlabel)) ?>"><?= rv_e($tlabel) ?></div><?php endif; ?>
-            <?php // 프리뷰(오프라인 화면)에서 별도 QA 영상이 등록된 세션은 제목 뒤 * 표시
-              $qa_mark = ($is_pv && !$is_online_user && trim((string)$s['rv_vimeo_qa']) !== '' && $s['rv_vimeo_qa'] !== $s['rv_vimeo']); ?>
+            <?php // 오프라인 화면에서 별도 QA(Q&A 포함) 영상이 등록된 세션은 제목 뒤 * 표시
+              $qa_mark = (!$is_online_user && trim((string)$s['rv_vimeo_qa']) !== '' && $s['rv_vimeo_qa'] !== $s['rv_vimeo']); ?>
             <div class="rv-title"><?= rv_title_html($s['ag_title']) ?><?= $qa_mark ? ' <b style="color:#00FFC8">*</b>' : '' ?></div>
             <?php if ($csp_names): ?><div class="rv-sp"><?= rv_e(implode(' · ', $csp_names)) ?><?= $csp_co !== '' ? ' · ' . rv_e($csp_co) : '' ?></div><?php endif; ?>
             <div class="rv-badges">

@@ -68,7 +68,9 @@ function ufs_ln_slots() {
         'nl_thx' => array('label'=>'뉴스레터 감사인사',   'day'=>'2', 'audience'=>'all',     'only_unvisited'=>false, 'tpl_def'=>'',    'ch'=>'email', 'mode'=>'spread', 'max_batch'=>500),
         // 다시보기 오픈 안내 — 대상은 오프라인 등록자 전체(다시보기 이용 자격과 동일 기준).
         // day='' 라서 offline 의 반대편 하루권 제외가 걸리지 않는다(Day1권·Day2권 모두 포함).
-        'nl_replay' => array('label'=>'뉴스레터 다시보기 오픈', 'day'=>'', 'audience'=>'offline', 'only_unvisited'=>false, 'tpl_def'=>'', 'ch'=>'email', 'mode'=>'spread', 'max_batch'=>500),
+        'nl_replay' => array('label'=>'뉴스레터 다시보기(오프라인 등록자)', 'day'=>'', 'audience'=>'offline', 'only_unvisited'=>false, 'tpl_def'=>'', 'ch'=>'email', 'mode'=>'spread', 'max_batch'=>500),
+        // 온라인 다시보기 — 대상은 온라인 '참석자'(등록자 중 행사 당일 라이브에 실제 접속한 사람)
+        'nl_replay_on' => array('label'=>'뉴스레터 다시보기(온라인 참석자)', 'day'=>'', 'audience'=>'online', 'only_unvisited'=>false, 'only_visited'=>true, 'tpl_def'=>'', 'ch'=>'email', 'mode'=>'spread', 'max_batch'=>500),
     );
 }
 }
@@ -114,6 +116,12 @@ function ufs_ln_sql_where($slot) {
                   ON lv.apply_user_email = a.apply_user_email AND lv.$dcol IS NOT NULL"
         : "";
     $cond_visit = $sl['only_unvisited'] ? " AND lv.la_no IS NULL" : "";
+    // only_visited — 행사 당일(Day1 또는 Day2) 라이브에 실제 접속한 사람만 (온라인 '참석자')
+    if (!empty($sl['only_visited'])) {
+        $cond_visit .= " AND EXISTS (SELECT 1 FROM cb_unreal_2026_event2_apply_live lv2
+            WHERE lv2.apply_user_email = a.apply_user_email
+              AND (lv2.d1_at IS NOT NULL OR lv2.d2_at IS NOT NULL))";
+    }
     // 이메일 슬롯은 연락처 대신 이메일이 있어야 하고, 광고성으로 운영할 경우 수신동의자만 추릴 수 있다
     $is_mail = (isset($sl['ch']) && $sl['ch'] === 'email');
     $cond_ch = $is_mail ? " AND a.apply_user_email <> ''" : " AND a.apply_user_phone <> ''";
@@ -328,7 +336,8 @@ function ufs_ln_nl_text($slot) {
         'nl_d1'  => array('subj' => '[언리얼 페스트 서울 2026] 오늘 Day 1, 10시 30분에 시작합니다'),
         'nl_d2'  => array('subj' => '[언리얼 페스트 서울 2026] 오늘 Day 2, 10시 30분에 시작합니다'),
         'nl_thx' => array('subj' => '[언리얼 페스트 서울 2026] 함께해 주셔서 감사합니다'),
-        'nl_replay' => array('subj' => '[언리얼 페스트 서울 2026] 세션 다시보기가 오픈되었습니다'),
+        'nl_replay' => array('subj' => '[언리얼 페스트 서울 2026] 다시보기를 먼저 만나보세요!'),
+        'nl_replay_on' => array('subj' => '[언리얼 페스트 서울 2026] 다시보기를 먼저 만나보세요!'),
     );
     $d = isset($t[$slot]) ? $t[$slot] : $t['nl_d1'];
     $d['subj'] = ufs_ln_cfg('live_notify_nl_subj_' . $slot, $d['subj']);

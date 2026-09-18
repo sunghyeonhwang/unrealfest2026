@@ -213,6 +213,19 @@ function rv_title_html($t) {
     return preg_replace('/&lt;([^&]{1,80}?)&gt;/u', '<span class="nb">&lt;$1&gt;</span>', $e);
 }
 
+/* ── 복수 트랙 세션 — sid → 추가 트랙 라벨 (뱃지·모달 칩·필터 모두 반영) ── */
+$RV_EXTRA_TRACK = array(
+    'd2-t1-s5' => '게임: 프로그래밍',   // <이환> — 아트 + 프로그래밍
+);
+
+/* 세션의 트랙 라벨 목록 (기본 트랙 + 추가 트랙) */
+function rv_track_labels($s, $extra) {
+    $out = array(rv_track_label($s['ag_track'], (int)$s['ag_day']));
+    $sid = isset($s['ag_sid']) ? $s['ag_sid'] : '';
+    if ($sid !== '' && isset($extra[$sid]) && !in_array($extra[$sid], $out, true)) $out[] = $extra[$sid];
+    return array_values(array_filter($out, function ($v) { return $v !== ''; }));
+}
+
 /* ── 자막 자동 표시 — 영상 ID → 자막 언어 (Vimeo 플레이어 texttrack 파라미터) ── */
 $RV_TEXTTRACK = array(
     '1227252168' => 'ko',   // <이환> 온라인용 — 해외 연사, 한국어 자막 자동 켜기
@@ -263,12 +276,12 @@ if ($verified && $svc_open) {
             'title'   => $s['ag_title'],
             'day'     => (int)$s['ag_day'],
             'time'    => $s['ag_time'],
-            'track'   => $tlabel,
+            'track'   => implode('|', rv_track_labels($s, $RV_EXTRA_TRACK)),
             'level'   => rv_level_label(isset($s['ag_level']) ? $s['ag_level'] : ''),
             'desc'    => $s['ag_desc'],
             'kw'      => $kw,
             'sps'     => rv_speakers_arr($s),
-            'tc'      => rv_track_color($tlabel),
+            'tc'      => implode('|', array_map('rv_track_color', rv_track_labels($s, $RV_EXTRA_TRACK))),
             'embed'   => $has_video
                 ? rv_vimeo_embed($pick['id'], $pick['hash'])
                   . (isset($RV_TEXTTRACK[$pick['id']]) ? '&texttrack=' . $RV_TEXTTRACK[$pick['id']] : '')
@@ -519,7 +532,7 @@ button{font-family:inherit}
           $hay = mb_strtolower($s['ag_title'] . ' ' . implode(' ', $csp_names) . ' ' . $csp_co, 'UTF-8');
         ?>
         <button type="button" class="rv-card<?= $closed ? ' off' : '' ?>"<?= $closed ? ' disabled tabindex="-1"' : '' ?> data-id="<?= $agno ?>" data-day="<?= (int)$s['ag_day'] ?>"
-                data-track="<?= rv_e($tlabel) ?>" data-hay="<?= rv_e($hay) ?>">
+                data-track="<?= rv_e(implode('|', rv_track_labels($s, $RV_EXTRA_TRACK))) ?>" data-hay="<?= rv_e($hay) ?>">
           <div class="rv-thumb"<?= $thumb !== '' ? ' style="background-image:url(\'' . rv_e($thumb) . '\')"' : '' ?>>
             <?php if ($thumb === ''): ?><div class="ph"></div><?php endif; ?>
             <?php if ($has_video): ?>
@@ -527,7 +540,7 @@ button{font-family:inherit}
             <?php endif; ?>
           </div>
           <div class="rv-meta">
-            <?php if ($tlabel !== ''): ?><div class="rv-trk" style="color:<?= rv_e(rv_track_color($tlabel)) ?>"><?= rv_e($tlabel) ?></div><?php endif; ?>
+            <?php $tls = rv_track_labels($s, $RV_EXTRA_TRACK); if ($tls): ?><div class="rv-trk"><?php foreach ($tls as $ti => $tl): ?><?= $ti ? ' <span style="color:#4a4a55">·</span> ' : '' ?><span style="color:<?= rv_e(rv_track_color($tl)) ?>"><?= rv_e($tl) ?></span><?php endforeach; ?></div><?php endif; ?>
             <?php // 내부 프리뷰(오프라인 화면)에서만 별도 QA(Q&A 포함) 영상 세션에 제목 뒤 * 표시 — 실사용자에겐 미표시
               $qa_mark = ($is_pv && !$is_online_user && trim((string)$s['rv_vimeo_qa']) !== '' && $s['rv_vimeo_qa'] !== $s['rv_vimeo']); ?>
             <div class="rv-title"><?= rv_title_html($s['ag_title']) ?><?= $qa_mark ? ' <b style="color:#00FFC8">*</b>' : '' ?></div>
@@ -594,10 +607,15 @@ button{font-family:inherit}
     var chips = $id('rvMChips');
     while (chips.firstChild) chips.removeChild(chips.firstChild);
     if (d.track) {
-      var c1 = document.createElement('span'); c1.className = 'rv-chip';
-      c1.textContent = d.track;
-      if (d.tc) { c1.style.color = d.tc; c1.style.borderColor = d.tc; c1.style.background = 'transparent'; }
-      chips.appendChild(c1);
+      var tks = d.track.split('|'), tcs = (d.tc || '').split('|');
+      tks.forEach(function(tk, ti){
+        if (!tk) return;
+        var c1 = document.createElement('span'); c1.className = 'rv-chip';
+        c1.textContent = tk;
+        var col = tcs[ti] || tcs[0];
+        if (col) { c1.style.color = col; c1.style.borderColor = col; c1.style.background = 'transparent'; }
+        chips.appendChild(c1);
+      });
     }
     if (d.level) { var c2 = document.createElement('span'); c2.className = 'rv-chip'; c2.textContent = d.level; chips.appendChild(c2); }
     rvSetTitle($id('rvMTitle'), d.title);
@@ -681,7 +699,7 @@ button{font-family:inherit}
     var shown = 0;
     document.querySelectorAll('.rv-card').forEach(function(c){
       var ok = (rvDay === 'all' || c.getAttribute('data-day') === rvDay)
-            && (rvTrk === '' || rvTrk.split('|').indexOf(c.getAttribute('data-track')) !== -1)
+            && (rvTrk === '' || rvTrk.split('|').some(function(t){ return (c.getAttribute('data-track') || '').split('|').indexOf(t) !== -1; }))
             && (rvQ === '' || c.getAttribute('data-hay').indexOf(rvQ) !== -1);
       c.style.display = ok ? '' : 'none';
       if (ok) shown++;

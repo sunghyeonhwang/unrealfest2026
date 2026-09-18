@@ -471,14 +471,9 @@ button{font-family:inherit}
     <h1 class="rv-h1">언리얼 페스트 서울 2026 다시보기</h1>
     <p class="rv-sub">언리얼 페스트 서울 2026 세션 영상과 강연자료를 다시 확인하실 수 있습니다.<?php if ($period_end !== ''): ?> 다시보기는 <b style="color:#cfd0d6"><?= rv_e(substr($period_end, 0, 10)) ?></b>까지 제공됩니다.<?php endif; ?></p>
     <?php if ($notice !== ''): ?><div class="rv-notice"><?= nl2br(rv_e($notice)) ?></div><?php endif; ?>
-    <?php
-      // 오프라인 등록자 안내 — QA 포함 영상이 하나도 등록되지 않은 동안만 표시
-      if (!$is_online_user) {
-          $qa_ready = 0;
-          foreach ($sessions as $qs) { if (trim((string)(isset($qs['rv_vimeo_qa']) ? $qs['rv_vimeo_qa'] : '')) !== '') { $qa_ready = 1; break; } }
-          if (!$qa_ready): ?>
-    <div class="rv-notice">오프라인 참석자용 <b style="color:#cfd0d6">Q&amp;A 포함 영상</b>은 현재 준비 중입니다. 준비되는 대로 순차 공개되며, 강연자료 PDF는 지금 바로 이용하실 수 있습니다.</div>
-    <?php endif; } ?>
+    <?php if (!$is_online_user): // 오프라인 등록자 안내 ?>
+    <div class="rv-notice">Q&amp;A가 없는 세션은 질문이 없거나 시간 관계상 Q&amp;A가 진행되지 않은 세션입니다.</div>
+    <?php endif; ?>
 
     <?php if (!$sessions): ?>
       <div class="rv-empty">다시보기가 준비 중입니다.<br>영상과 강연자료가 준비되는 대로 순차적으로 공개됩니다.</div>

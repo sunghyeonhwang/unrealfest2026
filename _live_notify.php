@@ -36,8 +36,8 @@ function ufs_ln_table() {
         UNIQUE KEY uq_apply_day (apply_no, ln_day),
         KEY idx_day_status (ln_day, ln_status)
     ) DEFAULT CHARSET=utf8");
-    // 슬롯 코드(d1am/d1pm/d2am/d2pm) 저장을 위해 폭 확장 — 이미 넓으면 무해
-    @sql_query("ALTER TABLE cb_unreal_2026_live_notify MODIFY ln_day VARCHAR(8) NOT NULL DEFAULT ''");
+    // 슬롯 코드 저장을 위해 폭 확장 — nl_replay_on(12자)까지 수용 (이미 넓으면 무해)
+    @sql_query("ALTER TABLE cb_unreal_2026_live_notify MODIFY ln_day VARCHAR(16) NOT NULL DEFAULT ''");
 }
 }
 

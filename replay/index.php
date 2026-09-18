@@ -546,7 +546,7 @@ button{font-family:inherit}
     <div class="rv-modal">
       <div class="rv-mhd"><span class="t" id="rvMTop"></span><button type="button" class="rv-mx" id="rvClose" aria-label="닫기">&times;</button></div>
       <div class="rv-frame" id="rvFrame"></div>
-      <div id="rvMNoQa" style="display:none;padding:9px 22px;background:#0b0b0e;border-bottom:1px solid var(--line);color:#fff;font-size:12px;line-height:1.6;text-align:center">Q&amp;A가 없는 세션은 질문이 없거나 시간 관계상 Q&amp;A가 진행되지 않은 세션입니다.</div>
+      <div id="rvMNoQa" style="display:none;padding:9px 22px;background:#0b0b0e;border-bottom:1px solid var(--line);color:#fff;font-size:12px;line-height:1.6;text-align:center">본 세션은 질문이 없거나 시간 관계상 Q&amp;A가 진행되지 않았습니다.</div>
       <div class="rv-mbody">
         <div class="rv-chips" id="rvMChips"></div>
         <h2 class="rv-mtitle" id="rvMTitle"></h2>

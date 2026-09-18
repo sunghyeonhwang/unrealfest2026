@@ -546,6 +546,7 @@ button{font-family:inherit}
     <div class="rv-modal">
       <div class="rv-mhd"><span class="t" id="rvMTop"></span><button type="button" class="rv-mx" id="rvClose" aria-label="닫기">&times;</button></div>
       <div class="rv-frame" id="rvFrame"></div>
+      <div id="rvMNoQa" style="display:none;padding:9px 22px;background:#0b0b0e;border-bottom:1px solid var(--line);color:#8b8b96;font-size:12px;line-height:1.6">Q&amp;A가 없는 세션은 질문이 없거나 시간 관계상 Q&amp;A가 진행되지 않은 세션입니다.</div>
       <div class="rv-mbody">
         <div class="rv-chips" id="rvMChips"></div>
         <h2 class="rv-mtitle" id="rvMTitle"></h2>
@@ -557,7 +558,6 @@ button{font-family:inherit}
         <div class="rv-msec" id="rvMDescW" style="display:none"><h3>세션 소개</h3><p class="rv-mdesc" id="rvMDesc"></p></div>
         <div class="rv-msec" id="rvMKwW" style="display:none"><h3>키워드</h3><div class="rv-kw" id="rvMKw"></div></div>
         <div class="rv-msec" id="rvMSpsW" style="display:none"><h3>연사</h3><div id="rvMSps"></div></div>
-        <p id="rvMNoQa" style="display:none;margin:18px 0 0;padding-top:14px;border-top:1px solid var(--line);color:#6b6b76;font-size:12px;line-height:1.6">Q&amp;A가 없는 세션은 질문이 없거나 시간 관계상 Q&amp;A가 진행되지 않은 세션입니다.</p>
       </div>
     </div>
   </div>

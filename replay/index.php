@@ -274,6 +274,7 @@ if ($verified && $svc_open) {
                   . (isset($RV_TEXTTRACK[$pick['id']]) ? '&texttrack=' . $RV_TEXTTRACK[$pick['id']] : '')
                 : '',
             'qa'      => $qa_pending ? 1 : 0,
+            'noqa'    => (!$is_online_user && $has_video && $s['rv_vimeo_qa'] === $s['rv_vimeo']) ? 1 : 0,
             'pdf'     => $has_pdf ? 1 : 0,
             'pdf_name'=> $has_pdf ? ($s['rv_pdf_name'] !== '' ? $s['rv_pdf_name'] : '강연자료 PDF') : '',
             'pdf_size'=> $has_pdf ? $s['rv_pdf_size'] : '',
@@ -471,9 +472,6 @@ button{font-family:inherit}
     <h1 class="rv-h1">언리얼 페스트 서울 2026 다시보기</h1>
     <p class="rv-sub">언리얼 페스트 서울 2026 세션 영상과 강연자료를 다시 확인하실 수 있습니다.<?php if ($period_end !== ''): ?> 다시보기는 <b style="color:#cfd0d6"><?= rv_e(substr($period_end, 0, 10)) ?></b>까지 제공됩니다.<?php endif; ?></p>
     <?php if ($notice !== ''): ?><div class="rv-notice"><?= nl2br(rv_e($notice)) ?></div><?php endif; ?>
-    <?php if (!$is_online_user): // 오프라인 등록자 안내 ?>
-    <div class="rv-notice">Q&amp;A가 없는 세션은 질문이 없거나 시간 관계상 Q&amp;A가 진행되지 않은 세션입니다.</div>
-    <?php endif; ?>
 
     <?php if (!$sessions): ?>
       <div class="rv-empty">다시보기가 준비 중입니다.<br>영상과 강연자료가 준비되는 대로 순차적으로 공개됩니다.</div>
@@ -559,6 +557,7 @@ button{font-family:inherit}
         <div class="rv-msec" id="rvMDescW" style="display:none"><h3>세션 소개</h3><p class="rv-mdesc" id="rvMDesc"></p></div>
         <div class="rv-msec" id="rvMKwW" style="display:none"><h3>키워드</h3><div class="rv-kw" id="rvMKw"></div></div>
         <div class="rv-msec" id="rvMSpsW" style="display:none"><h3>연사</h3><div id="rvMSps"></div></div>
+        <p id="rvMNoQa" style="display:none;margin:18px 0 0;padding-top:14px;border-top:1px solid var(--line);color:#6b6b76;font-size:12px;line-height:1.6">Q&amp;A가 없는 세션은 질문이 없거나 시간 관계상 Q&amp;A가 진행되지 않은 세션입니다.</p>
       </div>
     </div>
   </div>
@@ -629,6 +628,8 @@ button{font-family:inherit}
       card.appendChild(box); sps.appendChild(card);
     });
     $id('rvMSpsW').style.display = (d.sps && d.sps.length) ? '' : 'none';
+    // Q&A 미진행 안내 — 오프라인 화면에서 QA 없는 세션에만 (noqa 는 서버에서 판정)
+    $id('rvMNoQa').style.display = d.noqa ? '' : 'none';
     var fr = $id('rvFrame');
     while (fr.firstChild) fr.removeChild(fr.firstChild);
     if (d.embed) {

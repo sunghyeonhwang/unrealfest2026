@@ -16,8 +16,8 @@ header('X-Robots-Tag: noindex, nofollow');
 $SECRET = '691878dfc21a1dcfa7540fe9';
 $ALLOW  = array('d2-t1-s5', 'd2-t2-s3');   // 공유 허용 세션 (이환, 모범 사례 오해와 진실)
 
-/* 자막 자동 표시 — replay/index.php 의 $RV_TEXTTRACK 와 동일 규칙 (이환만) */
-$TEXTTRACK = array('1227252168' => 'ko', '1227592684' => 'ko');
+/* 자막 자동 표시 — replay/index.php 의 $RV_TEXTTRACK 와 동일 규칙 (현재 미사용) */
+$TEXTTRACK = array();
 
 $sid = isset($_GET['s']) ? preg_replace('/[^a-z0-9\-]/', '', $_GET['s']) : '';
 $key = isset($_GET['k']) ? $_GET['k'] : '';

@@ -226,21 +226,11 @@ function rv_track_labels($s, $extra) {
     return array_values(array_filter($out, function ($v) { return $v !== ''; }));
 }
 
-/* ── 자막 자동 표시 — 영상 ID → 자막 언어 (Vimeo 플레이어 texttrack 파라미터) ── */
+/* ── 자막 자동 표시 — 영상 ID → 자막 언어 (Vimeo 플레이어 texttrack 파라미터)
+ *    다른 영상은 CC(폐쇄 자막)를 시청자가 직접 켜는 방식 — 이환만 통역이 없어 자동 표시 유지 ── */
 $RV_TEXTTRACK = array(
-    '1227252168' => 'ko',   // <이환> 온라인용 — 해외 연사, 한국어 자막 자동 켜기
-    // 오프라인용 QA 영상 — 외국어 발화 구간 한국어 자막 (2026-09-17 업로드)
-    '1227577677' => 'ko',   // Chris_day1_QA
-    '1227578714' => 'ko',   // Shao_day1_QA
-    '1227577675' => 'ko',   // Iso_Sega_QA
-    '1227578865' => 'ko',   // shinoyama_EGJ_QA
-    '1227577678' => 'ko',   // Ari_day1_QA
-    '1227577676' => 'ko',   // Magnus_pt1_QA
-    '1227578555' => 'ko',   // Magnus_pt2_QA
-    '1227592684' => 'ko',   // Liu_Feng_이환_QA
-    '1227592682' => 'ko',   // Dmitriy_EGK_QA
-    '1227592681' => 'ko',   // Ari_day2_QA
-    '1227592683' => 'ko',   // Chris_day2_QA
+    '1227252168' => 'ko',   // <이환> 온라인용
+    '1227592684' => 'ko',   // <이환> QA(오프라인용)
 );
 
 /* ── 공개 세션 로드 (인증 후에만 — 인증 전 HTML 에 영상·PDF 정보 미포함) ── */

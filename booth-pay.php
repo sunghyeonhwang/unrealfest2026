@@ -42,6 +42,16 @@ $ORDERS = array(
     'email' => 'pre3ice@gmail.com',
     'token' => 'kia26-3pax-cbc726dd4b',
   ),
+  // 2026-09-30 기아 3인 재결제 — 8/26 개인카드 결제(승인 30085236, 162,000원)를 환불하고
+  // 같은 금액을 다시 받는 링크. 문자로 김남우 담당자에게 발송.
+  'kia3r' => array(
+    'item'  => '언리얼 페스트 서울 2026 참가비 3인 (정수빈·정주열·최규철)',
+    'amount'=> 162000,
+    'name'  => '김남우',
+    'tel'   => '01022588385',
+    'email' => 'pre3ice@gmail.com',
+    'token' => 'kia26-repay-cd15ce9720',
+  ),
 );
 $slug = isset($_GET['o']) ? preg_replace('/[^a-z0-9_-]/i', '', $_GET['o']) : '';
 $key  = isset($_GET['k']) ? trim($_GET['k']) : '';

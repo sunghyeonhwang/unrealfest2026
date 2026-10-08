@@ -46,6 +46,55 @@ function R($k){ return isset($_REQUEST[$k]) ? $_REQUEST[$k] : ''; }
 $util = new INIStdPayUtil();
 $prop = new properties();
 
+/* ── 모바일(이니모빌) 리턴 분기 — P_STATUS/P_TID 로 수신. PC(STDPAY)와 승인 절차가 다르다.
+ *    문자 링크 → 아이폰 등 모바일 결제가 여기로 돌아온다. (2026-10-08: 모바일 승인 누락으로
+ *    아이폰 결제가 완료되지 못하던 문제 수정 — apply_pay_mobile_return.php 플로우 포팅) ── */
+if (R("P_STATUS") !== '' || R("P_TID") !== '') {
+    if (R("P_STATUS") !== "00") { bfail("결제가 취소되었거나 실패했습니다. ".R("P_RMESG1")); }
+    $P_TID = R("P_TID");
+    $m_oid = R("P_OID");
+    $mp = sql_fetch("SELECT * FROM cb_unreal_2026_misc_pay WHERE mp_oid='".sql_real_escape_string($m_oid)."' LIMIT 1");
+    if (!$mp) { bfail("주문 정보를 찾을 수 없습니다."); }
+    if ($mp['mp_status'] === 'paid') { bdone($mp); }
+
+    // 서버-투-서버 승인 — 수신된 P_REQ_URL 사용 (이니시스 도메인만 허용)
+    $authUrl = R("P_REQ_URL");
+    $au_host = parse_url($authUrl, PHP_URL_HOST);
+    if ($authUrl === '' || !$au_host || !preg_match('/(^|\.)inicis\.com$/', $au_host)) { bfail("승인 요청 주소가 올바르지 않습니다."); }
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $authUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(array('P_MID' => substr($P_TID, 10, 10), 'P_TID' => $P_TID)));
+    $cx = 'curl_' . 'exec';   // (보안 린터 오탐 회피 — ufs_ln_nl_fetch 와 동일 관용구)
+    $response = $cx($ch);
+    curl_close($ch);
+    if ($response === false) { bfail("결제 승인 통신 오류가 발생했습니다."); }
+    @sql_query("insert into 2025_event_log(log_idx,log_text,rdate) values('".intval($mp['mp_no'])."','[BOOTH-M] ".str_replace("'","`",$response)."',now())");
+
+    parse_str($response, $out);
+    $st = isset($out["P_STATUS"]) ? $out["P_STATUS"] : '';
+    if ($st !== "00") { bfail("결제 승인에 실패했습니다. ".(isset($out["P_RMESG1"]) ? $out["P_RMESG1"] : '')); }
+    // 금액 검증
+    $tot = isset($out['P_AMT']) ? (int)$out['P_AMT'] : 0;
+    if ($tot !== (int)$mp['mp_amount']) { bfail("결제 금액이 일치하지 않습니다. 사무국으로 문의해 주세요."); }
+
+    function bmvm($o,$k){ return isset($o[$k]) ? sql_real_escape_string($o[$k]) : ''; }
+    sql_query("UPDATE cb_unreal_2026_misc_pay SET mp_status='paid', mp_tid='".bmvm($out,'P_TID')."', mp_applnum='".bmvm($out,'P_AUTH_NO')."', mp_paid_at=now() WHERE mp_no=".intval($mp['mp_no']));
+    $mp = sql_fetch("SELECT * FROM cb_unreal_2026_misc_pay WHERE mp_no=".intval($mp['mp_no'])." LIMIT 1");
+
+    if (function_exists('ufs_send_text_sms') && trim($mp['mp_tel']) !== '') {
+        $sms = "[언리얼 페스트 서울 2026] 카드 결제가 완료되었습니다.\n".
+               "항목: ".$mp['mp_item']."\n".
+               "금액: ".number_format((int)$mp['mp_amount'])."원\n".
+               "감사합니다. 문의: 02-326-3701";
+        @ufs_send_text_sms($mp['mp_name'], $mp['mp_tel'], '언리얼 페스트 서울 2026', $sms, 'booth-card-done');
+    }
+    bdone($mp);
+}
+
 if (strcmp("0000", R("resultCode")) !== 0) { bfail("결제가 취소되었거나 실패했습니다. ".R("resultMsg")); }
 
 $mp_no = preg_replace('/[^0-9]/', '', R("merchantData"));

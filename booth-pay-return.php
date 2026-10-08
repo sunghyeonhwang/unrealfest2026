@@ -18,17 +18,26 @@ function bfail($msg){
     exit;
 }
 function bdone($mp){
+    // 참가비 성격 결제(개인 등록과 연결)는 완료 후 등록 확인 페이지로 안내 + 자동 이동
+    $to_myticket = in_array($mp['mp_slug'], array('kia3', 'kia3r', 'kocca1'), true);
     echo '<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>결제 완료</title>'
        .'<style>body{background:#09090b;color:#e4e4e7;font-family:system-ui,sans-serif;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}'
        .'.c{max-width:460px;background:#111115;border:1px solid #27272a;border-radius:16px;padding:32px}.ok{color:#22c55e;font-size:22px;font-weight:800;margin:0 0 20px;text-align:center}'
        .'.row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid #1f1f23;font-size:14px}.k{color:#71717a}.v{color:#e4e4e7;text-align:right;font-weight:600}'
-       .'.amt{color:#00C1D5;font-size:20px;font-weight:800}.note{margin-top:18px;font-size:12px;color:#71717a;line-height:1.6}</style></head><body><div class="c">'
+       .'.amt{color:#00C1D5;font-size:20px;font-weight:800}.note{margin-top:18px;font-size:12px;color:#71717a;line-height:1.6}'
+       .'.go{display:block;margin-top:20px;padding:14px;text-align:center;background:#00C1D5;color:#00232a;font-weight:800;font-size:15px;border-radius:10px;text-decoration:none}'
+       .'.cnt{margin-top:10px;font-size:12px;color:#71717a;text-align:center}</style></head><body><div class="c">'
        .'<div class="ok">✓ 결제가 완료되었습니다</div>'
        .'<div class="row"><span class="k">항목</span><span class="v">'.bev($mp['mp_item']).'</span></div>'
        .'<div class="row"><span class="k">담당자</span><span class="v">'.bev($mp['mp_name']).'</span></div>'
        .'<div class="row"><span class="k">결제금액</span><span class="v amt">₩'.number_format((int)$mp['mp_amount']).'</span></div>'
        .'<div class="row"><span class="k">승인번호</span><span class="v">'.bev($mp['mp_applnum']).'</span></div>'
        .'<div class="row"><span class="k">거래ID</span><span class="v" style="font-size:12px">'.bev($mp['mp_tid']).'</span></div>'
+       .($to_myticket
+          ? '<a class="go" href="/unrealfest2026/myticket.php">등록 확인하러 가기 →</a>'
+           .'<p class="cnt"><span id="s">10</span>초 후 등록 확인 페이지로 자동 이동합니다</p>'
+           .'<script>var s=10,el=document.getElementById("s");setInterval(function(){s--;if(el)el.textContent=s;if(s<=0)location.href="/unrealfest2026/myticket.php";},1000);</script>'
+          : '')
        .'<p class="note">세금계산서 발행·문의: 언리얼 페스트 사무국 02-326-3701 · info@epiclounge.co.kr</p></div></body></html>';
     exit;
 }

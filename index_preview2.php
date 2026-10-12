@@ -310,22 +310,31 @@ $ov_icons = array(
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
           <div>
             <h3 style="font-size:20px;font-weight:800;color:#fff;margin:0">규모별 할인율</h3>
-            <p style="color:#a1a1aa;font-size:13px;margin:6px 0 0">5인 이상 단체 등록 시 규모에 따라 할인이 적용됩니다. (정상가 기준)</p>
+            <p style="color:#a1a1aa;font-size:13px;margin:6px 0 0">5인 이상 단체 등록 시 인원에 따라 <b style="color:#00C1D5">최대 50%</b> 할인이 적용됩니다. (정상가 기준)</p>
           </div>
           <button type="button" onclick="document.getElementById('groupDiscModal').classList.remove('open')" aria-label="닫기" style="color:#a1a1aa;font-size:26px;line-height:1;background:none;border:0;cursor:pointer;flex-shrink:0">&times;</button>
         </div>
         <div style="overflow-x:auto">
           <table>
-            <thead><tr><th>단체 인원</th><th>할인율</th><th>양일권</th><th>양일권 할인</th><th>1일권</th><th>1일권 할인</th></tr></thead>
+            <thead><tr><th>단체 인원</th><th>할인율</th><th>양일권 (1인당)</th><th>양일권 할인 (1인당)</th><th>1일권 (1인당)</th><th>1일권 할인 (1인당)</th></tr></thead>
             <tbody>
               <tr><td>5 ~ 9인</td><td class="disc">10%</td><td>₩108,000</td><td class="save">-₩12,000</td><td>₩54,000</td><td class="save">-₩6,000</td></tr>
               <tr><td>10 ~ 19인</td><td class="disc">20%</td><td>₩96,000</td><td class="save">-₩24,000</td><td>₩48,000</td><td class="save">-₩12,000</td></tr>
-              <tr><td>20 ~ 30인</td><td class="disc">30%</td><td>₩84,000</td><td class="save">-₩36,000</td><td>₩42,000</td><td class="save">-₩18,000</td></tr>
-              <tr><td>31 ~ 49인</td><td class="disc">40%</td><td>₩72,000</td><td class="save">-₩48,000</td><td>₩36,000</td><td class="save">-₩24,000</td></tr>
+              <tr><td>20 ~ 29인</td><td class="disc">30%</td><td>₩84,000</td><td class="save">-₩36,000</td><td>₩42,000</td><td class="save">-₩18,000</td></tr>
+              <tr><td>30 ~ 39인</td><td class="disc">40%</td><td>₩72,000</td><td class="save">-₩48,000</td><td>₩36,000</td><td class="save">-₩24,000</td></tr>
+              <tr><td>40인 이상</td><td class="disc">50%</td><td>₩60,000</td><td class="save">-₩60,000</td><td>₩30,000</td><td class="save">-₩30,000</td></tr>
             </tbody>
           </table>
         </div>
         <p style="color:#71717a;font-size:12px;margin-top:14px">· 정상가: 양일권 ₩120,000 / 1일권 ₩60,000 기준. 단체 등록·기업 결제 문의는 운영 사무국으로 연락해 주세요.</p>
+        <div style="margin-top:18px;padding-top:16px;border-top:1px solid #27272a">
+          <h4 style="font-size:14px;font-weight:700;color:#fafafa;margin:0 0 8px">안내사항</h4>
+          <ul style="list-style:none;margin:0;padding:0;color:#a1a1aa;font-size:13px;line-height:1.7">
+            <li style="display:flex;gap:8px"><span style="color:#00C1D5;flex-shrink:0">·</span><span>단체 할인은 5인 이상 등록 시 적용됩니다.</span></li>
+            <li style="display:flex;gap:8px"><span style="color:#00C1D5;flex-shrink:0">·</span><span>할인율은 최종 등록 인원을 기준으로 적용됩니다.</span></li>
+            <li style="display:flex;gap:8px"><span style="color:#00C1D5;flex-shrink:0">·</span><span>단체 등록은 부분 취소가 불가능하며, 취소 시 전체 등록이 취소됩니다.</span></li>
+          </ul>
+        </div>
         <div style="margin-top:20px;display:flex;justify-content:center">
           <a href="mailto:info@epiclounge.co.kr" class="inline-flex items-center gap-2 px-8 py-3 bg-white text-black text-sm font-bold hover:bg-white/90 transition-colors clip-btn-8">
             문의하기

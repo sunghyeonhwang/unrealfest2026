@@ -35,3 +35,10 @@ _secret_paypal.php
 
 # Cloudflare 캐시 퍼지 토큰(Cache Purge 권한만) — SFTP 전용
 _secret_cf.php
+
+# 다시보기 업로드 자산(영상/연사 PDF/썸네일) — SFTP 전용, git 추적 금지 (2.9GB+)
+replay/_pdf_upload/
+replay/_qa_download/
+replay/*.mp4
+replay/연사 pdf 파일/
+thumnail/

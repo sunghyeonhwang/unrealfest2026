@@ -43,4 +43,8 @@ $html = str_replace(array_keys($dates), array_values($dates), $html);
 $html = str_replace('이니시스 고객센터', '토스페이먼츠 고객센터', $html);
 $html = str_replace('https://www.inicis.com/blog/archives/category/cs', 'https://www.tosspayments.com', $html);
 
+/* ⑥ 히어로 로고 → 심사 데모용 새 로고 */
+$html = str_replace('https://unrealsummit16.cafe24.com/2026/ufs26/hero_new_main_logo2.svg',
+                    $root . 'paments/hero_new_main_logo3.svg', $html);
+
 echo $html;

@@ -27,4 +27,20 @@ $closedSpan = '<span class="btn-off w-full mt-[16px] py-[13px] text-[18px] font-
 $openLink   = '<a href="' . $root . 'paments/ticket-all.php" class="btn-off mt-[16px] w-full bg-[#00C1D5] text-[#09090b] py-[13px] text-[18px] font-bold text-center flex items-center justify-center gap-2 font-jamjil">양일권 등록하기 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>';
 $html = str_replace($closedSpan, $openLink, $html);
 
+/* ④ 행사 일자: 8/20(목)–21(금) → 12/3(목)–4(금) (심사용 데모 표기 — 긴 문자열 먼저) */
+$dates = array(
+    '8.20 (목) ~ 8.21 (금)' => '12.3 (목) ~ 12.4 (금)',
+    '8.20 (목)'             => '12.3 (목)',
+    '8.21 (금)'             => '12.4 (금)',
+    '8월 20일'              => '12월 3일',
+    '8월 21일'              => '12월 4일',
+    '2026-08-20'            => '2026-12-03',
+    '2026-08-21'            => '2026-12-04',
+);
+$html = str_replace(array_keys($dates), array_values($dates), $html);
+
+/* ⑤ PG 안내: 이니시스 고객센터 → 토스페이먼츠 고객센터 (문구·링크) */
+$html = str_replace('이니시스 고객센터', '토스페이먼츠 고객센터', $html);
+$html = str_replace('https://www.inicis.com/blog/archives/category/cs', 'https://www.tosspayments.com', $html);
+
 echo $html;

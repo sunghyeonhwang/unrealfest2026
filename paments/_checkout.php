@@ -83,7 +83,7 @@ header('Content-Type: text/html; charset=utf-8');
     <a class="back" href="/v3/unrealfest2026/paments/index.php">← 행사 홈</a>
   </div>
   <h1><?= ck_e($CK['title']) ?></h1>
-  <p class="sub">언리얼 페스트 서울 2026 · 2026년 8월 20일(목)–21일(금) · 코엑스 (서울)<br>행사/컨퍼런스 참가권 — 결제 완료 시 등록 확인 메일이 발송됩니다.</p>
+  <p class="sub">언리얼 페스트 서울 2026 · 2026년 12월 3일(목)–4일(금) · 코엑스 (서울)<br>행사/컨퍼런스 참가권 — 결제 완료 시 등록 확인 메일이 발송됩니다.</p>
 
   <div class="card">
     <h2>티켓 선택</h2>

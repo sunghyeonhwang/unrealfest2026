@@ -9,7 +9,9 @@ require_once __DIR__ . '/_reg_gate.php';
 $__is_offline_req = (isset($_POST['apply_product_code']) && $_POST['apply_product_code'] !== 'ONLINE');
 ufs_reg_gate_or_die(false, $__is_offline_req);   // 마감(시각·수동) + 현장이면 정원까지
 // 양일권 마감 — 폼을 우회해 직접 POST 해도 여기서 거절한다(쿠폰 등록은 예외)
-if (isset($_POST['apply_product_code']) && $_POST['apply_product_code'] === 'NORMAL_ALL'
+// UFS_REG_FORCE_OPEN(PG 심사용 임시 개방) 중에는 양일권도 허용한다.
+if (!UFS_REG_FORCE_OPEN
+    && isset($_POST['apply_product_code']) && $_POST['apply_product_code'] === 'NORMAL_ALL'
     && !ufs_reg_is_coupon_flow()) {
     exit('<script>alert("양일권은 등록이 마감되었습니다. 1일권으로 등록해 주세요.");history.back();</script>');
 }

@@ -16,6 +16,11 @@
  * PHP 7.0 호환.
  */
 
+/* ── PG(토스페이먼츠) 가맹 심사용 임시 전면 개방 (2026-10-14) ──
+ * 심사 기간 동안 마감(시각·수동 스위치·현장 정원·단체)을 전부 무시하고 등록을 연다.
+ * ⚠ 열려 있는 동안 INICIS 라이브 실결제가 가능하다 — 심사가 끝나면 false 로 되돌릴 것. */
+if (!defined('UFS_REG_FORCE_OPEN')) define('UFS_REG_FORCE_OPEN', true);
+
 if (!function_exists('ufs_reg_close_ts')) {
 function ufs_reg_close_ts() {
     static $ts = null;
@@ -56,6 +61,7 @@ function ufs_reg_is_coupon_flow() {
 
 if (!function_exists('ufs_reg_closed')) {
 function ufs_reg_closed() {
+    if (UFS_REG_FORCE_OPEN) return false;                // PG 심사용 임시 개방
     if (function_exists('ufs_is_preview') && ufs_is_preview()) return false;
     if (ufs_reg_is_coupon_flow()) return false;          // 쿠폰 등록은 항상 허용
     if (ufs_reg_closed_manual()) return true;            // 관리자가 즉시 마감
@@ -99,6 +105,7 @@ function ufs_reg_offline_count() {
 
 if (!function_exists('ufs_reg_offline_full')) {
 function ufs_reg_offline_full() {
+    if (UFS_REG_FORCE_OPEN) return false;                // PG 심사용 임시 개방
     if (function_exists('ufs_is_preview') && ufs_is_preview()) return false;
     if (ufs_reg_is_coupon_flow()) return false;          // 쿠폰은 정원과 무관
     $max = ufs_reg_max_offline();
@@ -120,6 +127,7 @@ function ufs_reg_closed_offline() {
  * ⚠️ 관리자 무인증 등록(ticket-group-admin.php)에는 적용하지 않는다 — 현장 워크인용. */
 if (!function_exists('ufs_reg_group_closed')) {
 function ufs_reg_group_closed() {
+    if (UFS_REG_FORCE_OPEN) return false;                // PG 심사용 임시 개방
     if (function_exists('ufs_is_preview') && ufs_is_preview()) return false;
     if (function_exists('sql_fetch')) {
         $r = @sql_fetch("SELECT cfg_val FROM cb_unreal_2026_config WHERE cfg_key='reg_group_closed'");

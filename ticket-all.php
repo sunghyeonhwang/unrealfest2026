@@ -6,7 +6,7 @@
 require __DIR__ . '/_ticket_init.php';
 // 양일권(NORMAL_ALL)은 사무국 결정으로 마감 — 남은 좌석은 1일권에만 배정한다.
 // 되돌리려면 아래 true 를 false 로 바꾸면 된다.
-$__all_closed = true;
+$__all_closed = false;   // PG(토스페이먼츠) 심사용 임시 개방(2026-10-14) — 심사 후 true 로 원복
 if ($__all_closed || ufs_reg_closed_offline()) ufs_reg_closed_page('양일권 등록 마감');
 ?>
 <!DOCTYPE html>
